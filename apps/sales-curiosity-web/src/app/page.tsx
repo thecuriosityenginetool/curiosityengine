@@ -438,15 +438,15 @@ export default function Home() {
                 <strong className="text-black">Auto-draft emails</strong> from LinkedIn profiles and CRM entries, <strong className="text-black">auto-research</strong> LinkedIn accounts and CRM deals, <strong className="text-black">enrich CRM leads</strong> with AI research and <strong className="text-black">generate messages</strong> to leads from your Outlook or Gmail.
               </p>
 
-              {/* Try free with 1-click text */}
-              <p className="text-base text-gray-600 mb-8">Try free with 1-click:</p>
+              {/* Get started text */}
+              <p className="text-base text-gray-600 mb-8">Get started in seconds:</p>
 
               {/* CTA Buttons matching the image */}
               <div className="flex flex-col sm:flex-row gap-4 justify-center items-center mb-10">
                 {/* Gmail Button */}
                 <Link 
                   href="/signup?integration=gmail"
-                  className="flex items-center gap-3 px-6 py-3 bg-white border border-gray-200 rounded-lg hover:shadow-md transition-all duration-300 hover:scale-105"
+                  className="flex items-center gap-3 px-6 py-3 bg-white border border-gray-200 rounded-lg hover:shadow-md transition-all duration-300 hover:scale-105 relative z-10"
                 >
                   <Image 
                     src="/Gmail Icon.svg" 
@@ -461,7 +461,7 @@ export default function Home() {
                 {/* Outlook Button */}
                 <Link 
                   href="/signup?integration=outlook"
-                  className="flex items-center gap-3 px-6 py-3 bg-[#0078D4] rounded-lg hover:bg-[#106ebe] transition-all duration-300 hover:scale-105"
+                  className="flex items-center gap-3 px-6 py-3 bg-white border border-gray-200 text-gray-800 rounded-lg hover:shadow-md transition-all duration-300 hover:scale-105 relative z-10"
                 >
                   <Image 
                     src="/Outlook_icon.svg" 
@@ -470,7 +470,7 @@ export default function Home() {
                     height={24}
                     className="w-6 h-6"
                   />
-                  <span className="text-white font-medium">Outlook</span>
+                  <span className="text-gray-800 font-medium">Outlook</span>
                 </Link>
               </div>
 

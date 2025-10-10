@@ -2341,6 +2341,13 @@ function Popup() {
               onClick={async () => {
                 try {
                   const { authToken } = await chrome.storage.local.get(['authToken']);
+                  
+                  if (!authToken) {
+                    alert('Please log in to the extension first');
+                    return;
+                  }
+                  
+                  console.log('Calling Salesforce auth-user API...');
                   const res = await chrome.runtime.sendMessage({
                     type: "PING_API",
                     url: `${apiBase}/api/salesforce/auth-user`,
@@ -2348,13 +2355,18 @@ function Popup() {
                     authToken,
                   });
                   
+                  console.log('Salesforce auth response:', res);
+                  
                   if (res.ok && res.data?.authUrl) {
+                    console.log('Opening Salesforce OAuth:', res.data.authUrl);
                     // Open Salesforce OAuth in new tab
                     chrome.tabs.create({ url: res.data.authUrl });
                   } else {
-                    alert('Failed to initiate Salesforce connection');
+                    console.error('Failed response:', res);
+                    alert('Failed to initiate Salesforce connection: ' + (res.data?.error || res.error || 'Unknown error'));
                   }
                 } catch (err) {
+                  console.error('Salesforce connection error:', err);
                   alert('Error: ' + String(err));
                 }
               }}

@@ -64,6 +64,34 @@ export default function Home() {
   const [hasAnimated, setHasAnimated] = useState(false);
   const emailRef = useRef<HTMLDivElement>(null);
   
+  // Fallback: Start animation after component mounts
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      if (!hasAnimated) {
+        console.log('Fallback: Starting typing animation...');
+        setHasAnimated(true);
+        setIsTyping(true);
+        setEmailText('');
+        const fullText = "Hey Sarah,\n\nI noticed you're expanding into the enterprise market—congrats on the Series B! 🥳\n\nWe helped a similar company in your space reduce their sales cycle by 40%. Would love to show you how...";
+        let currentIndex = 0;
+        
+        const typeInterval = setInterval(() => {
+          if (currentIndex <= fullText.length) {
+            setEmailText(fullText.slice(0, currentIndex));
+            currentIndex++;
+          } else {
+            clearInterval(typeInterval);
+            setTimeout(() => {
+              setIsTyping(false);
+            }, 1000);
+          }
+        }, 50);
+      }
+    }, 2000); // Start after 2 seconds if intersection observer doesn't trigger
+    
+    return () => clearTimeout(timer);
+  }, [hasAnimated]);
+  
   const [userData, setUserData] = useState<any>(null);
   const [activeTab, setActiveTab] = useState<TabType>('home');
   const [linkedinUrl, setLinkedinUrl] = useState('');
@@ -129,7 +157,9 @@ export default function Home() {
     const observer = new IntersectionObserver(
       (entries) => {
         entries.forEach((entry) => {
+          console.log('Intersection observer triggered:', entry.isIntersecting, hasAnimated);
           if (entry.isIntersecting && !hasAnimated) {
+            console.log('Starting typing animation...');
             setHasAnimated(true);
             setIsTyping(true);
             setEmailText(''); // Reset text
@@ -148,18 +178,14 @@ export default function Home() {
                 }, 1000);
               }
             }, 50); // Slightly slower for better readability
-          } else if (!entry.isIntersecting && hasAnimated) {
-            // Reset animation when scrolling away
-            setHasAnimated(false);
-            setIsTyping(false);
-            setEmailText('');
           }
         });
       },
-      { threshold: 0.3 } // Trigger earlier when section becomes visible
+      { threshold: 0.1 } // Lower threshold to trigger earlier
     );
 
     if (emailRef.current) {
+      console.log('Observing email element');
       observer.observe(emailRef.current);
     }
 
@@ -522,7 +548,7 @@ export default function Home() {
                   </div>
                   <div className="bg-white rounded-lg p-6 mb-6 border border-gray-200 h-48 overflow-hidden">
                     <p className="text-gray-700 leading-relaxed whitespace-pre-line h-full overflow-y-auto">
-                      {emailText}
+                      {emailText || "Loading AI response..."}
                       {isTyping && <span className="animate-pulse">|</span>}
                     </p>
                   </div>

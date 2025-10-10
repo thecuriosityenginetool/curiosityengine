@@ -2270,23 +2270,8 @@ function Popup() {
           </div>
         )}
 
-        {/* No integrations for org members */}
-        {isOrgMember && !isOrgAdmin && enabledIntegrations.length === 0 && (
-          <div style={{
-            background: "#fef3c7",
-            border: "1px solid #fcd34d",
-            padding: "12px 16px",
-            borderRadius: 8,
-            marginBottom: 16,
-            fontSize: 12,
-            color: "#92400e"
-          }}>
-            No integrations enabled yet. Ask your organization admin to enable integrations.
-          </div>
-        )}
-
-        {/* Salesforce Integration - Individual Users */}
-        {(isIndividual || !isOrgMember) && (
+        {/* Salesforce Integration - Available for ALL Users */}
+        {(
           <div style={{
             background: "white",
             padding: "20px",

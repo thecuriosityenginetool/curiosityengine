@@ -2366,6 +2366,9 @@ function Popup() {
                   
                   console.log('🔵 API Response:', JSON.stringify(res, null, 2));
                   
+                  // DEBUG: Show response in alert BEFORE opening tab
+                  alert('DEBUG Response:\n\n' + JSON.stringify(res, null, 2));
+                  
                   if (res.ok && res.data?.authUrl) {
                     console.log('✅ Success! Opening Salesforce:', res.data.authUrl);
                     chrome.tabs.create({ url: res.data.authUrl });

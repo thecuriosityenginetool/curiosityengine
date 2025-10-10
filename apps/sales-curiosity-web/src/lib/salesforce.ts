@@ -61,11 +61,16 @@ export interface SalesforceSearchResult {
 /**
  * Generate Salesforce OAuth URL
  */
-export function getSalesforceAuthUrl(state: string): string {
+export function getSalesforceAuthUrl(state: string, isUserLevel: boolean = false): string {
+  // Use different callback URL for user-level vs org-level
+  const redirectUri = isUserLevel
+    ? `${process.env.NEXT_PUBLIC_APP_URL}/api/salesforce/user-callback`
+    : SALESFORCE_REDIRECT_URI;
+    
   const params = new URLSearchParams({
     response_type: 'code',
     client_id: SALESFORCE_CLIENT_ID,
-    redirect_uri: SALESFORCE_REDIRECT_URI,
+    redirect_uri: redirectUri,
     state,
     prompt: 'consent',
   });

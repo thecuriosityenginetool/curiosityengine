@@ -87,8 +87,8 @@ export async function GET(req: NextRequest) {
       })
     ).toString('base64url');
 
-    // Generate Salesforce OAuth URL
-    const authUrl = getSalesforceAuthUrl(state);
+    // Generate Salesforce OAuth URL (user-level = true)
+    const authUrl = getSalesforceAuthUrl(state, true);
 
     return NextResponse.json(
       {

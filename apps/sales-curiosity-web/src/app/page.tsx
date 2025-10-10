@@ -948,7 +948,7 @@ export default function Home() {
               <div className="relative z-10">
                 <div className="flex items-center gap-4 mb-6">
                   <Image 
-                    src="/google_cal_logo.svg" 
+                    src="/Google_Calendar_logo.svg" 
                     alt="Google Calendar" 
                     width={40}
                     height={40}

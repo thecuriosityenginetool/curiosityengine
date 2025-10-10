@@ -4,37 +4,37 @@ import Image from 'next/image';
 
 export default function LogoCarousel() {
   const logos = [
-    { name: 'Gmail', path: '/logos/gmail.svg', width: 120, height: 120 },
-    { name: 'Google Calendar', path: '/logos/google-calendar.svg', width: 300, height: 80 },
-    { name: 'HubSpot', path: '/logos/hubspot.svg', width: 400, height: 100 },
-    { name: 'LinkedIn', path: '/logos/linkedin.svg', width: 500, height: 140 },
-    { name: 'Monday', path: '/logos/monday.svg', width: 450, height: 80 },
-    { name: 'Salesforce', path: '/logos/salesforce.svg', width: 400, height: 120 },
+    { name: 'Gmail', path: '/logos/gmail.svg' },
+    { name: 'Outlook', path: '/logos/outlook-logo.svg' },
+    { name: 'Google Calendar', path: '/logos/google-calendar.svg' },
+    { name: 'HubSpot', path: '/logos/hubspot.svg' },
+    { name: 'LinkedIn', path: '/logos/linkedin.svg' },
+    { name: 'Monday', path: '/logos/monday.svg' },
+    { name: 'Salesforce', path: '/logos/salesforce.svg' },
   ];
 
   // Duplicate logos for seamless infinite scroll
   const duplicatedLogos = [...logos, ...logos, ...logos];
 
   return (
-    <div className="relative w-full overflow-hidden py-16">
-      {/* Fade edges - 10% on each side */}
-      <div className="absolute left-0 top-0 bottom-0 w-[10%] bg-gradient-to-r from-white via-white/90 to-transparent z-10 pointer-events-none" />
-      <div className="absolute right-0 top-0 bottom-0 w-[10%] bg-gradient-to-l from-white via-white/90 to-transparent z-10 pointer-events-none" />
+    <div className="relative w-[90vw] mx-auto overflow-hidden py-12">
+      {/* Fade edges - 5% on each side (since we're at 90vw, 5% of 90vw = 4.5vw fade) */}
+      <div className="absolute left-0 top-0 bottom-0 w-[5%] bg-gradient-to-r from-white via-white/80 to-transparent z-10 pointer-events-none" />
+      <div className="absolute right-0 top-0 bottom-0 w-[5%] bg-gradient-to-l from-white via-white/80 to-transparent z-10 pointer-events-none" />
       
-      {/* Scrolling container */}
-      <div className="flex items-center animate-scroll-logos gap-24">
+      {/* Scrolling container - full color, no grayscale */}
+      <div className="flex items-center animate-scroll-logos-fast gap-12">
         {duplicatedLogos.map((logo, index) => (
           <div
             key={`${logo.name}-${index}`}
-            className="flex-shrink-0 grayscale hover:grayscale-0 transition-all duration-500 opacity-60 hover:opacity-100 cursor-pointer hover:scale-105 flex items-center justify-center"
-            style={{ minWidth: `${logo.width}px`, height: '100px' }}
+            className="flex-shrink-0 transition-all duration-300 hover:scale-110 cursor-pointer flex items-center justify-center"
           >
             <Image
               src={logo.path}
               alt={logo.name}
-              width={logo.width}
-              height={logo.height}
-              className="w-auto h-auto max-h-[80px]"
+              width={200}
+              height={80}
+              className="h-auto w-auto max-h-[60px] max-w-[200px]"
             />
           </div>
         ))}

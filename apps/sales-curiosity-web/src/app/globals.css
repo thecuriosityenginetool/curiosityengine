@@ -98,3 +98,12 @@ body {
   animation-play-state: paused;
 }
 
+/* Faster scroll - 15% faster = 25.5s instead of 30s */
+.animate-scroll-logos-fast {
+  animation: scroll-logos 25.5s linear infinite;
+}
+
+.animate-scroll-logos-fast:hover {
+  animation-play-state: paused;
+}
+

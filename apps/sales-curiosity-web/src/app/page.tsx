@@ -61,6 +61,7 @@ export default function Home() {
   // Typing animation for email text
   const [emailText, setEmailText] = useState('');
   const [isTyping, setIsTyping] = useState(false);
+  const [hasAnimated, setHasAnimated] = useState(false);
   const emailRef = useRef<HTMLDivElement>(null);
   
   const [userData, setUserData] = useState<any>(null);
@@ -128,8 +129,10 @@ export default function Home() {
     const observer = new IntersectionObserver(
       (entries) => {
         entries.forEach((entry) => {
-          if (entry.isIntersecting && !isTyping) {
+          if (entry.isIntersecting && !hasAnimated) {
+            setHasAnimated(true);
             setIsTyping(true);
+            setEmailText(''); // Reset text
             const fullText = "Hey Sarah,\n\nI noticed you're expanding into the enterprise market—congrats on the Series B! 🥳\n\nWe helped a similar company in your space reduce their sales cycle by 40%. Would love to show you how...";
             let currentIndex = 0;
             
@@ -139,12 +142,21 @@ export default function Home() {
                 currentIndex++;
               } else {
                 clearInterval(typeInterval);
+                // Keep the cursor for a moment after typing is complete
+                setTimeout(() => {
+                  setIsTyping(false);
+                }, 1000);
               }
-            }, 30);
+            }, 50); // Slightly slower for better readability
+          } else if (!entry.isIntersecting && hasAnimated) {
+            // Reset animation when scrolling away
+            setHasAnimated(false);
+            setIsTyping(false);
+            setEmailText('');
           }
         });
       },
-      { threshold: 0.5 }
+      { threshold: 0.3 } // Trigger earlier when section becomes visible
     );
 
     if (emailRef.current) {
@@ -156,7 +168,7 @@ export default function Home() {
         observer.unobserve(emailRef.current);
       }
     };
-  }, [isTyping]);
+  }, [hasAnimated]);
 
   // Removed complex checkAuth - NextAuth handles it all!
 
@@ -508,8 +520,8 @@ export default function Home() {
                       <div className="text-xs text-gray-500">Trained on 2,847 sent emails</div>
                     </div>
                   </div>
-                  <div className="bg-white rounded-lg p-6 mb-6 border border-gray-200">
-                    <p className="text-gray-700 leading-relaxed whitespace-pre-line">
+                  <div className="bg-white rounded-lg p-6 mb-6 border border-gray-200 h-48 overflow-hidden">
+                    <p className="text-gray-700 leading-relaxed whitespace-pre-line h-full overflow-y-auto">
                       {emailText}
                       {isTyping && <span className="animate-pulse">|</span>}
                     </p>

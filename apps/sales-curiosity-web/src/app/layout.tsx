@@ -26,11 +26,9 @@ export default function RootLayout({
       <body className={`${manrope.variable} antialiased font-sans`}>
         <SessionProvider>
           <Navigation />
-          <div className="pt-20">
-            <ClientProviders>
-              {children}
-            </ClientProviders>
-          </div>
+          <ClientProviders>
+            {children}
+          </ClientProviders>
         </SessionProvider>
       </body>
     </html>

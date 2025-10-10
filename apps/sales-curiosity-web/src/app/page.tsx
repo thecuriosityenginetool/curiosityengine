@@ -319,16 +319,16 @@ export default function Home() {
           {/* Mouse-tracking gradient overlay */}
           <div className="absolute inset-0 pointer-events-none">
             <div 
-              className="absolute h-[800px] w-[100rem] rounded-full bg-gradient-to-b from-[#F95B14]/20 via-[#F95B14]/10 to-transparent blur-3xl transition-all duration-1000 ease-out"
+              className="absolute h-[680px] w-[85rem] rounded-full bg-gradient-to-b from-[#F95B14]/25 via-[#F95B14]/12 to-transparent blur-2xl transition-all duration-1000 ease-out"
               style={{
-                left: `${mousePosition.x - 500}px`,
-                top: `${mousePosition.y - 400}px`,
+                left: `${mousePosition.x - 425}px`,
+                top: `${mousePosition.y - 340}px`,
                 transform: 'translate(-50%, -50%)'
               }}
             />
           </div>
 
-          <div className="relative mx-auto max-w-7xl px-6 py-24 sm:py-32 lg:py-40">
+          <div className="relative mx-auto max-w-7xl px-6 pt-24 pb-24 sm:pt-32 sm:pb-32 lg:pt-40 lg:pb-40">
             <div className="mx-auto max-w-4xl text-center">
               {/* Logo with hover animation */}
               <div className="mb-8 flex justify-center group">
@@ -348,7 +348,7 @@ export default function Home() {
               
               <h1 className="text-5xl font-bold tracking-tight text-black sm:text-6xl lg:text-7xl mb-6 leading-tight">
                 The AI Sales Assistant for{' '}
-                <span className="text-[#F95B14] inline-block min-w-[280px] sm:min-w-[400px] text-left">
+                <span className="text-[#F95B14] inline-block min-w-[280px] sm:min-w-[400px] text-center">
                   {currentRole}
                   <span className="animate-pulse">|</span>
                 </span>

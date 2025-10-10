@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useRef } from 'react';
 import { useRouter } from 'next/navigation';
 import { useSession } from 'next-auth/react';
 import { supabase } from '@/lib/supabase';
@@ -57,6 +57,11 @@ export default function Home() {
   
   // Mouse tracking for gradient
   const [mousePosition, setMousePosition] = useState({ x: 0, y: 0 });
+  
+  // Typing animation for email text
+  const [emailText, setEmailText] = useState('');
+  const [isTyping, setIsTyping] = useState(false);
+  const emailRef = useRef<HTMLDivElement>(null);
   
   const [userData, setUserData] = useState<any>(null);
   const [activeTab, setActiveTab] = useState<TabType>('home');
@@ -117,6 +122,41 @@ export default function Home() {
     window.addEventListener('mousemove', handleMouseMove);
     return () => window.removeEventListener('mousemove', handleMouseMove);
   }, []);
+
+  // Typing animation effect for email text
+  useEffect(() => {
+    const observer = new IntersectionObserver(
+      (entries) => {
+        entries.forEach((entry) => {
+          if (entry.isIntersecting && !isTyping) {
+            setIsTyping(true);
+            const fullText = "Hey Sarah,\n\nI noticed you're expanding into the enterprise market—congrats on the Series B! 🥳\n\nWe helped a similar company in your space reduce their sales cycle by 40%. Would love to show you how...";
+            let currentIndex = 0;
+            
+            const typeInterval = setInterval(() => {
+              if (currentIndex <= fullText.length) {
+                setEmailText(fullText.slice(0, currentIndex));
+                currentIndex++;
+              } else {
+                clearInterval(typeInterval);
+              }
+            }, 30);
+          }
+        });
+      },
+      { threshold: 0.5 }
+    );
+
+    if (emailRef.current) {
+      observer.observe(emailRef.current);
+    }
+
+    return () => {
+      if (emailRef.current) {
+        observer.unobserve(emailRef.current);
+      }
+    };
+  }, [isTyping]);
 
   // Removed complex checkAuth - NextAuth handles it all!
 
@@ -423,7 +463,7 @@ export default function Home() {
                 🧠 AI That Sounds Like You
               </div>
                 <p className="text-lg text-gray-700 mb-6 leading-relaxed">
-                  We train your account's AI on your actual sent emails, so every auto-drafted message sounds authentically like you. No robotic templates. No generic responses. Just your natural voice, scaled.
+                  Try free and connect your email to train your personal AI assistant. Watch as it learns your unique writing style and drafts messages that sound exactly like you—no robotic templates, just your authentic voice at scale.
                 </p>
                 <ul className="space-y-3 text-gray-700">
                   <li className="flex items-start gap-3 group hover:translate-x-2 transition-transform duration-300">
@@ -446,19 +486,32 @@ export default function Home() {
                   </li>
                 </ul>
               </div>
-            <div className="bg-gray-50 rounded-2xl p-8">
+            <div className="bg-gray-50 rounded-2xl p-8" ref={emailRef}>
                   <div className="mb-4 flex items-center gap-3">
-                    <div className="w-10 h-10 rounded-full bg-gradient-to-r from-[#F95B14] to-[#e04d0a] animate-pulse" />
+                    <div className="relative">
+                      <Image 
+                        src="/profile-pic.jpg" 
+                        alt="AI Assistant" 
+                        width={40}
+                        height={40}
+                        className="w-10 h-10 rounded-full object-cover border-2 border-[#F95B14]"
+                        onError={(e) => {
+                          // Fallback to gradient circle if image fails to load
+                          e.currentTarget.style.display = 'none';
+                          e.currentTarget.nextElementSibling.style.display = 'block';
+                        }}
+                      />
+                      <div className="w-10 h-10 rounded-full bg-gradient-to-r from-[#F95B14] to-[#e04d0a] animate-pulse hidden"></div>
+                    </div>
                     <div>
                       <div className="text-sm font-semibold text-black">Your AI Assistant</div>
                       <div className="text-xs text-gray-500">Trained on 2,847 sent emails</div>
                     </div>
                   </div>
                   <div className="bg-white rounded-lg p-6 mb-6 border border-gray-200">
-                    <p className="text-gray-700 leading-relaxed">
-                      "Hey Sarah,<br/><br/>
-                      I noticed you're expanding into the enterprise market—congrats on the Series B! 🥳<br/><br/>
-                      We helped a similar company in your space reduce their sales cycle by 40%. Would love to show you how..."
+                    <p className="text-gray-700 leading-relaxed whitespace-pre-line">
+                      {emailText}
+                      {isTyping && <span className="animate-pulse">|</span>}
                     </p>
                   </div>
                   

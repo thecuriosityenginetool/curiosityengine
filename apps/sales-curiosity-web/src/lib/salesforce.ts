@@ -64,7 +64,7 @@ export interface SalesforceSearchResult {
 export function getSalesforceAuthUrl(state: string, isUserLevel: boolean = false): string {
   // Use different callback URL for user-level vs org-level
   const redirectUri = isUserLevel
-    ? `${process.env.NEXT_PUBLIC_APP_URL}/api/salesforce/user-callback`
+    ? 'https://www.curiosityengine.io/api/salesforce/user-callback'
     : SALESFORCE_REDIRECT_URI;
     
   const params = new URLSearchParams({

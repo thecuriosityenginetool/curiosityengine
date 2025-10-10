@@ -1271,94 +1271,23 @@ export default function OrganizationDashboard() {
             </div>
 
             <div style={{
+              background: '#eff6ff',
+              border: '1px solid #93c5fd',
+              padding: '16px',
+              borderRadius: '8px',
+              marginBottom: '20px',
+              fontSize: '13px',
+              color: '#1e40af',
+              lineHeight: '1.6'
+            }}>
+              <strong>ℹ️ Salesforce Integration:</strong> Team members can connect their own Salesforce accounts directly from the Chrome extension (Integrations tab). Each user manages their own CRM connection.
+            </div>
+
+            <div style={{
               display: 'grid',
               gridTemplateColumns: 'repeat(auto-fill, minmax(300px, 1fr))',
               gap: '20px'
             }}>
-              {/* Salesforce Integration - Special handling for OAuth */}
-              {(() => {
-                const integration = integrations.find(i => i.integration_type === 'salesforce');
-                const isEnabled = integration?.is_enabled || false;
-
-                return (
-                  <div
-                    key="salesforce"
-                    style={{
-                      background: 'white',
-                      padding: '20px',
-                      borderRadius: '12px',
-                      boxShadow: '0 1px 3px rgba(0,0,0,0.1)',
-                      border: isEnabled ? '2px solid #00A1E0' : '1px solid #e2e8f0'
-                    }}
-                  >
-                    <div style={{
-                      display: 'flex',
-                      alignItems: 'center',
-                      justifyContent: 'space-between',
-                      marginBottom: '12px'
-                    }}>
-                      <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                        <h3 style={{
-                          fontSize: '16px',
-                          fontWeight: '600',
-                          color: '#1a202c'
-                        }}>
-                          Salesforce
-                        </h3>
-                        <span style={{
-                          padding: '2px 6px',
-                          background: '#00A1E0',
-                          color: 'white',
-                          fontSize: '9px',
-                          borderRadius: '4px',
-                          fontWeight: '700'
-                        }}>
-                          CRM
-                        </span>
-                      </div>
-                      {isEnabled && (
-                        <span style={{
-                          padding: '4px 8px',
-                          background: '#48bb78',
-                          color: 'white',
-                          fontSize: '10px',
-                          borderRadius: '4px',
-                          fontWeight: '600'
-                        }}>
-                          CONNECTED
-                        </span>
-                      )}
-                    </div>
-                    <p style={{
-                      fontSize: '13px',
-                      color: '#718096',
-                      marginBottom: '16px',
-                      lineHeight: '1.5'
-                    }}>
-                      {isEnabled 
-                        ? `Automatically check if LinkedIn prospects exist in your CRM and tailor emails accordingly. Connected since ${new Date(integration.enabled_at).toLocaleDateString()}.`
-                        : 'Connect Salesforce to automatically sync LinkedIn prospects and customize outreach based on existing relationships.'}
-                    </p>
-                    <button
-                      onClick={() => handleToggleIntegration('salesforce', isEnabled)}
-                      style={{
-                        width: '100%',
-                        padding: '12px',
-                        background: isEnabled ? '#f56565' : '#00A1E0',
-                        color: 'white',
-                        border: 'none',
-                        borderRadius: '6px',
-                        fontSize: '14px',
-                        fontWeight: '600',
-                        cursor: 'pointer'
-                      }}
-                    >
-                      {isEnabled ? '🔌 Disconnect Salesforce' : '🔗 Connect with Salesforce'}
-                    </button>
-                  </div>
-                );
-              })()}
-
               {/* Other Integrations */}
               {['hubspot', 'gmail', 'outlook', 'calendar', 'slack'].map(integrationType => {
                 const integration = integrations.find(i => i.integration_type === integrationType);

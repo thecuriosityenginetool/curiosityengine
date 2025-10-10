@@ -1144,9 +1144,13 @@ export default function Home() {
                   href="/install"
                   className="flex items-center justify-center gap-3 px-8 py-4 bg-gray-100 text-black font-semibold rounded-lg border border-gray-200 transition-all hover:bg-gray-200 text-lg"
                 >
-                  <svg className="w-5 h-5" viewBox="0 0 24 24" fill="currentColor">
-                    <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-1 17.93c-3.94-.49-7-3.85-7-7.93 0-.62.08-1.21.21-1.79L9 15v1c0 1.1.9 2 2 2v1.93zm6.9-2.54c-.26-.81-1-1.39-1.9-1.39h-1v-3c0-.55-.45-1-1-1H8v-2h2c.55 0 1-.45 1-1V7h2c1.1 0 2-.9 2-2v-.41c2.93 1.19 5 4.06 5 7.41 0 2.08-.8 3.97-2.1 5.39z"/>
-                  </svg>
+                  <Image 
+                    src="/chrome_icon.svg" 
+                    alt="Chrome" 
+                    width={20}
+                    height={20}
+                    className="w-5 h-5"
+                  />
                   Download Chrome Extension
                 </Link>
               </div>
@@ -1158,31 +1162,93 @@ export default function Home() {
         </section>
 
         {/* Footer */}
-        <footer className="border-t border-gray-800 mt-24">
-          <div className="mx-auto max-w-7xl px-6 py-12">
-            <div className="flex flex-col md:flex-row justify-between items-center gap-6">
-              <div className="flex items-center gap-3">
-                <Image 
-                  src="/icononly_transparent_nobuffer.png" 
-                  alt="Sales Curiosity Icon" 
-                  width={32}
-                  height={32}
-                  className="w-8 h-8"
-                />
-                <div className="text-gray-400 text-sm">
-                  © 2025 Sales Curiosity. All rights reserved.
+        <footer className="border-t border-gray-200 bg-gray-50 mt-24">
+          <div className="mx-auto max-w-7xl px-6 py-16">
+            <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+              {/* Logo and Description */}
+              <div className="lg:col-span-1">
+                <div className="flex items-center gap-3 mb-4">
+                  <Image 
+                    src="/icononly_transparent_nobuffer.png" 
+                    alt="Sales Curiosity Icon" 
+                    width={32}
+                    height={32}
+                    className="w-8 h-8"
+                  />
+                  <span className="text-xl font-bold text-gray-900">Curiosity Engine</span>
+                </div>
+                <p className="text-gray-600 text-sm leading-relaxed mb-6">
+                  The AI Sales Assistant that transforms your productivity with intelligent automation across Salesforce, LinkedIn, and email.
+                </p>
+              </div>
+
+              {/* Quick Actions */}
+              <div className="lg:col-span-1">
+                <h3 className="text-lg font-semibold text-gray-900 mb-4">Get Started</h3>
+                <div className="flex flex-col gap-3">
+                  <Link 
+                    href="/signup?integration=gmail"
+                    className="flex items-center gap-3 px-4 py-2 bg-white border border-gray-200 rounded-lg hover:shadow-md transition-all duration-300 hover:scale-105"
+                  >
+                    <Image 
+                      src="/Gmail Icon.svg" 
+                      alt="Gmail" 
+                      width={20}
+                      height={20}
+                      className="w-5 h-5"
+                    />
+                    <span className="text-gray-800 font-medium text-sm">Sign up with Gmail</span>
+                  </Link>
+                  <Link 
+                    href="/signup?integration=outlook"
+                    className="flex items-center gap-3 px-4 py-2 bg-white border border-gray-200 rounded-lg hover:shadow-md transition-all duration-300 hover:scale-105"
+                  >
+                    <Image 
+                      src="/Outlook_icon.svg" 
+                      alt="Outlook" 
+                      width={20}
+                      height={20}
+                      className="w-5 h-5"
+                    />
+                    <span className="text-gray-800 font-medium text-sm">Sign up with Outlook</span>
+                  </Link>
                 </div>
               </div>
-              <div className="flex gap-6 text-sm">
-                <Link href="/privacy" className="text-gray-400 hover:text-white transition">
-                  Privacy
-                </Link>
-                <Link href="/signup" className="text-gray-400 hover:text-white transition">
-                  Terms
-                </Link>
-                <Link href="/install" className="text-gray-400 hover:text-white transition">
-                  Download Extension
-                </Link>
+
+              {/* Links */}
+              <div className="lg:col-span-1">
+                <h3 className="text-lg font-semibold text-gray-900 mb-4">Resources</h3>
+                <div className="flex flex-col gap-3">
+                  <Link href="/privacy" className="text-gray-600 hover:text-[#F95B14] transition text-sm">
+                    Privacy Policy
+                  </Link>
+                  <Link href="/terms" className="text-gray-600 hover:text-[#F95B14] transition text-sm">
+                    Terms of Service
+                  </Link>
+                  <Link href="/install" className="text-gray-600 hover:text-[#F95B14] transition text-sm">
+                    Download Extension
+                  </Link>
+                  <Link href="/support" className="text-gray-600 hover:text-[#F95B14] transition text-sm">
+                    Support
+                  </Link>
+                </div>
+              </div>
+            </div>
+            
+            {/* Bottom Bar */}
+            <div className="border-t border-gray-200 mt-8 pt-8">
+              <div className="flex flex-col sm:flex-row justify-between items-center gap-4">
+                <div className="text-gray-500 text-sm">
+                  © 2025 Curiosity Engine. All rights reserved.
+                </div>
+                <div className="flex gap-6">
+                  <Link href="/blog" className="text-gray-500 hover:text-[#F95B14] transition text-sm">
+                    Blog
+                  </Link>
+                  <Link href="/contact" className="text-gray-500 hover:text-[#F95B14] transition text-sm">
+                    Contact
+                  </Link>
+                </div>
               </div>
             </div>
           </div>

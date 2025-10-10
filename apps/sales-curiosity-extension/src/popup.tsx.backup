@@ -15,7 +15,7 @@ interface UserContext {
 function Popup() {
   const [apiBase, setApiBase] = useState<string>(
     (typeof localStorage !== "undefined" && localStorage.getItem("apiBase")) ||
-      "https://www.curiosityengine.io"
+      "https://curiosityengine-sales-curiosity-web.vercel.app"
   );
   const [currentUrl, setCurrentUrl] = useState<string>("");
   const [isLinkedIn, setIsLinkedIn] = useState<boolean>(false);

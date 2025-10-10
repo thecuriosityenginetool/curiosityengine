@@ -1134,8 +1134,8 @@ export default function Home() {
 
         {/* Footer */}
         <footer className="border-t border-gray-200 bg-gray-50 mt-24">
-          <div className="mx-auto max-w-7xl px-6 py-16">
-            <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+          <div className="mx-auto max-w-7xl px-6 py-20">
+            <div className="grid grid-cols-1 lg:grid-cols-3 gap-12">
               {/* Logo and Description */}
               <div className="lg:col-span-1">
                 <div className="flex items-center gap-3 mb-4">
@@ -1182,8 +1182,8 @@ export default function Home() {
 
               {/* Links */}
               <div className="lg:col-span-1">
-                <h3 className="text-lg font-semibold text-gray-900 mb-4">Resources</h3>
-                <div className="flex flex-col gap-3">
+                <h3 className="text-lg font-semibold text-gray-900 mb-6">Resources</h3>
+                <div className="flex flex-col gap-4">
                   <Link href="/privacy" className="text-gray-600 hover:text-[#F95B14] transition text-sm">
                     Privacy Policy
                   </Link>
@@ -1201,8 +1201,8 @@ export default function Home() {
             </div>
             
             {/* Bottom Bar */}
-            <div className="border-t border-gray-200 mt-8 pt-8">
-              <div className="flex flex-col sm:flex-row justify-between items-center gap-4">
+            <div className="border-t border-gray-200 mt-12 pt-8">
+              <div className="flex flex-col sm:flex-row justify-between items-center gap-6">
                 <div className="text-gray-500 text-sm">
                   © 2025 Curiosity Engine. All rights reserved.
                 </div>

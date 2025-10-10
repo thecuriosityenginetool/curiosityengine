@@ -2,6 +2,7 @@
 
 import { useSession, signOut } from 'next-auth/react';
 import Link from 'next/link';
+import Image from 'next/image';
 
 export default function Navigation() {
   const { data: session, status } = useSession();
@@ -23,21 +24,28 @@ export default function Navigation() {
   const isAuthenticated = status === 'authenticated';
 
   return (
-    <nav className="sticky top-0 z-40 border-b bg-white/80 backdrop-blur dark:border-zinc-800 dark:bg-zinc-950/80">
-      <div className="mx-auto flex max-w-7xl items-center justify-between px-6 py-3">
-        <Link href="/" className="font-medium">
-          Sales Curiosity
+    <nav className="sticky top-0 z-50 border-b border-gray-200 bg-white shadow-sm">
+      <div className="mx-auto flex max-w-7xl items-center justify-between px-6 py-4">
+        <Link href="/" className="flex items-center gap-2 hover:opacity-80 transition-opacity">
+          <Image 
+            src="/icononly_transparent_nobuffer.png" 
+            alt="Sales Curiosity" 
+            width={32}
+            height={32}
+            className="w-8 h-8"
+          />
+          <span className="font-bold text-lg text-black">Sales Curiosity</span>
         </Link>
         
-        <div className="flex items-center gap-4 text-sm">
-          <Link className="opacity-80 hover:opacity-100" href="/">
+        <div className="flex items-center gap-6 text-sm">
+          <Link className="text-gray-700 hover:text-black font-medium transition-colors" href="/">
             Home
           </Link>
           
           {/* Show org admin link only for org_admin and super_admin */}
           {showOrgAdmin && (
             <Link 
-              className="opacity-80 hover:opacity-100" 
+              className="text-gray-700 hover:text-black font-medium transition-colors" 
               href="/admin/organization"
             >
               Organization
@@ -46,24 +54,24 @@ export default function Navigation() {
           
           {/* Auth buttons */}
           {status === 'loading' ? (
-            <div className="h-4 w-16 animate-pulse rounded bg-zinc-200 dark:bg-zinc-800" />
+            <div className="h-9 w-20 animate-pulse rounded-lg bg-gray-200" />
           ) : isAuthenticated ? (
             <button
               onClick={handleLogout}
-              className="rounded-md bg-zinc-100 px-3 py-1.5 text-sm font-medium hover:bg-zinc-200 dark:bg-zinc-800 dark:hover:bg-zinc-700"
+              className="rounded-lg bg-gray-100 px-4 py-2 text-sm font-semibold text-black hover:bg-gray-200 transition-colors"
             >
               Logout
             </button>
           ) : (
             <>
               <Link 
-                className="opacity-80 hover:opacity-100" 
+                className="text-gray-700 hover:text-black font-semibold transition-colors" 
                 href="/login"
               >
                 Login
               </Link>
               <Link 
-                className="rounded-md bg-indigo-600 px-3 py-1.5 text-sm font-medium text-white hover:bg-indigo-700"
+                className="rounded-lg bg-[#F95B14] px-4 py-2 text-sm font-semibold text-white hover:bg-[#e04d0a] transition-all hover:scale-105 shadow-sm"
                 href="/signup"
               >
                 Sign Up

@@ -16,25 +16,25 @@ export default function LogoCarousel() {
   const duplicatedLogos = [...logos, ...logos, ...logos, ...logos, ...logos, ...logos];
 
   return (
-    <div className="relative w-full flex justify-center overflow-hidden py-8">
+    <div className="relative w-full flex justify-center overflow-hidden py-4">
       <div className="relative w-full overflow-hidden">
-        {/* Fade edges */}
-        <div className="absolute left-0 top-0 bottom-0 w-20 bg-gradient-to-r from-white via-white/90 to-transparent z-10 pointer-events-none" />
-        <div className="absolute right-0 top-0 bottom-0 w-20 bg-gradient-to-l from-white via-white/90 to-transparent z-10 pointer-events-none" />
+        {/* Fade edges - fully transparent */}
+        <div className="absolute left-0 top-0 bottom-0 w-20 bg-gradient-to-r from-transparent via-transparent to-transparent z-10 pointer-events-none" />
+        <div className="absolute right-0 top-0 bottom-0 w-20 bg-gradient-to-l from-transparent via-transparent to-transparent z-10 pointer-events-none" />
         
         {/* Scrolling container */}
-        <div className="flex items-center animate-scroll-logos-smooth gap-16" style={{ width: 'max-content' }}>
+        <div className="flex items-center animate-scroll-logos-smooth gap-12" style={{ width: 'max-content' }}>
           {duplicatedLogos.map((logo, index) => (
             <div
               key={`${logo.name}-${index}`}
-              className="flex-shrink-0 flex items-center justify-center min-w-[180px]"
+              className="flex-shrink-0 flex items-center justify-center w-[160px]"
             >
               <Image
                 src={logo.path}
                 alt={logo.name}
-                width={180}
-                height={60}
-                className="h-auto w-auto max-h-[50px] max-w-[180px] object-contain"
+                width={160}
+                height={50}
+                className="h-auto w-auto max-h-[45px] max-w-[160px] object-contain"
               />
             </div>
           ))}

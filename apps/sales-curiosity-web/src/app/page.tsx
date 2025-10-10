@@ -319,7 +319,7 @@ export default function Home() {
           {/* Mouse-tracking gradient overlay */}
           <div className="absolute inset-0 pointer-events-none">
             <div 
-              className="absolute h-[680px] w-[85rem] rounded-full bg-gradient-to-b from-[#F95B14]/25 via-[#F95B14]/12 to-transparent blur-2xl transition-all duration-1000 ease-out"
+              className="absolute h-[500px] w-[500px] rounded-full bg-gradient-to-b from-[#F95B14]/25 via-[#F95B14]/12 to-transparent blur-2xl transition-all duration-1000 ease-out"
               style={{
                 left: `${mousePosition.x}px`,
                 top: `${mousePosition.y}px`,
@@ -328,25 +328,25 @@ export default function Home() {
             />
           </div>
 
-          <div className="relative mx-auto max-w-7xl px-6 pt-24 pb-24 sm:pt-32 sm:pb-32 lg:pt-40 lg:pb-40">
+          <div className="relative mx-auto max-w-7xl px-6 pt-16 pb-16 sm:pt-20 sm:pb-20 lg:pt-24 lg:pb-24">
             <div className="mx-auto max-w-4xl text-center">
               {/* Logo with hover animation */}
-              <div className="mb-8 flex justify-center group">
+              <div className="mb-6 flex justify-center group">
                 <Image 
                   src="/fulllogo_transparent_nobuffer.png" 
                   alt="Sales Curiosity" 
-                  width={300}
-                  height={80}
+                  width={250}
+                  height={65}
                   priority
-                  className="h-20 w-auto transition-all duration-300 group-hover:scale-105"
+                  className="h-16 w-auto transition-all duration-300 group-hover:scale-105"
                 />
               </div>
 
-              <span className="inline-flex items-center rounded-full bg-[#F95B14]/10 px-4 py-1.5 text-sm font-medium text-[#F95B14] ring-1 ring-inset ring-[#F95B14]/20 mb-8 animate-pulse">
+              <span className="inline-flex items-center rounded-full bg-[#F95B14]/10 px-4 py-1.5 text-sm font-medium text-[#F95B14] ring-1 ring-inset ring-[#F95B14]/20 mb-6 animate-pulse">
                 New: AI-Powered Sales Automation
               </span>
               
-              <h1 className="text-5xl font-bold tracking-tight text-black sm:text-6xl lg:text-7xl mb-6 leading-tight">
+              <h1 className="text-4xl font-bold tracking-tight text-black sm:text-5xl lg:text-6xl mb-4 leading-tight">
                 Auto-draft emails from{' '}
                 <span className="text-[#F95B14] inline-block min-w-[280px] sm:min-w-[400px] text-center">
                   {currentRole}
@@ -354,15 +354,15 @@ export default function Home() {
                 </span>
               </h1>
               
-              <p className="text-xl text-gray-700 mb-12 leading-relaxed max-w-2xl mx-auto">
+              <p className="text-lg text-gray-700 mb-8 leading-relaxed max-w-2xl mx-auto">
                 <strong className="text-black">Auto-draft emails</strong> from LinkedIn profiles and CRM entries, <strong className="text-black">auto-research</strong> LinkedIn accounts and CRM deals, <strong className="text-black">enrich CRM leads</strong> with AI research and <strong className="text-black">generate messages</strong> to leads from your Outlook or Gmail.
               </p>
 
               {/* Try free with 1-click text */}
-              <p className="text-lg text-gray-600 mb-8">Try free with 1-click:</p>
+              <p className="text-base text-gray-600 mb-6">Try free with 1-click:</p>
 
               {/* CTA Buttons matching the image */}
-              <div className="flex flex-col sm:flex-row gap-4 justify-center items-center mb-16">
+              <div className="flex flex-col sm:flex-row gap-4 justify-center items-center mb-8">
                 {/* Gmail Button */}
                 <Link 
                   href="/signup?integration=gmail"
@@ -395,7 +395,7 @@ export default function Home() {
               </div>
 
               {/* Integration Logos Carousel */}
-              <div className="flex flex-col items-center gap-6 mt-16">
+              <div className="flex flex-col items-center gap-4 mt-8">
                 <p className="text-sm font-medium text-gray-700">Works seamlessly with</p>
                 <LogoCarousel />
               </div>

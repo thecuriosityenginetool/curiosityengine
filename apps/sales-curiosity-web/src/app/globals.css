@@ -126,3 +126,22 @@ body {
   will-change: transform;
 }
 
+/* Animated Gradient for CTA Section */
+.animated-gradient {
+  background: linear-gradient(45deg, #F95B14 0%, #ff9a9e 25%, #fad0c4 50%, #F95B14 75%, #e04d0a 100%);
+  background-size: 400% 400%;
+  animation: gradient-animation 15s ease infinite;
+}
+
+@keyframes gradient-animation {
+  0% {
+    background-position: 0% 50%;
+  }
+  50% {
+    background-position: 100% 50%;
+  }
+  100% {
+    background-position: 0% 50%;
+  }
+}
+

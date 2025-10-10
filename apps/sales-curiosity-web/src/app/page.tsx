@@ -1103,34 +1103,12 @@ export default function Home() {
 
         {/* CTA Section */}
         <section className="relative mx-auto max-w-7xl px-6 py-24">
-          <div 
-            className="rounded-3xl border border-gray-200 bg-white p-12 text-center relative overflow-hidden"
-            onMouseMove={(e) => {
-              const rect = e.currentTarget.getBoundingClientRect();
-              setMousePosition({
-                x: e.clientX - rect.left,
-                y: e.clientY - rect.top
-              });
-            }}
-            onMouseLeave={() => {
-              setMousePosition({ x: 0, y: 0 });
-            }}
-          >
-            {/* Orange motion gradient */}
-            <div 
-              className="absolute h-64 w-64 rounded-full bg-gradient-to-b from-[#F95B14]/15 via-[#F95B14]/8 to-transparent blur-2xl transition-all duration-1000 ease-out pointer-events-none"
-              style={{
-                left: `${mousePosition.x}px`,
-                top: `${mousePosition.y}px`,
-                transform: 'translate(-50%, -50%)'
-              }}
-            />
-            
+          <div className="rounded-3xl border border-gray-200 p-12 text-center relative overflow-hidden animated-gradient">
             <div className="relative z-10">
-              <h2 className="text-4xl sm:text-5xl font-bold text-black mb-6">
+              <h2 className="text-4xl sm:text-5xl font-bold text-white mb-6 drop-shadow-lg">
                 Transform Your Sales Game Today
               </h2>
-              <p className="text-xl text-gray-700 mb-8 max-w-2xl mx-auto">
+              <p className="text-xl text-white/90 mb-8 max-w-2xl mx-auto drop-shadow-md">
                 Join 10,000+ sales professionals who've eliminated busywork and doubled their productivity with AI-powered automation.
               </p>
               <div className="flex flex-col sm:flex-row gap-4 justify-center">
@@ -1154,7 +1132,7 @@ export default function Home() {
                   Download Chrome Extension
                 </Link>
               </div>
-              <p className="mt-6 text-sm text-gray-600">
+              <p className="mt-6 text-sm text-white/80 drop-shadow-sm">
                 No credit card required • 7-day free trial • Cancel anytime
               </p>
             </div>

@@ -2,7 +2,7 @@
 
 import { useState, useEffect, Suspense } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
-import { signIn } from 'next-auth/react';
+import { supabase } from '@/lib/supabase';
 
 function LoginForm() {
   const [email, setEmail] = useState('');
@@ -26,16 +26,15 @@ function LoginForm() {
     setError('');
 
     try {
-      console.log('🔐 Logging in with NextAuth...');
+      console.log('🔐 Logging in with Supabase...');
       
-      const result = await signIn('credentials', {
+      const { data, error } = await supabase.auth.signInWithPassword({
         email,
         password,
-        redirect: false,
       });
 
-      if (result?.error) {
-        console.error('❌ Login failed:', result.error);
+      if (error) {
+        console.error('❌ Login failed:', error.message);
         setError('Invalid email or password');
         setLoading(false);
         return;
@@ -43,7 +42,7 @@ function LoginForm() {
 
       console.log('✅ Login successful! Redirecting...');
       
-      // NextAuth session is now set - redirect to dashboard
+      // Supabase session is now set - redirect to dashboard
       window.location.href = '/dashboard';
     } catch (err: any) {
       console.error('❌ Login error:', err);
@@ -76,14 +75,14 @@ function LoginForm() {
           marginBottom: '8px',
           color: '#1a202c'
         }}>
-          Sales Curiosity
+          Curiosity Engine
         </h1>
         <p style={{
           color: '#718096',
           marginBottom: '32px',
           fontSize: '14px'
         }}>
-          Sign in to analyze LinkedIn profiles
+          Sign in to your account
         </p>
 
         {successMessage && (

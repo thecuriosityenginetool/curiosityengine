@@ -1159,9 +1159,6 @@ export default function Home() {
                 <ul className="modern-icon-buttons">
                   <li 
                     style={{'--i': '#4285F4', '--j': '#EA4335'} as React.CSSProperties}
-                    onClick={() => {
-                      window.location.href = '/dashboard';
-                    }}
                   >
                     <span className="icon">
                       <svg width="28" height="28" viewBox="0 0 48 48" fill="currentColor">
@@ -1176,9 +1173,6 @@ export default function Home() {
                   </li>
                   <li 
                     style={{'--i': '#0078D4', '--j': '#106EBE'} as React.CSSProperties}
-                    onClick={() => {
-                      window.location.href = '/dashboard';
-                    }}
                   >
                     <span className="icon">
                       <svg width="28" height="28" viewBox="0 0 24 24" fill="currentColor">

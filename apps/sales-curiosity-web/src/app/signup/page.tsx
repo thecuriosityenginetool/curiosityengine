@@ -41,38 +41,30 @@ function SignupForm() {
     setLoading(true);
     setError('');
 
-    if (accountType === 'organization' && !organizationName.trim()) {
-      setError('Organization name is required');
-      setLoading(false);
-      return;
-    }
-
     try {
-      // Call our signup API which uses admin.createUser with email_confirm
-      const response = await fetch('/api/auth/signup', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          email,
-          password,
-          fullName,
-          accountType,
-          organizationName,
-        }),
+      // Create user with Supabase Auth
+      const { data, error } = await supabase.auth.signUp({
+        email,
+        password,
+        options: {
+          data: {
+            full_name: fullName,
+            account_type: accountType,
+            organization_name: organizationName,
+          }
+        }
       });
 
-      const data = await response.json();
-
-      if (!response.ok || !data.ok) {
-        throw new Error(data.error || 'Failed to create account');
+      if (error) {
+        throw new Error(error.message);
       }
 
-      setSuccess(true);
-      setTimeout(() => {
-        router.push('/login?message=Account created! Please sign in.');
-      }, 2000);
+      if (data.user) {
+        setSuccess(true);
+        setTimeout(() => {
+          router.push('/login?message=Account created! Please sign in.');
+        }, 2000);
+      }
     } catch (err: any) {
       setError(err.message || 'Failed to create account');
     } finally {
@@ -146,11 +138,27 @@ function SignupForm() {
         <form onSubmit={handleSignup} className="mb-8">
           <div className="space-y-4">
             <input
+              type="text"
+              value={fullName}
+              onChange={(e) => setFullName(e.target.value)}
+              required
+              placeholder="Full name"
+              className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#F95B14] focus:border-transparent outline-none"
+            />
+            <input
               type="email"
               value={email}
               onChange={(e) => setEmail(e.target.value)}
               required
               placeholder="Enter email"
+              className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#F95B14] focus:border-transparent outline-none"
+            />
+            <input
+              type="password"
+              value={password}
+              onChange={(e) => setPassword(e.target.value)}
+              required
+              placeholder="Create password"
               className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#F95B14] focus:border-transparent outline-none"
             />
             <button

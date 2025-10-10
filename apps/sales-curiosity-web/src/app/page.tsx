@@ -57,6 +57,7 @@ export default function Home() {
   
   // Mouse tracking for gradient
   const [mousePosition, setMousePosition] = useState({ x: 0, y: 0 });
+  const [cardMousePositions, setCardMousePositions] = useState<{[key: string]: {x: number, y: number}}>({});
   
   // Typing animation for email text
   const [emailText, setEmailText] = useState('');
@@ -647,238 +648,326 @@ export default function Home() {
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-            {/* Gmail */}
-            <div className="rounded-2xl border border-gray-200 bg-white p-8 shadow-sm hover:shadow-md transition-all duration-300 hover:scale-105">
-              <div className="flex items-center gap-4 mb-6">
-                <div className="w-16 h-16 rounded-xl bg-white flex items-center justify-center border border-gray-200 shadow-sm">
-                  <Image 
-                    src="/Gmail Icon.svg" 
-                    alt="Gmail" 
-                    width={32}
-                    height={32}
-                    className="w-8 h-8"
-                  />
-                </div>
-                <div>
-                  <h3 className="text-xl font-bold text-black">Gmail</h3>
-                  <p className="text-sm text-gray-600">Email & Calendar</p>
-                </div>
-              </div>
-              <ul className="space-y-3 text-gray-700">
-                <li className="flex items-start gap-3">
-                  <svg className="w-5 h-5 text-[#F95B14] flex-shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
-                  </svg>
-                  <span className="text-sm">Auto-draft personalized replies</span>
-                </li>
-                <li className="flex items-start gap-3">
-                  <svg className="w-5 h-5 text-[#F95B14] flex-shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
-                  </svg>
-                  <span className="text-sm">Schedule meetings automatically</span>
-                </li>
-                <li className="flex items-start gap-3">
-                  <svg className="w-5 h-5 text-[#F95B14] flex-shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
-                  </svg>
-                  <span className="text-sm">Organize inbox with AI</span>
-                </li>
-              </ul>
-            </div>
-
-            {/* Outlook */}
-            <div className="rounded-2xl border border-gray-200 bg-white p-8 shadow-sm hover:shadow-md transition-all duration-300 hover:scale-105">
-              <div className="flex items-center gap-4 mb-6">
-                <div className="w-16 h-16 rounded-xl bg-white flex items-center justify-center border border-gray-200 shadow-sm">
-                  <Image 
-                    src="/Outlook_icon.svg" 
-                    alt="Outlook" 
-                    width={32}
-                    height={32}
-                    className="w-8 h-8"
-                  />
-                </div>
-                <div>
-                  <h3 className="text-xl font-bold text-black">Outlook</h3>
-                  <p className="text-sm text-gray-600">Email & Calendar</p>
-                </div>
-              </div>
-              <ul className="space-y-3 text-gray-700">
-                <li className="flex items-start gap-3">
-                  <svg className="w-5 h-5 text-[#F95B14] flex-shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
-                  </svg>
-                  <span className="text-sm">Microsoft 365 integration</span>
-                </li>
-                <li className="flex items-start gap-3">
-                  <svg className="w-5 h-5 text-[#F95B14] flex-shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
-                  </svg>
-                  <span className="text-sm">Calendar sync and scheduling</span>
-                </li>
-                <li className="flex items-start gap-3">
-                  <svg className="w-5 h-5 text-[#F95B14] flex-shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
-                  </svg>
-                  <span className="text-sm">Team collaboration features</span>
-                </li>
-              </ul>
-            </div>
-
-            {/* HubSpot */}
-            <div className="rounded-2xl border border-gray-200 bg-white p-8 shadow-sm hover:shadow-md transition-all duration-300 hover:scale-105">
-              <div className="flex items-center gap-4 mb-6">
-                <div className="w-16 h-16 rounded-xl bg-white flex items-center justify-center border border-gray-200 shadow-sm">
-                  <Image 
-                    src="/hubspot-1.svg" 
-                    alt="HubSpot" 
-                    width={32}
-                    height={32}
-                    className="w-8 h-8"
-                  />
-                </div>
-                <div>
-                  <h3 className="text-xl font-bold text-black">HubSpot</h3>
-                  <p className="text-sm text-gray-600">CRM</p>
-                </div>
-              </div>
-              <ul className="space-y-3 text-gray-700">
-                <li className="flex items-start gap-3">
-                  <svg className="w-5 h-5 text-[#F95B14] flex-shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
-                  </svg>
-                  <span className="text-sm">Sync contacts automatically</span>
-                </li>
-                <li className="flex items-start gap-3">
-                  <svg className="w-5 h-5 text-[#F95B14] flex-shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
-                  </svg>
-                  <span className="text-sm">Update deals and activities</span>
-                </li>
-                <li className="flex items-start gap-3">
-                  <svg className="w-5 h-5 text-[#F95B14] flex-shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
-                  </svg>
-                  <span className="text-sm">Pipeline management</span>
-                </li>
-              </ul>
-            </div>
-
-            {/* Monday CRM */}
-            <div className="rounded-2xl border border-gray-200 bg-white p-8 shadow-sm hover:shadow-md transition-all duration-300 hover:scale-105">
-              <div className="flex items-center gap-4 mb-6">
-                <div className="w-16 h-16 rounded-xl bg-white flex items-center justify-center border border-gray-200 shadow-sm">
-                  <Image 
-                    src="/monday-icon.svg" 
-                    alt="Monday" 
-                    width={32}
-                    height={32}
-                    className="w-8 h-8"
-                  />
-                </div>
-                <div>
-                  <h3 className="text-xl font-bold text-black">Monday CRM</h3>
-                  <p className="text-sm text-gray-600">CRM & Project Management</p>
-                </div>
-              </div>
-              <ul className="space-y-3 text-gray-700">
-                <li className="flex items-start gap-3">
-                  <svg className="w-5 h-5 text-[#F95B14] flex-shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
-                  </svg>
-                  <span className="text-sm">Update deals and tasks</span>
-                </li>
-                <li className="flex items-start gap-3">
-                  <svg className="w-5 h-5 text-[#F95B14] flex-shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
-                  </svg>
-                  <span className="text-sm">Manage pipeline boards</span>
-                </li>
-                <li className="flex items-start gap-3">
-                  <svg className="w-5 h-5 text-[#F95B14] flex-shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
-                  </svg>
-                  <span className="text-sm">Team collaboration</span>
-                </li>
-              </ul>
-            </div>
-
             {/* Salesforce */}
-            <div className="rounded-2xl border border-gray-200 bg-white p-8 shadow-sm hover:shadow-md transition-all duration-300 hover:scale-105">
-              <div className="flex items-center gap-4 mb-6">
-                <div className="w-16 h-16 rounded-xl bg-white flex items-center justify-center border border-gray-200 shadow-sm">
+            <div 
+              className="rounded-2xl border border-gray-200 bg-white p-8 relative overflow-hidden"
+              onMouseMove={(e) => {
+                const rect = e.currentTarget.getBoundingClientRect();
+                setCardMousePositions(prev => ({
+                  ...prev,
+                  salesforce: {
+                    x: e.clientX - rect.left,
+                    y: e.clientY - rect.top
+                  }
+                }));
+              }}
+              onMouseLeave={() => {
+                setCardMousePositions(prev => ({
+                  ...prev,
+                  salesforce: { x: 0, y: 0 }
+                }));
+              }}
+            >
+              {/* Gradient overlay */}
+              <div 
+                className="absolute h-32 w-32 rounded-full bg-gradient-to-b from-[#F95B14]/20 via-[#F95B14]/10 to-transparent blur-xl transition-all duration-500 ease-out pointer-events-none"
+                style={{
+                  left: `${cardMousePositions.salesforce?.x || 0}px`,
+                  top: `${cardMousePositions.salesforce?.y || 0}px`,
+                  transform: 'translate(-50%, -50%)'
+                }}
+              />
+              <div className="relative z-10">
+                <div className="flex items-center gap-4 mb-6">
                   <Image 
                     src="/salesforcelogo.svg" 
                     alt="Salesforce" 
-                    width={32}
-                    height={32}
-                    className="w-8 h-8"
+                    width={40}
+                    height={40}
+                    className="w-10 h-10"
                   />
+                  <div>
+                    <h3 className="text-xl font-bold text-black">Salesforce</h3>
+                    <p className="text-sm text-gray-600">CRM Integration</p>
+                  </div>
                 </div>
-                <div>
-                  <h3 className="text-xl font-bold text-black">Salesforce</h3>
-                  <p className="text-sm text-gray-600">CRM</p>
+                <div className="space-y-3 text-gray-700">
+                  <p className="text-sm leading-relaxed">
+                    Extract live opportunity data and push AI-enriched recommendations back into your CRM with 1-click logging.
+                  </p>
+                  <p className="text-sm leading-relaxed">
+                    Get contextual "next best step" insights by combining deal history with sales collateral and call notes.
+                  </p>
                 </div>
               </div>
-              <ul className="space-y-3 text-gray-700">
-                <li className="flex items-start gap-3">
-                  <svg className="w-5 h-5 text-[#F95B14] flex-shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
-                  </svg>
-                  <span className="text-sm">Enterprise CRM integration</span>
-                </li>
-                <li className="flex items-start gap-3">
-                  <svg className="w-5 h-5 text-[#F95B14] flex-shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
-                  </svg>
-                  <span className="text-sm">Lead and opportunity sync</span>
-                </li>
-                <li className="flex items-start gap-3">
-                  <svg className="w-5 h-5 text-[#F95B14] flex-shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
-                  </svg>
-                  <span className="text-sm">Advanced reporting</span>
-                </li>
-              </ul>
+            </div>
+
+            {/* LinkedIn */}
+            <div 
+              className="rounded-2xl border border-gray-200 bg-white p-8 relative overflow-hidden"
+              onMouseMove={(e) => {
+                const rect = e.currentTarget.getBoundingClientRect();
+                setCardMousePositions(prev => ({
+                  ...prev,
+                  linkedin: {
+                    x: e.clientX - rect.left,
+                    y: e.clientY - rect.top
+                  }
+                }));
+              }}
+              onMouseLeave={() => {
+                setCardMousePositions(prev => ({
+                  ...prev,
+                  linkedin: { x: 0, y: 0 }
+                }));
+              }}
+            >
+              {/* Gradient overlay */}
+              <div 
+                className="absolute h-32 w-32 rounded-full bg-gradient-to-b from-[#F95B14]/20 via-[#F95B14]/10 to-transparent blur-xl transition-all duration-500 ease-out pointer-events-none"
+                style={{
+                  left: `${cardMousePositions.linkedin?.x || 0}px`,
+                  top: `${cardMousePositions.linkedin?.y || 0}px`,
+                  transform: 'translate(-50%, -50%)'
+                }}
+              />
+              <div className="relative z-10">
+                <div className="flex items-center gap-4 mb-6">
+                  <div className="w-10 h-10 bg-blue-600 rounded-lg flex items-center justify-center">
+                    <svg className="w-6 h-6 text-white" fill="currentColor" viewBox="0 0 24 24">
+                      <path d="M20.447 20.452h-3.554v-5.569c0-1.328-.027-3.037-1.852-3.037-1.853 0-2.136 1.445-2.136 2.939v5.667H9.351V9h3.414v1.561h.046c.477-.9 1.637-1.85 3.37-1.85 3.601 0 4.267 2.37 4.267 5.455v6.286zM5.337 7.433c-1.144 0-2.063-.926-2.063-2.065 0-1.138.92-2.063 2.063-2.063 1.14 0 2.064.925 2.064 2.063 0 1.139-.925 2.065-2.064 2.065zm1.782 13.019H3.555V9h3.564v11.452zM22.225 0H1.771C.792 0 0 .774 0 1.729v20.542C0 23.227.792 24 1.771 24h20.451C23.2 24 24 23.227 24 22.271V1.729C24 .774 23.2 0 22.222 0h.003z"/>
+                    </svg>
+                  </div>
+                  <div>
+                    <h3 className="text-xl font-bold text-black">LinkedIn</h3>
+                    <p className="text-sm text-gray-600">Profile Analysis</p>
+                  </div>
+                </div>
+                <div className="space-y-3 text-gray-700">
+                  <p className="text-sm leading-relaxed">
+                    Analyze LinkedIn profiles and company pages to extract contextual insights and buying signals in real-time.
+                  </p>
+                  <p className="text-sm leading-relaxed">
+                    Get personalized outreach recommendations based on profile data, job changes, and company updates.
+                  </p>
+                </div>
+              </div>
+            </div>
+
+            {/* Gmail */}
+            <div 
+              className="rounded-2xl border border-gray-200 bg-white p-8 relative overflow-hidden"
+              onMouseMove={(e) => {
+                const rect = e.currentTarget.getBoundingClientRect();
+                setCardMousePositions(prev => ({
+                  ...prev,
+                  gmail: {
+                    x: e.clientX - rect.left,
+                    y: e.clientY - rect.top
+                  }
+                }));
+              }}
+              onMouseLeave={() => {
+                setCardMousePositions(prev => ({
+                  ...prev,
+                  gmail: { x: 0, y: 0 }
+                }));
+              }}
+            >
+              {/* Gradient overlay */}
+              <div 
+                className="absolute h-32 w-32 rounded-full bg-gradient-to-b from-[#F95B14]/20 via-[#F95B14]/10 to-transparent blur-xl transition-all duration-500 ease-out pointer-events-none"
+                style={{
+                  left: `${cardMousePositions.gmail?.x || 0}px`,
+                  top: `${cardMousePositions.gmail?.y || 0}px`,
+                  transform: 'translate(-50%, -50%)'
+                }}
+              />
+              <div className="relative z-10">
+                <div className="flex items-center gap-4 mb-6">
+                  <Image 
+                    src="/Gmail Icon.svg" 
+                    alt="Gmail" 
+                    width={40}
+                    height={40}
+                    className="w-10 h-10"
+                  />
+                  <div>
+                    <h3 className="text-xl font-bold text-black">Gmail</h3>
+                    <p className="text-sm text-gray-600">Email Automation</p>
+                  </div>
+                </div>
+                <div className="space-y-3 text-gray-700">
+                  <p className="text-sm leading-relaxed">
+                    Auto-draft personalized replies and follow-ups based on your sent email history and writing style.
+                  </p>
+                  <p className="text-sm leading-relaxed">
+                    Schedule meetings automatically and organize your inbox with AI-powered categorization and prioritization.
+                  </p>
+                </div>
+              </div>
+            </div>
+
+            {/* Outlook */}
+            <div 
+              className="rounded-2xl border border-gray-200 bg-white p-8 relative overflow-hidden"
+              onMouseMove={(e) => {
+                const rect = e.currentTarget.getBoundingClientRect();
+                setCardMousePositions(prev => ({
+                  ...prev,
+                  outlook: {
+                    x: e.clientX - rect.left,
+                    y: e.clientY - rect.top
+                  }
+                }));
+              }}
+              onMouseLeave={() => {
+                setCardMousePositions(prev => ({
+                  ...prev,
+                  outlook: { x: 0, y: 0 }
+                }));
+              }}
+            >
+              {/* Gradient overlay */}
+              <div 
+                className="absolute h-32 w-32 rounded-full bg-gradient-to-b from-[#F95B14]/20 via-[#F95B14]/10 to-transparent blur-xl transition-all duration-500 ease-out pointer-events-none"
+                style={{
+                  left: `${cardMousePositions.outlook?.x || 0}px`,
+                  top: `${cardMousePositions.outlook?.y || 0}px`,
+                  transform: 'translate(-50%, -50%)'
+                }}
+              />
+              <div className="relative z-10">
+                <div className="flex items-center gap-4 mb-6">
+                  <Image 
+                    src="/Outlook_icon.svg" 
+                    alt="Outlook" 
+                    width={40}
+                    height={40}
+                    className="w-10 h-10"
+                  />
+                  <div>
+                    <h3 className="text-xl font-bold text-black">Outlook</h3>
+                    <p className="text-sm text-gray-600">Microsoft 365</p>
+                  </div>
+                </div>
+                <div className="space-y-3 text-gray-700">
+                  <p className="text-sm leading-relaxed">
+                    Seamless Microsoft 365 integration with calendar sync, team collaboration, and enterprise-grade security.
+                  </p>
+                  <p className="text-sm leading-relaxed">
+                    AI-powered email drafting and meeting scheduling with full Office 365 ecosystem compatibility.
+                  </p>
+                </div>
+              </div>
+            </div>
+
+            {/* HubSpot */}
+            <div 
+              className="rounded-2xl border border-gray-200 bg-white p-8 relative overflow-hidden"
+              onMouseMove={(e) => {
+                const rect = e.currentTarget.getBoundingClientRect();
+                setCardMousePositions(prev => ({
+                  ...prev,
+                  hubspot: {
+                    x: e.clientX - rect.left,
+                    y: e.clientY - rect.top
+                  }
+                }));
+              }}
+              onMouseLeave={() => {
+                setCardMousePositions(prev => ({
+                  ...prev,
+                  hubspot: { x: 0, y: 0 }
+                }));
+              }}
+            >
+              {/* Gradient overlay */}
+              <div 
+                className="absolute h-32 w-32 rounded-full bg-gradient-to-b from-[#F95B14]/20 via-[#F95B14]/10 to-transparent blur-xl transition-all duration-500 ease-out pointer-events-none"
+                style={{
+                  left: `${cardMousePositions.hubspot?.x || 0}px`,
+                  top: `${cardMousePositions.hubspot?.y || 0}px`,
+                  transform: 'translate(-50%, -50%)'
+                }}
+              />
+              <div className="relative z-10">
+                <div className="flex items-center gap-4 mb-6">
+                  <Image 
+                    src="/hubspot-1.svg" 
+                    alt="HubSpot" 
+                    width={40}
+                    height={40}
+                    className="w-10 h-10"
+                  />
+                  <div>
+                    <h3 className="text-xl font-bold text-black">HubSpot</h3>
+                    <p className="text-sm text-gray-600">CRM & Marketing</p>
+                  </div>
+                </div>
+                <div className="space-y-3 text-gray-700">
+                  <p className="text-sm leading-relaxed">
+                    Sync contacts, deals, and activities automatically with AI-enriched lead scoring and pipeline insights.
+                  </p>
+                  <p className="text-sm leading-relaxed">
+                    Generate personalized content and automate marketing sequences based on prospect behavior and engagement.
+                  </p>
+                </div>
+              </div>
             </div>
 
             {/* Google Calendar */}
-            <div className="rounded-2xl border border-gray-200 bg-white p-8 shadow-sm hover:shadow-md transition-all duration-300 hover:scale-105">
-              <div className="flex items-center gap-4 mb-6">
-                <div className="w-16 h-16 rounded-xl bg-white flex items-center justify-center border border-gray-200 shadow-sm">
+            <div 
+              className="rounded-2xl border border-gray-200 bg-white p-8 relative overflow-hidden"
+              onMouseMove={(e) => {
+                const rect = e.currentTarget.getBoundingClientRect();
+                setCardMousePositions(prev => ({
+                  ...prev,
+                  googlecal: {
+                    x: e.clientX - rect.left,
+                    y: e.clientY - rect.top
+                  }
+                }));
+              }}
+              onMouseLeave={() => {
+                setCardMousePositions(prev => ({
+                  ...prev,
+                  googlecal: { x: 0, y: 0 }
+                }));
+              }}
+            >
+              {/* Gradient overlay */}
+              <div 
+                className="absolute h-32 w-32 rounded-full bg-gradient-to-b from-[#F95B14]/20 via-[#F95B14]/10 to-transparent blur-xl transition-all duration-500 ease-out pointer-events-none"
+                style={{
+                  left: `${cardMousePositions.googlecal?.x || 0}px`,
+                  top: `${cardMousePositions.googlecal?.y || 0}px`,
+                  transform: 'translate(-50%, -50%)'
+                }}
+              />
+              <div className="relative z-10">
+                <div className="flex items-center gap-4 mb-6">
                   <Image 
                     src="/google_cal_logo.svg" 
                     alt="Google Calendar" 
-                    width={32}
-                    height={32}
-                    className="w-8 h-8"
+                    width={40}
+                    height={40}
+                    className="w-10 h-10"
                   />
+                  <div>
+                    <h3 className="text-xl font-bold text-black">Google Calendar</h3>
+                    <p className="text-sm text-gray-600">Smart Scheduling</p>
+                  </div>
                 </div>
-                <div>
-                  <h3 className="text-xl font-bold text-black">Google Calendar</h3>
-                  <p className="text-sm text-gray-600">Calendar</p>
+                <div className="space-y-3 text-gray-700">
+                  <p className="text-sm leading-relaxed">
+                    AI-powered meeting scheduling that analyzes availability patterns and optimizes for prospect time zones.
+                  </p>
+                  <p className="text-sm leading-relaxed">
+                    Automatic calendar event creation with smart reminders and follow-up task generation based on meeting outcomes.
+                  </p>
                 </div>
               </div>
-              <ul className="space-y-3 text-gray-700">
-                <li className="flex items-start gap-3">
-                  <svg className="w-5 h-5 text-[#F95B14] flex-shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
-                  </svg>
-                  <span className="text-sm">Smart meeting scheduling</span>
-                </li>
-                <li className="flex items-start gap-3">
-                  <svg className="w-5 h-5 text-[#F95B14] flex-shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
-                  </svg>
-                  <span className="text-sm">Calendar event creation</span>
-                </li>
-                <li className="flex items-start gap-3">
-                  <svg className="w-5 h-5 text-[#F95B14] flex-shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
-                  </svg>
-                  <span className="text-sm">Availability management</span>
-                </li>
-              </ul>
             </div>
           </div>
         </section>

@@ -1,0 +1,18 @@
+<svg width="240" height="60" viewBox="0 0 240 60" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <!-- Google Calendar Logo -->
+  <g transform="translate(0, 6)">
+    <!-- Icon -->
+    <rect x="4" y="4" width="48" height="48" rx="8" fill="#4285F4"/>
+    <rect x="4" y="4" width="48" height="14" rx="8" fill="#1967D2"/>
+    <path d="M10 18H46V22H10V18Z" fill="#EA4335"/>
+    <!-- Calendar grid -->
+    <rect x="10" y="28" width="7" height="7" rx="2" fill="#FBBC04"/>
+    <rect x="21" y="28" width="7" height="7" rx="2" fill="white" opacity="0.6"/>
+    <rect x="32" y="28" width="7" height="7" rx="2" fill="white" opacity="0.6"/>
+    <rect x="10" y="38" width="7" height="7" rx="2" fill="white" opacity="0.6"/>
+    <rect x="21" y="38" width="7" height="7" rx="2" fill="white" opacity="0.6"/>
+    <rect x="32" y="38" width="7" height="7" rx="2" fill="#34A853"/>
+    <!-- Text -->
+    <text x="60" y="34" fill="#5F6368" font-family="'Product Sans', Arial, sans-serif" font-size="20" font-weight="500">Calendar</text>
+  </g>
+</svg>

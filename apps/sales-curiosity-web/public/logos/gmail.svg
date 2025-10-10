@@ -1,0 +1,10 @@
+<svg width="200" height="60" viewBox="0 0 200 60" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <!-- Gmail M logo -->
+  <path d="M10 15L30 28L50 15V45C50 47.2 48.2 49 46 49H14C11.8 49 10 47.2 10 45V15Z" fill="#EA4335"/>
+  <path d="M10 15L30 28L10 41V15Z" fill="#C5221F"/>
+  <path d="M50 15L30 28L50 41V15Z" fill="#C5221F"/>
+  <path d="M10 15L30 4L50 15L30 28L10 15Z" fill="#FBBC04"/>
+  <path d="M10 15V18L24 28V49H14C11.8 49 10 47.2 10 45V15Z" fill="#34A853"/>
+  <path d="M50 15V18L36 28V49H46C48.2 49 50 47.2 50 45V15Z" fill="#34A853"/>
+</svg>
+

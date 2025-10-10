@@ -1,0 +1,11 @@
+<svg width="240" height="60" viewBox="0 0 240 60" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <!-- HubSpot Logo with text -->
+  <g transform="translate(4, 14)">
+    <!-- Sprocket icon -->
+    <path d="M32 6V4C32 2.5 30.5 1 29 1H27V0C27 -0.5 26.5 -1 26 -1C25.5 -1 25 -0.5 25 0V1H21V0C21 -0.5 20.5 -1 20 -1C19.5 -1 19 -0.5 19 0V1H17C15.5 1 14 2.5 14 4V6L11 9L23 21L35 9L32 6Z" fill="#FF7A59"/>
+    <circle cx="23" cy="28" r="5" fill="#FF7A59"/>
+    <rect x="21" y="19" width="4" height="9" fill="#FF7A59"/>
+  </g>
+  <!-- HubSpot text -->
+  <text x="52" y="34" fill="#33475B" font-family="'Avenir Next', Arial, sans-serif" font-size="26" font-weight="600">HubSpot</text>
+</svg>

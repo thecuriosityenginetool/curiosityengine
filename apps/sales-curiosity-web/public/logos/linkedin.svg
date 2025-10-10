@@ -1,0 +1,12 @@
+<svg width="240" height="60" viewBox="0 0 240 60" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <!-- LinkedIn Logo -->
+  <g transform="translate(0, 6)">
+    <!-- Square logo -->
+    <rect x="4" y="4" width="48" height="48" rx="6" fill="#0A66C2"/>
+    <rect x="12" y="24" width="7" height="22" rx="2" fill="white"/>
+    <circle cx="15.5" cy="16" r="3.5" fill="white"/>
+    <path d="M26 24C26 24 26 24 27.5 24C30 24 31.5 25.5 31.5 28V46H38V27C38 22.5 35.5 21 32 21C29.5 21 28 22 26.5 23.5V21H24V46H26V24Z" fill="white"/>
+    <!-- Text -->
+    <text x="60" y="34" fill="#0A66C2" font-family="Arial, sans-serif" font-size="26" font-weight="700">LinkedIn</text>
+  </g>
+</svg>

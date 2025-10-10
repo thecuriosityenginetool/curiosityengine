@@ -1,10 +1,9 @@
-<svg width="200" height="60" viewBox="0 0 200 60" fill="none" xmlns="http://www.w3.org/2000/svg">
-  <!-- Gmail M logo -->
-  <path d="M10 15L30 28L50 15V45C50 47.2 48.2 49 46 49H14C11.8 49 10 47.2 10 45V15Z" fill="#EA4335"/>
-  <path d="M10 15L30 28L10 41V15Z" fill="#C5221F"/>
-  <path d="M50 15L30 28L50 41V15Z" fill="#C5221F"/>
-  <path d="M10 15L30 4L50 15L30 28L10 15Z" fill="#FBBC04"/>
-  <path d="M10 15V18L24 28V49H14C11.8 49 10 47.2 10 45V15Z" fill="#34A853"/>
-  <path d="M50 15V18L36 28V49H46C48.2 49 50 47.2 50 45V15Z" fill="#34A853"/>
+<svg width="120" height="120" viewBox="0 0 120 120" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <!-- Gmail M Logo - Official Colors -->
+  <path d="M20 30L60 56L100 30V90C100 94.4 96.4 98 92 98H28C23.6 98 20 94.4 20 90V30Z" fill="#EA4335"/>
+  <path d="M20 30L60 56L20 82V30Z" fill="#C5221F"/>
+  <path d="M100 30L60 56L100 82V30Z" fill="#C5221F"/>
+  <path d="M20 30L60 8L100 30L60 56L20 30Z" fill="#FBBC04"/>
+  <path d="M20 30V36L48 56V98H28C23.6 98 20 94.4 20 90V30Z" fill="#34A853"/>
+  <path d="M100 30V36L72 56V98H92C96.4 98 100 94.4 100 90V30Z" fill="#34A853"/>
 </svg>
-

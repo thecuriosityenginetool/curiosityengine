@@ -1,12 +1,35 @@
-<svg width="240" height="60" viewBox="0 0 240 60" fill="none" xmlns="http://www.w3.org/2000/svg">
-  <!-- LinkedIn Logo -->
-  <g transform="translate(0, 6)">
-    <!-- Square logo -->
-    <rect x="4" y="4" width="48" height="48" rx="6" fill="#0A66C2"/>
-    <rect x="12" y="24" width="7" height="22" rx="2" fill="white"/>
-    <circle cx="15.5" cy="16" r="3.5" fill="white"/>
-    <path d="M26 24C26 24 26 24 27.5 24C30 24 31.5 25.5 31.5 28V46H38V27C38 22.5 35.5 21 32 21C29.5 21 28 22 26.5 23.5V21H24V46H26V24Z" fill="white"/>
-    <!-- Text -->
-    <text x="60" y="34" fill="#0A66C2" font-family="Arial, sans-serif" font-size="26" font-weight="700">LinkedIn</text>
+<svg width="500" height="140" viewBox="0 0 500 140" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <!-- LinkedIn Official Logo -->
+  <g fill="#0A66C2">
+    <!-- L -->
+    <rect x="20" y="20" width="22" height="90" fill="#0A66C2"/>
+    <rect x="20" y="88" width="55" height="22" fill="#0A66C2"/>
+    
+    <!-- i dot -->
+    <circle cx="104" cy="32" r="12" fill="#0A66C2"/>
+    <!-- i stem -->
+    <rect x="93" y="55" width="22" height="55" fill="#0A66C2"/>
+    
+    <!-- n -->
+    <rect x="135" y="55" width="22" height="55" fill="#0A66C2"/>
+    <path d="M135 55H157V65C162 58 169 55 177 55C192 55 202 65 202 80V110H180V83C180 75 175 70 168 70C161 70 157 75 157 83V110H135V55Z" fill="#0A66C2"/>
+    
+    <!-- k -->
+    <rect x="225" y="20" width="22" height="90" fill="#0A66C2"/>
+    <path d="M247 75L270 55H298L270 75L298 110H270L247 90V110H225V75H247Z" fill="#0A66C2"/>
+    
+    <!-- e -->
+    <path d="M320 82C320 66 333 55 350 55C367 55 380 66 380 82C380 84 380 85 379 87H342C343 95 349 100 357 100C363 100 368 97 371 92L388 102C382 109 372 113 357 113C339 113 320 102 320 82ZM342 77H358C357 70 354 66 350 66C346 66 343 70 342 77Z" fill="#0A66C2"/>
+    
+    <!-- d -->
+    <rect x="405" y="20" width="22" height="90" fill="#0A66C2"/>
+    <path d="M405 55H427V60C432 57 438 55 445 55C460 55 470 66 470 82C470 98 460 110 445 110C438 110 432 108 427 105V110H405V55ZM427 82C427 90 433 95 440 95C447 95 453 90 453 82C453 74 447 69 440 69C433 69 427 74 427 82Z" fill="#0A66C2"/>
+    
+    <!-- in square -->
+    <rect x="390" y="25" width="85" height="85" rx="8" fill="#0A66C2"/>
+    <circle cx="410" cy="45" r="6" fill="white"/>
+    <rect x="404" y="56" width="12" height="34" rx="3" fill="white"/>
+    <rect x="430" y="56" width="12" height="34" rx="3" fill="white"/>
+    <path d="M430 56H442V62C444 58 448 56 452 56C458 56 462 60 462 66V90H450V68C450 64 448 62 445 62C442 62 440 64 440 68V90H430V56Z" fill="white"/>
   </g>
 </svg>

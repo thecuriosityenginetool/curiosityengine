@@ -422,8 +422,8 @@ export default function Home() {
                 />
               </div>
 
-              <span className="inline-flex items-center rounded-full bg-white px-4 py-1.5 text-sm font-medium text-[#F95B14] ring-1 ring-inset ring-[#F95B14]/20 mb-8 animate-pulse relative z-10">
-                New: AI-Powered Sales Automation
+              <span className="inline-flex items-center rounded-full bg-white px-4 py-1.5 text-sm font-medium text-[#F95B14] ring-1 ring-inset ring-[#F95B14]/20 mb-8 relative z-10">
+                10x Your Sales Productivity
               </span>
               
               <h1 className="text-4xl font-bold tracking-tight text-black sm:text-5xl lg:text-6xl mb-6 leading-tight">
@@ -498,7 +498,7 @@ export default function Home() {
           
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 items-center">
             <div>
-              <div className="inline-flex items-center rounded-full bg-[#F95B14]/10 px-4 py-1.5 text-sm font-medium text-[#F95B14] ring-1 ring-inset ring-[#F95B14]/20 mb-6">
+              <div className="inline-flex items-center rounded-full bg-white px-4 py-1.5 text-sm font-medium text-[#F95B14] ring-1 ring-inset ring-[#F95B14]/20 mb-6 relative z-10">
                 🧠 AI That Sounds Like You
               </div>
                 <p className="text-lg text-gray-700 mb-6 leading-relaxed">
@@ -565,7 +565,7 @@ export default function Home() {
         {/* Chrome Extension Highlight */}
         <section className="relative mx-auto max-w-7xl px-6 py-24">
           <div className="text-center mb-16">
-            <div className="inline-flex items-center rounded-full bg-[#F95B14]/10 px-4 py-1.5 text-sm font-medium text-[#F95B14] ring-1 ring-inset ring-[#F95B14]/20 mb-6">
+            <div className="inline-flex items-center rounded-full bg-white px-4 py-1.5 text-sm font-medium text-[#F95B14] ring-1 ring-inset ring-[#F95B14]/20 mb-6 relative z-10">
               🚀 Chrome Extension
             </div>
             <GSAPReveal>
@@ -634,7 +634,7 @@ export default function Home() {
         {/* Connectors Section */}
         <section className="relative mx-auto max-w-7xl px-6 py-24 bg-white">
           <div className="text-center mb-16">
-            <div className="inline-flex items-center rounded-full bg-[#F95B14]/10 px-4 py-1.5 text-sm font-medium text-[#F95B14] ring-1 ring-inset ring-[#F95B14]/20 mb-6">
+            <div className="inline-flex items-center rounded-full bg-white px-4 py-1.5 text-sm font-medium text-[#F95B14] ring-1 ring-inset ring-[#F95B14]/20 mb-6 relative z-10">
               🔌 Connectors
             </div>
             <GSAPReveal>
@@ -975,7 +975,7 @@ export default function Home() {
         {/* Features: Agentic Automation */}
         <section className="relative mx-auto max-w-7xl px-6 py-24">
           <div className="text-center mb-16">
-            <div className="inline-flex items-center rounded-full bg-[#F95B14]/10 px-4 py-1.5 text-sm font-medium text-[#F95B14] ring-1 ring-inset ring-[#F95B14]/20 mb-6">
+            <div className="inline-flex items-center rounded-full bg-white px-4 py-1.5 text-sm font-medium text-[#F95B14] ring-1 ring-inset ring-[#F95B14]/20 mb-6 relative z-10">
               ⚡ Modern Agentic Automation
             </div>
             <h2 className="text-4xl sm:text-5xl font-bold text-white mb-6">
@@ -1103,30 +1103,57 @@ export default function Home() {
 
         {/* CTA Section */}
         <section className="relative mx-auto max-w-7xl px-6 py-24">
-          <div className="rounded-3xl border border-[#F95B14]/30 bg-gradient-to-r from-[#F95B14]/20 to-[#e04d0a]/20 p-12 text-center backdrop-blur-sm">
-            <h2 className="text-4xl sm:text-5xl font-bold text-white mb-6">
-              Ready to get your hour back?
-            </h2>
-            <p className="text-xl text-gray-300 mb-8 max-w-2xl mx-auto">
-              Join thousands of sales professionals who are closing more deals with less busywork.
-            </p>
-            <div className="flex flex-col sm:flex-row gap-4 justify-center">
-              <Link 
-                href="/signup"
-                className="px-8 py-4 bg-[#F95B14] text-white font-bold rounded-lg shadow-lg hover:bg-[#e04d0a] transition-all hover:scale-105 text-lg"
-              >
-                Start Free Trial
-              </Link>
-              <Link 
-                href="/install"
-                className="px-8 py-4 bg-white text-black font-semibold rounded-lg border border-gray-200 transition-all hover:bg-gray-100 text-lg"
-              >
-                Get Chrome Extension
-              </Link>
+          <div 
+            className="rounded-3xl border border-gray-200 bg-white p-12 text-center relative overflow-hidden"
+            onMouseMove={(e) => {
+              const rect = e.currentTarget.getBoundingClientRect();
+              setMousePosition({
+                x: e.clientX - rect.left,
+                y: e.clientY - rect.top
+              });
+            }}
+            onMouseLeave={() => {
+              setMousePosition({ x: 0, y: 0 });
+            }}
+          >
+            {/* Orange motion gradient */}
+            <div 
+              className="absolute h-64 w-64 rounded-full bg-gradient-to-b from-[#F95B14]/15 via-[#F95B14]/8 to-transparent blur-2xl transition-all duration-1000 ease-out pointer-events-none"
+              style={{
+                left: `${mousePosition.x}px`,
+                top: `${mousePosition.y}px`,
+                transform: 'translate(-50%, -50%)'
+              }}
+            />
+            
+            <div className="relative z-10">
+              <h2 className="text-4xl sm:text-5xl font-bold text-black mb-6">
+                Transform Your Sales Game Today
+              </h2>
+              <p className="text-xl text-gray-700 mb-8 max-w-2xl mx-auto">
+                Join 10,000+ sales professionals who've eliminated busywork and doubled their productivity with AI-powered automation.
+              </p>
+              <div className="flex flex-col sm:flex-row gap-4 justify-center">
+                <Link 
+                  href="/signup"
+                  className="px-8 py-4 bg-[#F95B14] text-white font-bold rounded-lg shadow-lg hover:bg-[#e04d0a] transition-all hover:scale-105 text-lg"
+                >
+                  Start Free Trial
+                </Link>
+                <Link 
+                  href="/install"
+                  className="flex items-center justify-center gap-3 px-8 py-4 bg-gray-100 text-black font-semibold rounded-lg border border-gray-200 transition-all hover:bg-gray-200 text-lg"
+                >
+                  <svg className="w-5 h-5" viewBox="0 0 24 24" fill="currentColor">
+                    <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-1 17.93c-3.94-.49-7-3.85-7-7.93 0-.62.08-1.21.21-1.79L9 15v1c0 1.1.9 2 2 2v1.93zm6.9-2.54c-.26-.81-1-1.39-1.9-1.39h-1v-3c0-.55-.45-1-1-1H8v-2h2c.55 0 1-.45 1-1V7h2c1.1 0 2-.9 2-2v-.41c2.93 1.19 5 4.06 5 7.41 0 2.08-.8 3.97-2.1 5.39z"/>
+                  </svg>
+                  Download Chrome Extension
+                </Link>
+              </div>
+              <p className="mt-6 text-sm text-gray-600">
+                No credit card required • 7-day free trial • Cancel anytime
+              </p>
             </div>
-            <p className="mt-6 text-sm text-gray-400">
-              No credit card required • 7-day free trial • Cancel anytime
-            </p>
           </div>
         </section>
 

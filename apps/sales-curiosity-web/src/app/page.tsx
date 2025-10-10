@@ -381,14 +381,7 @@ export default function Home() {
     }
   }
 
-  // Loading state - NextAuth is checking session
-  if (isLoading) {
-    return (
-      <main className="min-h-screen bg-black flex items-center justify-center">
-        <div className="animate-pulse text-white">Loading...</div>
-      </main>
-    );
-  }
+  // Remove loading state - let the page load directly
 
   // Not authenticated - show modern landing page with white background
   if (!isAuthenticated || !session) {
@@ -411,7 +404,7 @@ export default function Home() {
           <div className="relative mx-auto max-w-7xl px-6 flex-1 flex flex-col justify-center py-16">
             <div className="mx-auto max-w-4xl text-center">
               {/* Logo with hover animation */}
-              <div className="mb-8 flex justify-center group">
+              <div className="mb-8 flex justify-center group animate-fade-in-up" style={{animationDelay: '0.1s'}}>
                 <Image 
                   src="/fulllogo_transparent_nobuffer.png" 
                   alt="Sales Curiosity" 
@@ -422,11 +415,11 @@ export default function Home() {
                 />
               </div>
 
-              <span className="inline-flex items-center rounded-full bg-white px-4 py-1.5 text-sm font-medium text-[#F95B14] ring-1 ring-inset ring-[#F95B14]/20 mb-8 relative z-10">
+              <span className="inline-flex items-center rounded-full bg-white px-4 py-1.5 text-sm font-medium text-[#F95B14] ring-1 ring-inset ring-[#F95B14]/20 mb-8 relative z-10 animate-fade-in-up" style={{animationDelay: '0.2s'}}>
                 10x Your Sales Productivity
               </span>
               
-              <h1 className="text-4xl font-bold tracking-tight text-black sm:text-5xl lg:text-6xl mb-6 leading-tight">
+              <h1 className="text-4xl font-bold tracking-tight text-black sm:text-5xl lg:text-6xl mb-6 leading-tight animate-fade-in-up" style={{animationDelay: '0.3s'}}>
                 The AI Sales Assistant for{' '}
                 <span className="text-[#F95B14] inline-block min-w-[280px] sm:min-w-[400px] text-center">
                   {currentRole}
@@ -434,15 +427,15 @@ export default function Home() {
                 </span>
               </h1>
               
-              <p className="text-lg text-gray-700 mb-10 leading-relaxed max-w-2xl mx-auto">
+              <p className="text-lg text-gray-700 mb-10 leading-relaxed max-w-2xl mx-auto animate-fade-in-up" style={{animationDelay: '0.4s'}}>
                 <strong className="text-black">Auto-draft emails</strong> from LinkedIn profiles and CRM entries, <strong className="text-black">auto-research</strong> LinkedIn accounts and CRM deals, <strong className="text-black">enrich CRM leads</strong> with AI research and <strong className="text-black">generate messages</strong> to leads from your Outlook or Gmail.
               </p>
 
               {/* Get started text */}
-              <p className="text-base text-gray-600 mb-8">Get started in seconds:</p>
+              <p className="text-base text-gray-600 mb-8 animate-fade-in-up" style={{animationDelay: '0.5s'}}>Get started in seconds:</p>
 
               {/* CTA Buttons matching the image */}
-              <div className="flex flex-col sm:flex-row gap-4 justify-center items-center mb-10">
+              <div className="flex flex-col sm:flex-row gap-4 justify-center items-center mb-10 animate-fade-in-up" style={{animationDelay: '0.6s'}}>
                 {/* Gmail Button */}
                 <Link 
                   href="/signup?integration=gmail"
@@ -1103,12 +1096,12 @@ export default function Home() {
 
         {/* CTA Section */}
         <section className="relative mx-auto max-w-7xl px-6 py-24">
-          <div className="rounded-3xl border border-gray-200 p-12 text-center relative overflow-hidden animated-gradient">
+          <div className="rounded-3xl border border-gray-200 bg-white p-12 text-center relative overflow-hidden">
             <div className="relative z-10">
-              <h2 className="text-4xl sm:text-5xl font-bold text-white mb-6 drop-shadow-lg">
+              <h2 className="text-4xl sm:text-5xl font-bold text-black mb-6">
                 Transform Your Sales Game Today
               </h2>
-              <p className="text-xl text-white/90 mb-8 max-w-2xl mx-auto drop-shadow-md">
+              <p className="text-xl text-gray-700 mb-8 max-w-2xl mx-auto">
                 Join 10,000+ sales professionals who've eliminated busywork and doubled their productivity with AI-powered automation.
               </p>
               <div className="flex flex-col sm:flex-row gap-4 justify-center">
@@ -1132,7 +1125,7 @@ export default function Home() {
                   Download Chrome Extension
                 </Link>
               </div>
-              <p className="mt-6 text-sm text-white/80 drop-shadow-sm">
+              <p className="mt-6 text-sm text-gray-600">
                 No credit card required • 7-day free trial • Cancel anytime
               </p>
             </div>

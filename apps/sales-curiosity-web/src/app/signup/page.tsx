@@ -125,20 +125,19 @@ function SignupForm() {
   }
 
   return (
-    <div className="min-h-screen bg-white flex">
-      {/* Left Column - Signup Form */}
-      <div className="flex-1 flex flex-col justify-center px-12 py-16 max-w-2xl">
-        <div className="max-w-lg">
-          {/* Logo */}
-          <div className="mb-8">
-            <Image 
-              src="/icononly_transparent_nobuffer.png" 
-              alt="Curiosity Engine" 
-              width={40}
-              height={40}
-              className="w-10 h-10 mb-4"
-            />
-          </div>
+    <div className="min-h-screen bg-white flex items-center justify-center px-6">
+      {/* Centered Signup Form */}
+      <div className="w-full max-w-md">
+        {/* Logo */}
+        <div className="mb-8 text-center">
+          <Image 
+            src="/icononly_transparent_nobuffer.png" 
+            alt="Curiosity Engine" 
+            width={40}
+            height={40}
+            className="w-10 h-10 mx-auto mb-4"
+          />
+        </div>
 
           {/* Headline */}
           <h1 className="text-4xl font-bold text-gray-900 mb-4">
@@ -176,19 +175,19 @@ function SignupForm() {
 
           {/* Email Signup */}
           <form onSubmit={handleSignup} className="mb-8">
-            <div className="flex gap-3 mb-6">
+            <div className="space-y-4">
               <input
                 type="email"
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
                 required
                 placeholder="Enter email"
-                className="flex-1 px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#F95B14] focus:border-transparent outline-none"
+                className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#F95B14] focus:border-transparent outline-none"
               />
               <button
                 type="submit"
                 disabled={loading}
-                className="px-6 py-3 bg-black text-white rounded-lg font-semibold hover:bg-gray-800 transition-colors disabled:opacity-50"
+                className="w-full px-6 py-3 bg-black text-white rounded-lg font-semibold hover:bg-gray-800 transition-colors disabled:opacity-50"
               >
                 {loading ? 'Signing up...' : 'Sign up for free'}
               </button>
@@ -257,73 +256,11 @@ function SignupForm() {
             <span>GDPR Compliant</span>
           </div>
 
-          <div className="mt-6 text-sm text-gray-600">
+          <div className="mt-6 text-sm text-gray-600 text-center">
             Already have an account?{' '}
             <a href="/login" className="text-[#F95B14] font-semibold hover:underline">
               Sign in
             </a>
-          </div>
-        </div>
-      </div>
-
-      {/* Right Column - Workflow Visualization */}
-      <div className="flex-1 bg-gradient-to-br from-[#F95B14]/5 to-orange-100/30 relative overflow-hidden">
-        <div className="absolute inset-0 bg-white/20 backdrop-blur-sm"></div>
-        <div className="relative z-10 p-12 flex flex-col justify-center">
-          <div className="bg-white/80 backdrop-blur-md rounded-2xl p-8 shadow-xl border border-white/20 max-w-md">
-            <h3 className="text-sm font-semibold text-gray-500 uppercase tracking-wider mb-6">AI WORKFLOW</h3>
-            
-            {/* Workflow Cards */}
-            <div className="space-y-4">
-              {/* Profile Card */}
-              <div className="bg-white rounded-xl p-4 shadow-sm border border-gray-100">
-                <div className="flex items-center gap-3">
-                  <div className="w-10 h-10 bg-gradient-to-r from-[#F95B14] to-orange-500 rounded-full flex items-center justify-center text-white font-bold text-sm">
-                    MS
-                  </div>
-                  <div className="flex-1">
-                    <div className="font-semibold text-gray-900">Michael Smith</div>
-                    <div className="text-sm text-gray-600">Director of Marketing @ Olain</div>
-                  </div>
-                  <div className="bg-black text-white px-3 py-1 rounded-full text-xs font-medium">
-                    ⭐ 97% fit
-                  </div>
-                </div>
-              </div>
-
-              {/* AI Prompt Card */}
-              <div className="bg-white rounded-xl p-4 shadow-sm border border-gray-100">
-                <div className="flex items-center gap-3">
-                  <div className="w-10 h-10 bg-purple-500 rounded-full flex items-center justify-center">
-                    <svg className="w-5 h-5 text-white" fill="currentColor" viewBox="0 0 20 20">
-                      <path fillRule="evenodd" d="M3 4a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1zm0 4a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1zm0 4a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1z" clipRule="evenodd" />
-                    </svg>
-                  </div>
-                  <div className="flex-1">
-                    <div className="text-xs font-semibold text-gray-500 uppercase tracking-wide">RUN AI PROMPT</div>
-                    <div className="font-medium text-gray-900">Confirm decision maker</div>
-                  </div>
-                  <div className="bg-gray-800 text-white px-2 py-1 rounded text-xs">
-                    yes
-                  </div>
-                </div>
-              </div>
-
-              {/* Sequence Card */}
-              <div className="bg-white rounded-xl p-4 shadow-sm border border-gray-100">
-                <div className="flex items-center gap-3">
-                  <div className="w-10 h-10 bg-pink-500 rounded-full flex items-center justify-center">
-                    <svg className="w-5 h-5 text-white" fill="currentColor" viewBox="0 0 20 20">
-                      <path d="M10.894 2.553a1 1 0 00-1.788 0l-7 14a1 1 0 001.169 1.409l5-1.429A1 1 0 009 15.571V11a1 1 0 112 0v4.571a1 1 0 00.725.962l5 1.428a1 1 0 001.17-1.408l-7-14z" />
-                    </svg>
-                  </div>
-                  <div className="flex-1">
-                    <div className="text-xs font-semibold text-gray-500 uppercase tracking-wide">SEQUENCE</div>
-                    <div className="font-medium text-gray-900">Add to Marketing outbound</div>
-                  </div>
-                </div>
-              </div>
-            </div>
           </div>
         </div>
       </div>

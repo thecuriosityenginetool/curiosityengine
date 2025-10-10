@@ -257,66 +257,114 @@ export default function Home() {
     );
   }
 
-  // Not authenticated - show modern landing page with brand colors
+  // Not authenticated - show modern landing page with white background
   if (!isAuthenticated || !session) {
     return (
-      <main className="min-h-screen bg-black">
+      <main className="min-h-screen bg-white">
         {/* Hero Section */}
-        <section className="relative isolate overflow-hidden">
+        <section className="relative isolate overflow-hidden bg-white">
+          {/* Subtle gradient overlay */}
           <div className="absolute inset-0 pointer-events-none">
-            <div className="absolute -top-24 left-1/2 -translate-x-1/2 h-96 w-[80rem] rounded-full bg-[#F95B14]/10 blur-3xl" />
+            <div className="absolute -top-24 left-1/2 -translate-x-1/2 h-96 w-[80rem] rounded-full bg-[#F95B14]/5 blur-3xl" />
           </div>
 
           <div className="relative mx-auto max-w-7xl px-6 py-24 sm:py-32 lg:py-40">
             <div className="mx-auto max-w-4xl text-center">
-              {/* Logo */}
-              <div className="mb-8 flex justify-center">
+              {/* Logo with hover animation */}
+              <div className="mb-8 flex justify-center group">
                 <Image 
                   src="/fulllogo_transparent_nobuffer.png" 
                   alt="Sales Curiosity" 
                   width={300}
                   height={80}
                   priority
-                  className="h-20 w-auto"
+                  className="h-20 w-auto transition-all duration-300 group-hover:scale-105"
                 />
               </div>
 
-              <span className="inline-flex items-center rounded-full bg-[#F95B14]/10 px-4 py-1.5 text-sm font-medium text-[#F95B14] ring-1 ring-inset ring-[#F95B14]/20 mb-8">
+              <span className="inline-flex items-center rounded-full bg-[#F95B14]/10 px-4 py-1.5 text-sm font-medium text-[#F95B14] ring-1 ring-inset ring-[#F95B14]/20 mb-8 animate-pulse">
                 New: AI-Powered Sales Automation
               </span>
               
-              <h1 className="text-5xl font-bold tracking-tight text-white sm:text-6xl lg:text-7xl mb-6 leading-tight">
-                Get back <span className="text-[#F95B14]">one hour</span><br />every day
+              <h1 className="text-5xl font-bold tracking-tight text-black sm:text-6xl lg:text-7xl mb-6 leading-tight">
+                Get back <span className="text-[#F95B14] hover:text-[#e04d0a] transition-colors">one hour</span><br />every day
               </h1>
               
-              <p className="text-xl text-gray-300 mb-12 leading-relaxed max-w-2xl mx-auto">
-                Begin your day with <strong className="text-white">emails auto-drafted</strong>, <strong className="text-white">LinkedIn profiles analyzed</strong>, and <strong className="text-white">pipeline updates synced</strong>—all in your voice, powered by AI agents that know your sales stack.
+              <p className="text-xl text-gray-700 mb-12 leading-relaxed max-w-2xl mx-auto">
+                Begin your day with <strong className="text-black">emails auto-drafted</strong>, <strong className="text-black">LinkedIn profiles analyzed</strong>, and <strong className="text-black">pipeline updates synced</strong>—all in your voice, powered by AI agents that know your sales stack.
               </p>
 
-              {/* CTA Buttons */}
+              {/* CTA Buttons with Icons */}
               <div className="flex flex-col sm:flex-row gap-4 justify-center items-center mb-16">
                 <Link 
                   href="/signup"
-                  className="w-full sm:w-auto px-8 py-4 bg-[#F95B14] hover:bg-[#e04d0a] text-white font-semibold rounded-lg shadow-lg shadow-[#F95B14]/30 transition-all hover:shadow-[#F95B14]/50 hover:scale-105 text-lg"
+                  className="group w-full sm:w-auto px-8 py-4 bg-[#F95B14] hover:bg-[#e04d0a] text-white font-semibold rounded-lg shadow-lg shadow-[#F95B14]/30 transition-all duration-300 hover:shadow-[#F95B14]/50 hover:scale-105 hover:-translate-y-1 text-lg flex items-center justify-center gap-2"
                 >
                   Start free trial
+                  <svg className="w-5 h-5 transition-transform group-hover:translate-x-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 7l5 5m0 0l-5 5m5-5H6" />
+                  </svg>
                 </Link>
                 <Link 
                   href="/login"
-                  className="w-full sm:w-auto px-8 py-4 bg-white hover:bg-gray-100 text-black font-semibold rounded-lg border border-gray-200 transition-all text-lg"
+                  className="group w-full sm:w-auto px-8 py-4 bg-white hover:bg-gray-50 text-black font-semibold rounded-lg border-2 border-gray-200 hover:border-[#F95B14] transition-all duration-300 hover:shadow-lg hover:scale-105 text-lg flex items-center justify-center gap-2"
                 >
                   Sign In
+                  <svg className="w-5 h-5 transition-transform group-hover:rotate-12" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 16l-4-4m0 0l4-4m-4 4h14m-5 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h7a3 3 0 013 3v1" />
+                  </svg>
                 </Link>
               </div>
 
-              {/* Trust badges */}
-              <div className="flex flex-col items-center gap-4">
-                <p className="text-sm text-gray-400">Trusted by sales teams at</p>
-                <div className="flex flex-wrap justify-center items-center gap-8 opacity-50">
-                  <div className="text-gray-400 font-semibold text-sm">Microsoft</div>
-                  <div className="text-gray-400 font-semibold text-sm">Salesforce</div>
-                  <div className="text-gray-400 font-semibold text-sm">HubSpot</div>
-                  <div className="text-gray-400 font-semibold text-sm">Monday.com</div>
+              {/* Integration Logos with hover effects */}
+              <div className="flex flex-col items-center gap-6">
+                <p className="text-sm font-medium text-gray-600">Works seamlessly with</p>
+                <div className="flex flex-wrap justify-center items-center gap-8">
+                  {/* Gmail */}
+                  <div className="group flex items-center gap-2 px-4 py-2 rounded-lg hover:bg-gray-50 transition-all duration-300 cursor-pointer hover:scale-110">
+                    <svg className="w-6 h-6 transition-transform group-hover:rotate-12" viewBox="0 0 24 24" fill="none">
+                      <path d="M22 6C22 4.9 21.1 4 20 4H4C2.9 4 2 4.9 2 6V18C2 19.1 2.9 20 4 20H20C21.1 20 22 19.1 22 18V6Z" fill="#EA4335"/>
+                      <path d="M22 6L12 13L2 6" stroke="white" strokeWidth="2" strokeLinecap="round"/>
+                    </svg>
+                    <span className="text-sm font-semibold text-gray-700">Gmail</span>
+                  </div>
+                  
+                  {/* Outlook */}
+                  <div className="group flex items-center gap-2 px-4 py-2 rounded-lg hover:bg-gray-50 transition-all duration-300 cursor-pointer hover:scale-110">
+                    <svg className="w-6 h-6 transition-transform group-hover:rotate-12" viewBox="0 0 24 24" fill="#0078D4">
+                      <rect width="24" height="24" rx="2"/>
+                      <text x="12" y="17" fontSize="14" fill="white" textAnchor="middle" fontWeight="bold">O</text>
+                    </svg>
+                    <span className="text-sm font-semibold text-gray-700">Outlook</span>
+                  </div>
+                  
+                  {/* HubSpot */}
+                  <div className="group flex items-center gap-2 px-4 py-2 rounded-lg hover:bg-gray-50 transition-all duration-300 cursor-pointer hover:scale-110">
+                    <svg className="w-6 h-6 transition-transform group-hover:rotate-12" viewBox="0 0 24 24" fill="#FF7A59">
+                      <circle cx="12" cy="12" r="10"/>
+                      <path d="M8 12L10 14L16 8" stroke="white" strokeWidth="2" fill="none" strokeLinecap="round"/>
+                    </svg>
+                    <span className="text-sm font-semibold text-gray-700">HubSpot</span>
+                  </div>
+                  
+                  {/* Monday.com */}
+                  <div className="group flex items-center gap-2 px-4 py-2 rounded-lg hover:bg-gray-50 transition-all duration-300 cursor-pointer hover:scale-110">
+                    <svg className="w-6 h-6 transition-transform group-hover:rotate-12" viewBox="0 0 24 24">
+                      <circle cx="8" cy="12" r="3" fill="#FF3D57"/>
+                      <circle cx="16" cy="12" r="3" fill="#FFCB00"/>
+                      <circle cx="12" cy="6" r="3" fill="#00D647"/>
+                    </svg>
+                    <span className="text-sm font-semibold text-gray-700">Monday</span>
+                  </div>
+                  
+                  {/* Salesforce */}
+                  <div className="group flex items-center gap-2 px-4 py-2 rounded-lg hover:bg-gray-50 transition-all duration-300 cursor-pointer hover:scale-110">
+                    <svg className="w-6 h-6 transition-transform group-hover:rotate-12" viewBox="0 0 24 24" fill="#00A1E0">
+                      <path d="M12 2L2 7L12 12L22 7L12 2Z"/>
+                      <path d="M2 17L12 22L22 17M2 12L12 17L22 12" stroke="#00A1E0" strokeWidth="2" fill="none"/>
+                    </svg>
+                    <span className="text-sm font-semibold text-gray-700">Salesforce</span>
+                  </div>
                 </div>
               </div>
             </div>
@@ -324,55 +372,57 @@ export default function Home() {
         </section>
 
         {/* Value Prop: AI Trained on Your Voice */}
-        <section className="relative mx-auto max-w-7xl px-6 py-24">
-          <div className="rounded-3xl border border-gray-800 bg-gray-900/50 p-12 backdrop-blur-sm">
+        <section className="relative mx-auto max-w-7xl px-6 py-24 bg-gray-50">
+          <div className="rounded-3xl border-2 border-gray-200 bg-white p-12 shadow-xl hover:shadow-2xl transition-shadow duration-500">
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 items-center">
               <div>
                 <div className="inline-flex items-center rounded-full bg-[#F95B14]/10 px-4 py-1.5 text-sm font-medium text-[#F95B14] ring-1 ring-inset ring-[#F95B14]/20 mb-6">
                   🧠 AI That Sounds Like You
                 </div>
-                <h2 className="text-4xl font-bold text-white mb-6">
+                <h2 className="text-4xl font-bold text-black mb-6">
                   Your AI learns your voice from sent emails
                 </h2>
-                <p className="text-lg text-gray-300 mb-6 leading-relaxed">
+                <p className="text-lg text-gray-700 mb-6 leading-relaxed">
                   We train your account's AI on your actual sent emails, so every auto-drafted message sounds authentically like you. No robotic templates. No generic responses. Just your natural voice, scaled.
                 </p>
-                <ul className="space-y-3 text-gray-300">
-                  <li className="flex items-start gap-3">
-                    <svg className="w-6 h-6 text-[#F95B14] flex-shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <ul className="space-y-3 text-gray-700">
+                  <li className="flex items-start gap-3 group hover:translate-x-2 transition-transform duration-300">
+                    <svg className="w-6 h-6 text-[#F95B14] flex-shrink-0 mt-0.5 group-hover:scale-110 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
                     </svg>
                     <span>Analyzes your writing style, tone, and patterns</span>
                   </li>
-                  <li className="flex items-start gap-3">
-                    <svg className="w-6 h-6 text-[#F95B14] flex-shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <li className="flex items-start gap-3 group hover:translate-x-2 transition-transform duration-300">
+                    <svg className="w-6 h-6 text-[#F95B14] flex-shrink-0 mt-0.5 group-hover:scale-110 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
                     </svg>
                     <span>Maintains your personal brand across all communications</span>
                   </li>
-                  <li className="flex items-start gap-3">
-                    <svg className="w-6 h-6 text-[#F95B14] flex-shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <li className="flex items-start gap-3 group hover:translate-x-2 transition-transform duration-300">
+                    <svg className="w-6 h-6 text-[#F95B14] flex-shrink-0 mt-0.5 group-hover:scale-110 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
                     </svg>
                     <span>Gets smarter with every email you send</span>
                   </li>
                 </ul>
               </div>
-              <div className="relative">
-                <div className="rounded-2xl border border-gray-700 bg-gray-800/50 p-6 shadow-2xl">
+              <div className="relative group">
+                <div className="absolute -inset-1 bg-gradient-to-r from-[#F95B14] to-[#e04d0a] rounded-2xl opacity-20 group-hover:opacity-30 blur transition-opacity duration-500"></div>
+                <div className="relative rounded-2xl border border-gray-200 bg-white p-6 shadow-lg group-hover:shadow-xl transition-all duration-300">
                   <div className="mb-4 flex items-center gap-3">
-                    <div className="w-10 h-10 rounded-full bg-gradient-to-r from-[#F95B14] to-[#e04d0a]" />
+                    <div className="w-10 h-10 rounded-full bg-gradient-to-r from-[#F95B14] to-[#e04d0a] animate-pulse" />
                     <div>
-                      <div className="text-sm font-semibold text-white">Your AI Assistant</div>
-                      <div className="text-xs text-gray-400">Trained on 2,847 sent emails</div>
+                      <div className="text-sm font-semibold text-black">Your AI Assistant</div>
+                      <div className="text-xs text-gray-500">Trained on 2,847 sent emails</div>
                     </div>
                   </div>
-                  <div className="space-y-2 text-sm text-gray-300">
+                  <div className="space-y-2 text-sm text-gray-700">
                     <p className="leading-relaxed">"Hey Sarah,</p>
                     <p className="leading-relaxed">I noticed you're expanding into the enterprise market—congrats on the Series B! 🎉</p>
                     <p className="leading-relaxed">We helped a similar company in your space reduce their sales cycle by 40%. Would love to show you how...</p>
                   </div>
-                  <div className="mt-4 pt-4 border-t border-gray-700 text-xs text-gray-400">
+                  <div className="mt-4 pt-4 border-t border-gray-200 text-xs text-gray-500 flex items-center gap-2">
+                    <span className="inline-block w-2 h-2 bg-[#F95B14] rounded-full animate-pulse"></span>
                     ✨ Drafted in your authentic voice
                   </div>
                 </div>

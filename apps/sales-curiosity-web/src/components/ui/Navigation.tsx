@@ -52,9 +52,8 @@ export default function Navigation() {
         isVisible ? 'translate-y-0' : '-translate-y-full'
       }`}
       style={{
-        background: 'rgba(255, 255, 255, 0.5)',
-        backdropFilter: 'blur(10px)',
-        borderBottom: '1px solid rgba(0, 0, 0, 0.1)'
+        background: 'transparent',
+        borderBottom: 'none'
       }}
     >
       <div className="mx-auto flex max-w-7xl items-center justify-between px-6 py-4">
@@ -90,35 +89,18 @@ export default function Navigation() {
               Logout
             </button>
           ) : (
-            <div className="flex items-center gap-3">
-              {/* Start with Outlook */}
+            <div className="flex items-center gap-4">
               <Link 
-                className="flex items-center gap-2 rounded-lg bg-[#0078D4] px-4 py-2 text-sm font-semibold text-white hover:bg-[#106ebe] transition-all hover:scale-105 shadow-sm"
-                href="/signup?integration=outlook"
+                className="text-gray-700 hover:text-black font-semibold transition-colors" 
+                href="/login"
               >
-                <Image 
-                  src="/outlook.svg" 
-                  alt="Outlook" 
-                  width={16}
-                  height={16}
-                  className="w-4 h-4"
-                />
-                Start with Outlook
+                Sign In
               </Link>
-              
-              {/* Start with Gmail */}
               <Link 
-                className="flex items-center gap-2 rounded-lg bg-[#EA4335] px-4 py-2 text-sm font-semibold text-white hover:bg-[#d33b2c] transition-all hover:scale-105 shadow-sm"
-                href="/signup?integration=gmail"
+                className="rounded-lg bg-[#F95B14] px-4 py-2 text-sm font-semibold text-white hover:bg-[#e04d0a] transition-all hover:scale-105 shadow-sm"
+                href="/signup"
               >
-                <Image 
-                  src="/gmail_logo_2.svg" 
-                  alt="Gmail" 
-                  width={16}
-                  height={16}
-                  className="w-4 h-4"
-                />
-                Start with Gmail
+                Start Free Trial
               </Link>
             </div>
           )}

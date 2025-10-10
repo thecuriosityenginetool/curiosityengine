@@ -302,10 +302,10 @@ export default function Home() {
     return (
       <main className="min-h-screen bg-white">
         {/* Hero Section */}
-        <section className="relative isolate overflow-hidden bg-white">
-          {/* Subtle gradient overlay */}
+        <section className="relative isolate overflow-hidden bg-gradient-to-b from-[#F95B14]/10 via-white to-white min-h-screen">
+          {/* Extended gradient overlay to top */}
           <div className="absolute inset-0 pointer-events-none">
-            <div className="absolute -top-24 left-1/2 -translate-x-1/2 h-96 w-[80rem] rounded-full bg-[#F95B14]/5 blur-3xl" />
+            <div className="absolute -top-96 left-1/2 -translate-x-1/2 h-[800px] w-[100rem] rounded-full bg-gradient-to-b from-[#F95B14]/20 via-[#F95B14]/10 to-transparent blur-3xl" />
           </div>
 
           <div className="relative mx-auto max-w-7xl px-6 py-24 sm:py-32 lg:py-40">
@@ -338,25 +338,39 @@ export default function Home() {
                 Begin your day with <strong className="text-black">emails auto-drafted</strong>, <strong className="text-black">LinkedIn profiles analyzed</strong>, and <strong className="text-black">pipeline updates synced</strong>—all in your voice, powered by AI agents that know your sales stack.
               </p>
 
-              {/* CTA Buttons with Icons */}
+              {/* Try free with 1-click text */}
+              <p className="text-lg text-gray-600 mb-8">Try free with 1-click:</p>
+
+              {/* CTA Buttons matching the image */}
               <div className="flex flex-col sm:flex-row gap-4 justify-center items-center mb-16">
+                {/* Gmail Button */}
                 <Link 
-                  href="/signup"
-                  className="group w-full sm:w-auto px-8 py-4 bg-[#F95B14] hover:bg-[#e04d0a] text-white font-semibold rounded-lg shadow-lg shadow-[#F95B14]/30 transition-all duration-300 hover:shadow-[#F95B14]/50 hover:scale-105 hover:-translate-y-1 text-lg flex items-center justify-center gap-2"
+                  href="/signup?integration=gmail"
+                  className="flex items-center gap-3 px-6 py-3 bg-white border border-gray-200 rounded-lg hover:shadow-md transition-all duration-300 hover:scale-105"
                 >
-                  Start free trial
-                  <svg className="w-5 h-5 transition-transform group-hover:translate-x-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 7l5 5m0 0l-5 5m5-5H6" />
-                  </svg>
+                  <Image 
+                    src="/gmail_logo_2.svg" 
+                    alt="Gmail" 
+                    width={24}
+                    height={24}
+                    className="w-6 h-6"
+                  />
+                  <span className="text-black font-medium">Gmail</span>
                 </Link>
+                
+                {/* Outlook Button */}
                 <Link 
-                  href="/login"
-                  className="group w-full sm:w-auto px-8 py-4 bg-white hover:bg-gray-50 text-black font-semibold rounded-lg border-2 border-gray-200 hover:border-[#F95B14] transition-all duration-300 hover:shadow-lg hover:scale-105 text-lg flex items-center justify-center gap-2"
+                  href="/signup?integration=outlook"
+                  className="flex items-center gap-3 px-6 py-3 bg-[#0078D4] rounded-lg hover:bg-[#106ebe] transition-all duration-300 hover:scale-105"
                 >
-                  Sign In
-                  <svg className="w-5 h-5 transition-transform group-hover:rotate-12" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 16l-4-4m0 0l4-4m-4 4h14m-5 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h7a3 3 0 013 3v1" />
-                  </svg>
+                  <Image 
+                    src="/outlook.svg" 
+                    alt="Outlook" 
+                    width={24}
+                    height={24}
+                    className="w-6 h-6"
+                  />
+                  <span className="text-white font-medium">Outlook</span>
                 </Link>
               </div>
 

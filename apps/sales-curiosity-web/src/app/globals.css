@@ -90,6 +90,11 @@ body {
   100% { transform: translateX(-33.333%); }
 }
 
+@keyframes scroll-logos-smooth {
+  0% { transform: translateX(0); }
+  100% { transform: translateX(-25%); }
+}
+
 .animate-scroll-logos {
   animation: scroll-logos 30s linear infinite;
 }
@@ -104,6 +109,15 @@ body {
 }
 
 .animate-scroll-logos-fast:hover {
+  animation-play-state: paused;
+}
+
+/* Smooth infinite scroll for 4 sets of logos */
+.animate-scroll-logos-smooth {
+  animation: scroll-logos-smooth 40s linear infinite;
+}
+
+.animate-scroll-logos-smooth:hover {
   animation-play-state: paused;
 }
 

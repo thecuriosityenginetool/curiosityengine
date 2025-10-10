@@ -128,25 +128,14 @@ function SignupForm() {
     <div className="min-h-screen bg-white flex items-center justify-center px-6">
       {/* Centered Signup Form */}
       <div className="w-full max-w-md">
-        {/* Logo */}
-        <div className="mb-8 text-center">
-          <Image 
-            src="/icononly_transparent_nobuffer.png" 
-            alt="Curiosity Engine" 
-            width={40}
-            height={40}
-            className="w-10 h-10 mx-auto mb-4"
-          />
-        </div>
-
         {/* Headline */}
         <h1 className="text-4xl font-bold text-gray-900 mb-4 text-center">
-          Sign up for Curiosity Engine — free forever
+          Start Your 7-Day Free Trial
         </h1>
         
         {/* Tagline */}
         <p className="text-lg text-gray-600 mb-8 leading-relaxed text-center">
-          Transform your sales productivity with AI that learns your voice and automates your outreach across LinkedIn, Salesforce, and email.
+          Transform your sales productivity with AI that learns your voice and automates your outreach across LinkedIn, Salesforce, and email. No credit card required.
         </p>
 
         {/* Terms */}
@@ -189,7 +178,7 @@ function SignupForm() {
               disabled={loading}
               className="w-full px-6 py-3 bg-black text-white rounded-lg font-semibold hover:bg-gray-800 transition-colors disabled:opacity-50"
             >
-              {loading ? 'Signing up...' : 'Sign up for free'}
+              {loading ? 'Creating account...' : 'Start Free Trial'}
             </button>
           </div>
         </form>
@@ -202,59 +191,38 @@ function SignupForm() {
         </div>
 
         {/* Social Login */}
-        <p className="text-sm text-gray-600 mb-4 text-center">Verify your business email with Google or Microsoft</p>
+        <p className="text-sm text-gray-600 mb-6 text-center">Create your account with Google or Microsoft</p>
         
         <div className="space-y-3 mb-8">
           <button
             onClick={handleGoogleSignup}
-            className="w-full gsi-material-button"
+            className="w-full flex items-center justify-center px-6 py-3 border border-gray-300 rounded-lg bg-white hover:bg-gray-50 transition-colors group"
           >
-            <div className="gsi-material-button-state"></div>
-            <div className="gsi-material-button-content-wrapper">
-              <div className="gsi-material-button-icon">
-                <svg version="1.1" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 48 48" xmlnsXlink="http://www.w3.org/1999/xlink" style={{display: 'block'}}>
-                  <path fill="#EA4335" d="M24 9.5c3.54 0 6.71 1.22 9.21 3.6l6.85-6.85C35.9 2.38 30.47 0 24 0 14.62 0 6.51 5.38 2.56 13.22l7.98 6.19C12.43 13.72 17.74 9.5 24 9.5z"></path>
-                  <path fill="#4285F4" d="M46.98 24.55c0-1.57-.15-3.09-.38-4.55H24v9.02h12.94c-.58 2.96-2.26 5.48-4.78 7.18l7.73 6c4.51-4.18 7.09-10.36 7.09-17.65z"></path>
-                  <path fill="#FBBC05" d="M10.53 28.59c-.48-1.45-.76-2.99-.76-4.59s.27-3.14.76-4.59l-7.98-6.19C.92 16.46 0 20.12 0 24c0 3.88.92 7.54 2.56 10.78l7.97-6.19z"></path>
-                  <path fill="#34A853" d="M24 48c6.48 0 11.93-2.13 15.89-5.81l-7.73-6c-2.15 1.45-4.92 2.3-8.16 2.3-6.26 0-11.57-4.22-13.47-9.91l-7.98 6.19C6.51 42.62 14.62 48 24 48z"></path>
-                  <path fill="none" d="M0 0h48v48H0z"></path>
-                </svg>
-              </div>
-              <span className="gsi-material-button-contents">Sign up with Google</span>
-              <span style={{display: 'none'}}>Sign up with Google</span>
-            </div>
+            <svg className="w-5 h-5 mr-3" viewBox="0 0 48 48">
+              <path fill="#EA4335" d="M24 9.5c3.54 0 6.71 1.22 9.21 3.6l6.85-6.85C35.9 2.38 30.47 0 24 0 14.62 0 6.51 5.38 2.56 13.22l7.98 6.19C12.43 13.72 17.74 9.5 24 9.5z"></path>
+              <path fill="#4285F4" d="M46.98 24.55c0-1.57-.15-3.09-.38-4.55H24v9.02h12.94c-.58 2.96-2.26 5.48-4.78 7.18l7.73 6c4.51-4.18 7.09-10.36 7.09-17.65z"></path>
+              <path fill="#FBBC05" d="M10.53 28.59c-.48-1.45-.76-2.99-.76-4.59s.27-3.14.76-4.59l-7.98-6.19C.92 16.46 0 20.12 0 24c0 3.88.92 7.54 2.56 10.78l7.97-6.19z"></path>
+              <path fill="#34A853" d="M24 48c6.48 0 11.93-2.13 15.89-5.81l-7.73-6c-2.15 1.45-4.92 2.3-8.16 2.3-6.26 0-11.57-4.22-13.47-9.91l-7.98 6.19C6.51 42.62 14.62 48 24 48z"></path>
+              <path fill="none" d="M0 0h48v48H0z"></path>
+            </svg>
+            <span className="text-gray-700 font-medium">Continue with Google</span>
           </button>
 
           <button
             onClick={handleMicrosoftSignup}
-            className="w-full gsi-material-button"
+            className="w-full flex items-center justify-center px-6 py-3 border border-gray-300 rounded-lg bg-white hover:bg-gray-50 transition-colors group"
           >
-            <div className="gsi-material-button-state"></div>
-            <div className="gsi-material-button-content-wrapper">
-              <div className="gsi-material-button-icon">
-                <Image 
-                  src="/Outlook_icon.svg" 
-                  alt="Microsoft" 
-                  width={20}
-                  height={20}
-                  className="w-5 h-5"
-                />
-              </div>
-              <span className="gsi-material-button-contents">Sign up with Microsoft</span>
-              <span style={{display: 'none'}}>Sign up with Microsoft</span>
-            </div>
+            <Image 
+              src="/Outlook_icon.svg" 
+              alt="Microsoft" 
+              width={20}
+              height={20}
+              className="w-5 h-5 mr-3"
+            />
+            <span className="text-gray-700 font-medium">Continue with Microsoft</span>
           </button>
         </div>
 
-        {/* Footer */}
-        <div className="flex items-center justify-center gap-4 text-sm text-gray-600 mb-6">
-          <div className="flex items-center gap-1">
-            <span>★★★★☆</span>
-            <span>4.8/5 based on 1,247 reviews</span>
-          </div>
-          <span>|</span>
-          <span>GDPR Compliant</span>
-        </div>
 
         <div className="text-sm text-gray-600 text-center">
           Already have an account?{' '}

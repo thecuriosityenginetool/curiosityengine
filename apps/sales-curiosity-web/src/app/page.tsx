@@ -7,6 +7,7 @@ import { supabase } from '@/lib/supabase';
 import Link from 'next/link';
 import Image from 'next/image';
 import LogoCarousel from '@/components/ui/LogoCarousel';
+import GSAPReveal from '@/components/ui/GSAPReveal';
 
 type TabType = 'home' | 'context' | 'integrations';
 type ActionType = 'analyze' | 'email';
@@ -394,26 +395,33 @@ export default function Home() {
                 </Link>
               </div>
 
-              {/* Integration Logos Carousel */}
-              <div className="flex flex-col items-center gap-6 mt-8">
-                <p className="text-sm font-medium text-gray-700">Works seamlessly with</p>
-                <LogoCarousel />
-              </div>
             </div>
           </div>
         </section>
 
-        {/* Value Prop: AI Trained on Your Voice */}
-        <section className="relative mx-auto max-w-7xl px-6 py-24 bg-gray-50">
-          <div className="rounded-3xl border-2 border-gray-200 bg-white p-12 shadow-xl hover:shadow-2xl transition-shadow duration-500">
-            <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 items-center">
-              <div>
-                <div className="inline-flex items-center rounded-full bg-[#F95B14]/10 px-4 py-1.5 text-sm font-medium text-[#F95B14] ring-1 ring-inset ring-[#F95B14]/20 mb-6">
-                  🧠 AI That Sounds Like You
-                </div>
-                <h2 className="text-4xl font-bold text-black mb-6">
-                  Your AI learns your voice from sent emails
-                </h2>
+        {/* Integration Logos Carousel */}
+        <section className="py-16 bg-white">
+          <div className="mx-auto max-w-7xl px-6">
+            <div className="flex flex-col items-center gap-6">
+              <p className="text-sm font-medium text-gray-700">Works seamlessly with</p>
+              <LogoCarousel />
+            </div>
+          </div>
+        </section>
+
+        {/* AI Voice Learning Section */}
+        <section className="relative mx-auto max-w-7xl px-6 py-24 bg-white">
+          <GSAPReveal>
+            <h2 className="text-4xl font-bold tracking-tight text-black text-center mb-16 headline">
+              Your AI learns your voice from sent emails
+            </h2>
+          </GSAPReveal>
+          
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 items-center">
+            <div>
+              <div className="inline-flex items-center rounded-full bg-[#F95B14]/10 px-4 py-1.5 text-sm font-medium text-[#F95B14] ring-1 ring-inset ring-[#F95B14]/20 mb-6">
+                🧠 AI That Sounds Like You
+              </div>
                 <p className="text-lg text-gray-700 mb-6 leading-relaxed">
                   We train your account's AI on your actual sent emails, so every auto-drafted message sounds authentically like you. No robotic templates. No generic responses. Just your natural voice, scaled.
                 </p>
@@ -438,9 +446,7 @@ export default function Home() {
                   </li>
                 </ul>
               </div>
-              <div className="relative group">
-                <div className="absolute -inset-1 bg-gradient-to-r from-[#F95B14] to-[#e04d0a] rounded-2xl opacity-20 group-hover:opacity-30 blur transition-opacity duration-500"></div>
-                <div className="relative rounded-2xl border border-gray-200 bg-white p-6 shadow-lg group-hover:shadow-xl transition-all duration-300">
+              <div className="bg-gray-50 rounded-2xl p-8">
                   <div className="mb-4 flex items-center gap-3">
                     <div className="w-10 h-10 rounded-full bg-gradient-to-r from-[#F95B14] to-[#e04d0a] animate-pulse" />
                     <div>
@@ -448,16 +454,18 @@ export default function Home() {
                       <div className="text-xs text-gray-500">Trained on 2,847 sent emails</div>
                     </div>
                   </div>
-                  <div className="space-y-2 text-sm text-gray-700">
-                    <p className="leading-relaxed">"Hey Sarah,</p>
-                    <p className="leading-relaxed">I noticed you're expanding into the enterprise market—congrats on the Series B! 🎉</p>
-                    <p className="leading-relaxed">We helped a similar company in your space reduce their sales cycle by 40%. Would love to show you how...</p>
+                  <div className="bg-white rounded-lg p-6 mb-6 border border-gray-200">
+                    <p className="text-gray-700 leading-relaxed">
+                      "Hey Sarah,<br/><br/>
+                      I noticed you're expanding into the enterprise market—congrats on the Series B! 🥳<br/><br/>
+                      We helped a similar company in your space reduce their sales cycle by 40%. Would love to show you how..."
+                    </p>
                   </div>
-                  <div className="mt-4 pt-4 border-t border-gray-200 text-xs text-gray-500 flex items-center gap-2">
-                    <span className="inline-block w-2 h-2 bg-[#F95B14] rounded-full animate-pulse"></span>
-                    ✨ Drafted in your authentic voice
+                  
+                  <div className="flex items-center gap-2 text-sm text-gray-600">
+                    <div className="w-2 h-2 rounded-full bg-[#F95B14]"></div>
+                    <span>Drafted in your authentic voice</span>
                   </div>
-                </div>
               </div>
             </div>
           </div>
@@ -469,9 +477,11 @@ export default function Home() {
             <div className="inline-flex items-center rounded-full bg-[#F95B14]/10 px-4 py-1.5 text-sm font-medium text-[#F95B14] ring-1 ring-inset ring-[#F95B14]/20 mb-6">
               🚀 Chrome Extension
             </div>
-            <h2 className="text-4xl sm:text-5xl font-bold text-white mb-6">
-              Analyze prospects in one click
-            </h2>
+            <GSAPReveal>
+              <h2 className="text-4xl sm:text-5xl font-bold text-white mb-6 headline">
+                Analyze prospects in one click
+              </h2>
+            </GSAPReveal>
             <p className="text-xl text-gray-300 max-w-2xl mx-auto">
               Install our Chrome extension and get instant AI-powered insights on any LinkedIn profile—no copy-pasting required.
             </p>

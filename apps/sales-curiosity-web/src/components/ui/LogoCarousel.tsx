@@ -4,13 +4,12 @@ import Image from 'next/image';
 
 export default function LogoCarousel() {
   const logos = [
-    { name: 'Gmail', path: '/logos/gmail.svg' },
-    { name: 'Outlook', path: '/logos/outlook-logo.svg' },
-    { name: 'Google Calendar', path: '/logos/google-calendar.svg' },
-    { name: 'HubSpot', path: '/logos/hubspot.svg' },
-    { name: 'LinkedIn', path: '/logos/linkedin.svg' },
-    { name: 'Monday', path: '/logos/monday.svg' },
-    { name: 'Salesforce', path: '/logos/salesforce.svg' },
+    { name: 'Salesforce', path: '/salesforcelogo.svg' },
+    { name: 'Outlook', path: '/outlook.svg' },
+    { name: 'HubSpot', path: '/HubSpot_Logo.svg' },
+    { name: 'Monday', path: '/Monday_logo.svg' },
+    { name: 'Gmail', path: '/gmail_logo_2.svg' },
+    { name: 'Google Calendar', path: '/logo-gcalendar.svg' },
   ];
 
   // Duplicate logos for seamless infinite scroll

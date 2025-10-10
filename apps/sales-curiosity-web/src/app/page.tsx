@@ -1180,24 +1180,12 @@ export default function Home() {
               </div>
             )}
 
-            {/* Org member status */}
-            {userData?.organizations?.account_type === 'organization' && userData?.role !== 'org_admin' && (
-              <>
-                {integrations.length > 0 ? (
-                  <div className="mb-4 sm:mb-6 rounded-xl border border-[#F95B14]/30 bg-[#F95B14]/10 p-3 sm:p-4">
-                    <p className="text-xs sm:text-sm text-[#F95B14]">
-                      ✓ Your organization has <strong>{integrations.length}</strong> integration{integrations.length !== 1 ? 's' : ''} enabled: {integrations.join(', ')}
-                    </p>
-                  </div>
-                ) : (
-                  <div className="mb-4 sm:mb-6 rounded-xl border border-yellow-800 bg-yellow-900/20 p-3 sm:p-4">
-                    <p className="text-xs sm:text-sm text-yellow-300">
-                      No integrations enabled yet. Ask your organization admin to enable integrations.
-                    </p>
-                  </div>
-                )}
-              </>
-            )}
+            {/* Salesforce Integration - Available for ALL Users */}
+            <div className="mb-4 sm:mb-6 rounded-xl border border-[#00A1E0]/30 bg-[#00A1E0]/10 p-3 sm:p-4">
+              <p className="text-xs sm:text-sm text-[#00A1E0]">
+                <strong>💡 Salesforce CRM:</strong> Connect your Salesforce account from the Chrome extension (Integrations tab) for intelligent, CRM-aware email drafting.
+              </p>
+            </div>
 
             {/* Integration cards for individual users */}
             {userData?.organizations?.account_type === 'individual' && (

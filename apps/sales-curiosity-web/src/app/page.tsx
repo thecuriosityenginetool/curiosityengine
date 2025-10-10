@@ -10,9 +10,48 @@ import Image from 'next/image';
 type TabType = 'home' | 'context' | 'integrations';
 type ActionType = 'analyze' | 'email';
 
+// Typewriter hook for rotating text
+function useTypewriter(words: string[], typingSpeed = 150, deletingSpeed = 100, pauseTime = 2000) {
+  const [currentWordIndex, setCurrentWordIndex] = useState(0);
+  const [currentText, setCurrentText] = useState('');
+  const [isDeleting, setIsDeleting] = useState(false);
+
+  useEffect(() => {
+    const currentWord = words[currentWordIndex];
+    
+    const timer = setTimeout(() => {
+      if (!isDeleting) {
+        // Typing
+        if (currentText.length < currentWord.length) {
+          setCurrentText(currentWord.slice(0, currentText.length + 1));
+        } else {
+          // Pause before deleting
+          setTimeout(() => setIsDeleting(true), pauseTime);
+        }
+      } else {
+        // Deleting
+        if (currentText.length > 0) {
+          setCurrentText(currentWord.slice(0, currentText.length - 1));
+        } else {
+          setIsDeleting(false);
+          setCurrentWordIndex((prev) => (prev + 1) % words.length);
+        }
+      }
+    }, isDeleting ? deletingSpeed : typingSpeed);
+
+    return () => clearTimeout(timer);
+  }, [currentText, isDeleting, currentWordIndex, words, typingSpeed, deletingSpeed, pauseTime]);
+
+  return currentText;
+}
+
 export default function Home() {
   // Use NextAuth session - this is the magic!
   const { data: session, status } = useSession();
+  
+  // Typewriter effect for role titles
+  const roles = ['SDRs', 'Account Execs', 'Sales Managers', 'Teams', 'Founders'];
+  const currentRole = useTypewriter(roles);
   
   const [userData, setUserData] = useState<any>(null);
   const [activeTab, setActiveTab] = useState<TabType>('home');
@@ -287,7 +326,11 @@ export default function Home() {
               </span>
               
               <h1 className="text-5xl font-bold tracking-tight text-black sm:text-6xl lg:text-7xl mb-6 leading-tight">
-                Get back <span className="text-[#F95B14] hover:text-[#e04d0a] transition-colors">one hour</span><br />every day
+                The AI Sales Assistant for{' '}
+                <span className="text-[#F95B14] inline-block min-w-[280px] sm:min-w-[400px] text-left">
+                  {currentRole}
+                  <span className="animate-pulse">|</span>
+                </span>
               </h1>
               
               <p className="text-xl text-gray-700 mb-12 leading-relaxed max-w-2xl mx-auto">

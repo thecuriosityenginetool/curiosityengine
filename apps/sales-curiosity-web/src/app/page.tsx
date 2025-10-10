@@ -54,6 +54,9 @@ export default function Home() {
   const roles = ['Lead Gen', 'Account Execs', 'Sales Managers', 'Teams', 'Founders'];
   const currentRole = useTypewriter(roles);
   
+  // Mouse tracking for gradient
+  const [mousePosition, setMousePosition] = useState({ x: 0, y: 0 });
+  
   const [userData, setUserData] = useState<any>(null);
   const [activeTab, setActiveTab] = useState<TabType>('home');
   const [linkedinUrl, setLinkedinUrl] = useState('');
@@ -103,6 +106,16 @@ export default function Home() {
       }
     }
   }, [status, session, router]);
+
+  // Mouse tracking effect for gradient
+  useEffect(() => {
+    const handleMouseMove = (e: MouseEvent) => {
+      setMousePosition({ x: e.clientX, y: e.clientY });
+    };
+
+    window.addEventListener('mousemove', handleMouseMove);
+    return () => window.removeEventListener('mousemove', handleMouseMove);
+  }, []);
 
   // Removed complex checkAuth - NextAuth handles it all!
 
@@ -303,9 +316,16 @@ export default function Home() {
       <main className="min-h-screen bg-white">
         {/* Hero Section */}
         <section className="relative isolate overflow-hidden bg-gradient-to-b from-[#F95B14]/10 via-white to-white min-h-screen">
-          {/* Extended gradient overlay to top */}
+          {/* Mouse-tracking gradient overlay */}
           <div className="absolute inset-0 pointer-events-none">
-            <div className="absolute -top-96 left-1/2 -translate-x-1/2 h-[800px] w-[100rem] rounded-full bg-gradient-to-b from-[#F95B14]/20 via-[#F95B14]/10 to-transparent blur-3xl" />
+            <div 
+              className="absolute h-[800px] w-[100rem] rounded-full bg-gradient-to-b from-[#F95B14]/20 via-[#F95B14]/10 to-transparent blur-3xl transition-all duration-1000 ease-out"
+              style={{
+                left: `${mousePosition.x - 500}px`,
+                top: `${mousePosition.y - 400}px`,
+                transform: 'translate(-50%, -50%)'
+              }}
+            />
           </div>
 
           <div className="relative mx-auto max-w-7xl px-6 py-24 sm:py-32 lg:py-40">
@@ -349,7 +369,7 @@ export default function Home() {
                   className="flex items-center gap-3 px-6 py-3 bg-white border border-gray-200 rounded-lg hover:shadow-md transition-all duration-300 hover:scale-105"
                 >
                   <Image 
-                    src="/gmail_logo_2.svg" 
+                    src="/Gmail Icon.svg" 
                     alt="Gmail" 
                     width={24}
                     height={24}
@@ -364,7 +384,7 @@ export default function Home() {
                   className="flex items-center gap-3 px-6 py-3 bg-[#0078D4] rounded-lg hover:bg-[#106ebe] transition-all duration-300 hover:scale-105"
                 >
                   <Image 
-                    src="/outlook.svg" 
+                    src="/Outlook_icon.svg" 
                     alt="Outlook" 
                     width={24}
                     height={24}

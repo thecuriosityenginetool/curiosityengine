@@ -53,7 +53,8 @@ export default function Navigation() {
       }`}
       style={{
         background: 'transparent',
-        borderBottom: 'none'
+        borderBottom: 'none',
+        backdropFilter: 'none'
       }}
     >
       <div className="mx-auto flex max-w-7xl items-center justify-between px-6 py-4">

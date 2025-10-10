@@ -3,6 +3,7 @@
 import { useState, useEffect, Suspense } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { supabase } from '@/lib/supabase';
+import Image from 'next/image';
 
 type AccountType = 'individual' | 'organization';
 
@@ -18,6 +19,34 @@ function SignupForm() {
   const [infoMessage, setInfoMessage] = useState('');
   const router = useRouter();
   const searchParams = useSearchParams();
+
+  async function handleGoogleSignup() {
+    try {
+      const { error } = await supabase.auth.signInWithOAuth({
+        provider: 'google',
+        options: {
+          redirectTo: `${window.location.origin}/dashboard`,
+        },
+      });
+      if (error) throw error;
+    } catch (error: any) {
+      setError(error.message);
+    }
+  }
+
+  async function handleMicrosoftSignup() {
+    try {
+      const { error } = await supabase.auth.signInWithOAuth({
+        provider: 'azure',
+        options: {
+          redirectTo: `${window.location.origin}/dashboard`,
+        },
+      });
+      if (error) throw error;
+    } catch (error: any) {
+      setError(error.message);
+    }
+  }
 
   useEffect(() => {
     // Check for message in URL
@@ -96,288 +125,206 @@ function SignupForm() {
   }
 
   return (
-    <div style={{
-      minHeight: '100vh',
-      display: 'flex',
-      alignItems: 'center',
-      justifyContent: 'center',
-      background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
-      fontFamily: 'system-ui, -apple-system, sans-serif',
-      padding: '16px'
-    }}>
-      <div style={{
-        background: 'white',
-        padding: '24px',
-        borderRadius: '12px',
-        boxShadow: '0 20px 60px rgba(0,0,0,0.3)',
-        width: '100%',
-        maxWidth: '400px'
-      }}>
-        <h1 style={{
-          fontSize: '28px',
-          fontWeight: '700',
-          marginBottom: '8px',
-          color: '#1a202c'
-        }}>
-          Create Account
-        </h1>
-        <p style={{
-          color: '#718096',
-          marginBottom: '32px',
-          fontSize: '14px'
-        }}>
-          Get started with Sales Curiosity
-        </p>
-
-        {infoMessage && (
-          <div style={{
-            padding: '12px',
-            background: '#dbeafe',
-            color: '#1e40af',
-            borderRadius: '8px',
-            marginBottom: '20px',
-            fontSize: '14px'
-          }}>
-            {infoMessage}
-          </div>
-        )}
-
-        {error && (
-          <div style={{
-            padding: '12px',
-            background: '#fed7d7',
-            color: '#c53030',
-            borderRadius: '8px',
-            marginBottom: '20px',
-            fontSize: '14px'
-          }}>
-            {error}
-          </div>
-        )}
-
-        <form onSubmit={handleSignup}>
-          {/* Account Type Selection */}
-          <div style={{ marginBottom: '24px' }}>
-            <label style={{
-              display: 'block',
-              fontSize: '14px',
-              fontWeight: '500',
-              marginBottom: '12px',
-              color: '#2d3748'
-            }}>
-              Account Type
-            </label>
-            <div style={{ display: 'flex', gap: '12px' }}>
-              <button
-                type="button"
-                onClick={() => setAccountType('individual')}
-                style={{
-                  flex: 1,
-                  padding: '16px',
-                  border: accountType === 'individual' ? '2px solid #667eea' : '2px solid #e2e8f0',
-                  borderRadius: '8px',
-                  background: accountType === 'individual' ? '#eef2ff' : 'white',
-                  cursor: 'pointer',
-                  transition: 'all 0.2s'
-                }}
-              >
-                <div style={{ fontSize: '24px', marginBottom: '4px' }}>👤</div>
-                <div style={{ 
-                  fontSize: '14px', 
-                  fontWeight: '600', 
-                  color: accountType === 'individual' ? '#667eea' : '#2d3748',
-                  marginBottom: '4px'
-                }}>
-                  Individual
-                </div>
-                <div style={{ fontSize: '11px', color: '#718096' }}>
-                  For personal use
-                </div>
-              </button>
-              
-              <button
-                type="button"
-                onClick={() => setAccountType('organization')}
-                style={{
-                  flex: 1,
-                  padding: '16px',
-                  border: accountType === 'organization' ? '2px solid #667eea' : '2px solid #e2e8f0',
-                  borderRadius: '8px',
-                  background: accountType === 'organization' ? '#eef2ff' : 'white',
-                  cursor: 'pointer',
-                  transition: 'all 0.2s'
-                }}
-              >
-                <div style={{ fontSize: '24px', marginBottom: '4px' }}>🏢</div>
-                <div style={{ 
-                  fontSize: '14px', 
-                  fontWeight: '600', 
-                  color: accountType === 'organization' ? '#667eea' : '#2d3748',
-                  marginBottom: '4px'
-                }}>
-                  Organization
-                </div>
-                <div style={{ fontSize: '11px', color: '#718096' }}>
-                  For teams & companies
-                </div>
-              </button>
-            </div>
-          </div>
-
-          {accountType === 'organization' && (
-            <div style={{ marginBottom: '20px' }}>
-              <label style={{
-                display: 'block',
-                fontSize: '14px',
-                fontWeight: '500',
-                marginBottom: '8px',
-                color: '#2d3748'
-              }}>
-                Organization Name
-              </label>
-              <input
-                type="text"
-                value={organizationName}
-                onChange={(e) => setOrganizationName(e.target.value)}
-                required
-                placeholder="Acme Corp"
-                style={{
-                  width: '100%',
-                  padding: '12px',
-                  border: '1px solid #e2e8f0',
-                  borderRadius: '8px',
-                  fontSize: '14px',
-                  outline: 'none',
-                  color: '#1a202c'
-                }}
-              />
-            </div>
-          )}
-
-          <div style={{ marginBottom: '20px' }}>
-            <label style={{
-              display: 'block',
-              fontSize: '14px',
-              fontWeight: '500',
-              marginBottom: '8px',
-              color: '#2d3748'
-            }}>
-              Full Name
-            </label>
-            <input
-              type="text"
-              value={fullName}
-              onChange={(e) => setFullName(e.target.value)}
-              required
-              placeholder="John Doe"
-              style={{
-                width: '100%',
-                padding: '12px',
-                border: '1px solid #e2e8f0',
-                borderRadius: '8px',
-                fontSize: '14px',
-                outline: 'none',
-                color: '#1a202c'
-              }}
+    <div className="min-h-screen bg-white flex">
+      {/* Left Column - Signup Form */}
+      <div className="flex-1 flex flex-col justify-center px-12 py-16 max-w-2xl">
+        <div className="max-w-lg">
+          {/* Logo */}
+          <div className="mb-8">
+            <Image 
+              src="/icononly_transparent_nobuffer.png" 
+              alt="Curiosity Engine" 
+              width={40}
+              height={40}
+              className="w-10 h-10 mb-4"
             />
           </div>
 
-          <div style={{ marginBottom: '20px' }}>
-            <label style={{
-              display: 'block',
-              fontSize: '14px',
-              fontWeight: '500',
-              marginBottom: '8px',
-              color: '#2d3748'
-            }}>
-              Email
-            </label>
-            <input
-              type="email"
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
-              required
-              placeholder="you@example.com"
-              style={{
-                width: '100%',
-                padding: '12px',
-                border: '1px solid #e2e8f0',
-                borderRadius: '8px',
-                fontSize: '14px',
-                outline: 'none',
-                color: '#1a202c'
-              }}
-            />
-          </div>
+          {/* Headline */}
+          <h1 className="text-4xl font-bold text-gray-900 mb-4">
+            Sign up for Curiosity Engine — free forever
+          </h1>
+          
+          {/* Tagline */}
+          <p className="text-lg text-gray-600 mb-8 leading-relaxed">
+            Transform your sales productivity with AI that learns your voice and automates your outreach across LinkedIn, Salesforce, and email.
+          </p>
 
-          <div style={{ marginBottom: '24px' }}>
-            <label style={{
-              display: 'block',
-              fontSize: '14px',
-              fontWeight: '500',
-              marginBottom: '8px',
-              color: '#2d3748'
-            }}>
-              Password
-            </label>
-            <input
-              type="password"
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
-              required
-              placeholder="••••••••"
-              minLength={6}
-              style={{
-                width: '100%',
-                padding: '12px',
-                border: '1px solid #e2e8f0',
-                borderRadius: '8px',
-                fontSize: '14px',
-                outline: 'none',
-                color: '#1a202c'
-              }}
-            />
-            <p style={{ fontSize: '12px', color: '#718096', marginTop: '4px' }}>
-              At least 6 characters
+          {/* Terms */}
+          <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 mb-8">
+            <p className="text-sm text-gray-700">
+              By signing up, I agree to Curiosity Engine's{' '}
+              <a href="/terms" className="text-blue-600 underline hover:text-blue-800">Terms of Service</a>
+              {' '}and{' '}
+              <a href="/privacy" className="text-blue-600 underline hover:text-blue-800">Privacy Policy</a>
+              .
             </p>
           </div>
 
-          <button
-            type="submit"
-            disabled={loading}
-            style={{
-              width: '100%',
-              padding: '12px',
-              background: loading ? '#a0aec0' : '#667eea',
-              color: 'white',
-              border: 'none',
-              borderRadius: '8px',
-              fontSize: '16px',
-              fontWeight: '600',
-              cursor: loading ? 'not-allowed' : 'pointer'
-            }}
-          >
-            {loading ? 'Creating Account...' : 'Create Account'}
-          </button>
-        </form>
+          {/* Error/Info Messages */}
+          {error && (
+            <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-lg mb-6">
+              {error}
+            </div>
+          )}
 
-        <div style={{
-          marginTop: '24px',
-          textAlign: 'center',
-          fontSize: '14px',
-          color: '#718096'
-        }}>
-          Already have an account?{' '}
-          <a
-            href="/login"
-            style={{
-              color: '#667eea',
-              fontWeight: '600',
-              textDecoration: 'none'
-            }}
-          >
-            Sign in
-          </a>
+          {infoMessage && (
+            <div className="bg-blue-50 border border-blue-200 text-blue-700 px-4 py-3 rounded-lg mb-6">
+              {infoMessage}
+            </div>
+          )}
+
+          {/* Email Signup */}
+          <form onSubmit={handleSignup} className="mb-8">
+            <div className="flex gap-3 mb-6">
+              <input
+                type="email"
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+                required
+                placeholder="Enter email"
+                className="flex-1 px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#F95B14] focus:border-transparent outline-none"
+              />
+              <button
+                type="submit"
+                disabled={loading}
+                className="px-6 py-3 bg-black text-white rounded-lg font-semibold hover:bg-gray-800 transition-colors disabled:opacity-50"
+              >
+                {loading ? 'Signing up...' : 'Sign up for free'}
+              </button>
+            </div>
+          </form>
+
+          {/* Divider */}
+          <div className="flex items-center mb-6">
+            <div className="flex-1 border-t border-gray-200"></div>
+            <span className="px-4 text-gray-500 text-sm">or</span>
+            <div className="flex-1 border-t border-gray-200"></div>
+          </div>
+
+          {/* Social Login */}
+          <p className="text-sm text-gray-600 mb-4">Verify your business email with Google or Microsoft</p>
+          
+          <div className="space-y-3 mb-8">
+            <button
+              onClick={handleGoogleSignup}
+              className="w-full gsi-material-button"
+            >
+              <div className="gsi-material-button-state"></div>
+              <div className="gsi-material-button-content-wrapper">
+                <div className="gsi-material-button-icon">
+                  <svg version="1.1" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 48 48" xmlnsXlink="http://www.w3.org/1999/xlink" style={{display: 'block'}}>
+                    <path fill="#EA4335" d="M24 9.5c3.54 0 6.71 1.22 9.21 3.6l6.85-6.85C35.9 2.38 30.47 0 24 0 14.62 0 6.51 5.38 2.56 13.22l7.98 6.19C12.43 13.72 17.74 9.5 24 9.5z"></path>
+                    <path fill="#4285F4" d="M46.98 24.55c0-1.57-.15-3.09-.38-4.55H24v9.02h12.94c-.58 2.96-2.26 5.48-4.78 7.18l7.73 6c4.51-4.18 7.09-10.36 7.09-17.65z"></path>
+                    <path fill="#FBBC05" d="M10.53 28.59c-.48-1.45-.76-2.99-.76-4.59s.27-3.14.76-4.59l-7.98-6.19C.92 16.46 0 20.12 0 24c0 3.88.92 7.54 2.56 10.78l7.97-6.19z"></path>
+                    <path fill="#34A853" d="M24 48c6.48 0 11.93-2.13 15.89-5.81l-7.73-6c-2.15 1.45-4.92 2.3-8.16 2.3-6.26 0-11.57-4.22-13.47-9.91l-7.98 6.19C6.51 42.62 14.62 48 24 48z"></path>
+                    <path fill="none" d="M0 0h48v48H0z"></path>
+                  </svg>
+                </div>
+                <span className="gsi-material-button-contents">Sign up with Google</span>
+                <span style={{display: 'none'}}>Sign up with Google</span>
+              </div>
+            </button>
+
+            <button
+              onClick={handleMicrosoftSignup}
+              className="w-full gsi-material-button"
+            >
+              <div className="gsi-material-button-state"></div>
+              <div className="gsi-material-button-content-wrapper">
+                <div className="gsi-material-button-icon">
+                  <Image 
+                    src="/Outlook_icon.svg" 
+                    alt="Microsoft" 
+                    width={20}
+                    height={20}
+                    className="w-5 h-5"
+                  />
+                </div>
+                <span className="gsi-material-button-contents">Sign up with Microsoft</span>
+                <span style={{display: 'none'}}>Sign up with Microsoft</span>
+              </div>
+            </button>
+          </div>
+
+          {/* Footer */}
+          <div className="flex items-center gap-4 text-sm text-gray-600">
+            <div className="flex items-center gap-1">
+              <span>★★★★☆</span>
+              <span>4.8/5 based on 1,247 reviews</span>
+            </div>
+            <span>|</span>
+            <span>GDPR Compliant</span>
+          </div>
+
+          <div className="mt-6 text-sm text-gray-600">
+            Already have an account?{' '}
+            <a href="/login" className="text-[#F95B14] font-semibold hover:underline">
+              Sign in
+            </a>
+          </div>
+        </div>
+      </div>
+
+      {/* Right Column - Workflow Visualization */}
+      <div className="flex-1 bg-gradient-to-br from-[#F95B14]/5 to-orange-100/30 relative overflow-hidden">
+        <div className="absolute inset-0 bg-white/20 backdrop-blur-sm"></div>
+        <div className="relative z-10 p-12 flex flex-col justify-center">
+          <div className="bg-white/80 backdrop-blur-md rounded-2xl p-8 shadow-xl border border-white/20 max-w-md">
+            <h3 className="text-sm font-semibold text-gray-500 uppercase tracking-wider mb-6">AI WORKFLOW</h3>
+            
+            {/* Workflow Cards */}
+            <div className="space-y-4">
+              {/* Profile Card */}
+              <div className="bg-white rounded-xl p-4 shadow-sm border border-gray-100">
+                <div className="flex items-center gap-3">
+                  <div className="w-10 h-10 bg-gradient-to-r from-[#F95B14] to-orange-500 rounded-full flex items-center justify-center text-white font-bold text-sm">
+                    MS
+                  </div>
+                  <div className="flex-1">
+                    <div className="font-semibold text-gray-900">Michael Smith</div>
+                    <div className="text-sm text-gray-600">Director of Marketing @ Olain</div>
+                  </div>
+                  <div className="bg-black text-white px-3 py-1 rounded-full text-xs font-medium">
+                    ⭐ 97% fit
+                  </div>
+                </div>
+              </div>
+
+              {/* AI Prompt Card */}
+              <div className="bg-white rounded-xl p-4 shadow-sm border border-gray-100">
+                <div className="flex items-center gap-3">
+                  <div className="w-10 h-10 bg-purple-500 rounded-full flex items-center justify-center">
+                    <svg className="w-5 h-5 text-white" fill="currentColor" viewBox="0 0 20 20">
+                      <path fillRule="evenodd" d="M3 4a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1zm0 4a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1zm0 4a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1z" clipRule="evenodd" />
+                    </svg>
+                  </div>
+                  <div className="flex-1">
+                    <div className="text-xs font-semibold text-gray-500 uppercase tracking-wide">RUN AI PROMPT</div>
+                    <div className="font-medium text-gray-900">Confirm decision maker</div>
+                  </div>
+                  <div className="bg-gray-800 text-white px-2 py-1 rounded text-xs">
+                    yes
+                  </div>
+                </div>
+              </div>
+
+              {/* Sequence Card */}
+              <div className="bg-white rounded-xl p-4 shadow-sm border border-gray-100">
+                <div className="flex items-center gap-3">
+                  <div className="w-10 h-10 bg-pink-500 rounded-full flex items-center justify-center">
+                    <svg className="w-5 h-5 text-white" fill="currentColor" viewBox="0 0 20 20">
+                      <path d="M10.894 2.553a1 1 0 00-1.788 0l-7 14a1 1 0 001.169 1.409l5-1.429A1 1 0 009 15.571V11a1 1 0 112 0v4.571a1 1 0 00.725.962l5 1.428a1 1 0 001.17-1.408l-7-14z" />
+                    </svg>
+                  </div>
+                  <div className="flex-1">
+                    <div className="text-xs font-semibold text-gray-500 uppercase tracking-wide">SEQUENCE</div>
+                    <div className="font-medium text-gray-900">Add to Marketing outbound</div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
         </div>
       </div>
     </div>

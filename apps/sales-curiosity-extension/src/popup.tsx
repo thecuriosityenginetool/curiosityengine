@@ -2271,8 +2271,7 @@ function Popup() {
         )}
 
         {/* Salesforce Integration - Available for ALL Users */}
-        {(
-          <div style={{
+        <div style={{
             background: "white",
             padding: "20px",
             borderRadius: 12,
@@ -2375,7 +2374,6 @@ function Popup() {
               {enabledIntegrations.includes('salesforce_user') ? "✓ Connected" : "Connect Salesforce"}
             </button>
           </div>
-        )}
 
         {/* Email Integration */}
         {(isIndividual || !isOrgMember) && (

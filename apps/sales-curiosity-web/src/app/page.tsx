@@ -1157,7 +1157,22 @@ export default function Home() {
               <div className="lg:col-span-1">
                 <h3 className="text-lg font-semibold text-gray-900 mb-6">Get Started</h3>
                 <ul className="modern-icon-buttons">
-                  <li style={{'--i': '#4285F4', '--j': '#EA4335'} as React.CSSProperties}>
+                  <li 
+                    style={{'--i': '#4285F4', '--j': '#EA4335'} as React.CSSProperties}
+                    onClick={async () => {
+                      try {
+                        const { error } = await supabase.auth.signInWithOAuth({
+                          provider: 'google',
+                          options: {
+                            redirectTo: `${window.location.origin}/dashboard`,
+                          },
+                        });
+                        if (error) throw error;
+                      } catch (error: any) {
+                        console.error('Google signup error:', error);
+                      }
+                    }}
+                  >
                     <span className="icon">
                       <svg width="28" height="28" viewBox="0 0 48 48" fill="currentColor">
                         <path fill="#EA4335" d="M24 9.5c3.54 0 6.71 1.22 9.21 3.6l6.85-6.85C35.9 2.38 30.47 0 24 0 14.62 0 6.51 5.38 2.56 13.22l7.98 6.19C12.43 13.72 17.74 9.5 24 9.5z"></path>
@@ -1169,7 +1184,22 @@ export default function Home() {
                     </span>
                     <span className="title">Google</span>
                   </li>
-                  <li style={{'--i': '#0078D4', '--j': '#106EBE'} as React.CSSProperties}>
+                  <li 
+                    style={{'--i': '#0078D4', '--j': '#106EBE'} as React.CSSProperties}
+                    onClick={async () => {
+                      try {
+                        const { error } = await supabase.auth.signInWithOAuth({
+                          provider: 'azure',
+                          options: {
+                            redirectTo: `${window.location.origin}/dashboard`,
+                          },
+                        });
+                        if (error) throw error;
+                      } catch (error: any) {
+                        console.error('Microsoft signup error:', error);
+                      }
+                    }}
+                  >
                     <span className="icon">
                       <svg width="28" height="28" viewBox="0 0 24 24" fill="currentColor">
                         <path d="M11.4 24H0V12.6h11.4V24zM24 24H12.6V12.6H24V24zM11.4 11.4H0V0h11.4v11.4zM24 11.4H12.6V0H24v11.4z"/>

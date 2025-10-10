@@ -23,18 +23,28 @@ export default function LogoCarousel() {
         <div className="absolute right-0 top-0 bottom-0 w-20 bg-gradient-to-l from-transparent via-transparent to-transparent z-10 pointer-events-none" />
         
         {/* Scrolling container */}
-        <div className="flex items-center animate-scroll-logos-smooth gap-12" style={{ width: 'max-content' }}>
+        <div className="flex items-center animate-scroll-logos-smooth" style={{ width: 'max-content', gap: '80px' }}>
           {duplicatedLogos.map((logo, index) => (
             <div
               key={`${logo.name}-${index}`}
-              className="flex-shrink-0 flex items-center justify-center w-[160px]"
+              className="flex-shrink-0 flex items-center justify-center"
+              style={{ 
+                width: '140px',
+                height: '60px'
+              }}
             >
               <Image
                 src={logo.path}
                 alt={logo.name}
-                width={160}
-                height={50}
-                className="h-auto w-auto max-h-[45px] max-w-[160px] object-contain"
+                width={140}
+                height={60}
+                className="object-contain"
+                style={{ 
+                  width: '100%',
+                  height: '100%',
+                  maxHeight: '50px',
+                  maxWidth: '140px'
+                }}
               />
             </div>
           ))}

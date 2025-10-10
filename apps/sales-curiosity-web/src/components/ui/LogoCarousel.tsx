@@ -9,7 +9,7 @@ export default function LogoCarousel() {
     { name: 'HubSpot', path: '/HubSpot_Logo.svg' },
     { name: 'Monday', path: '/Monday_logo.svg' },
     { name: 'Gmail', path: '/gmail_logo_2.svg' },
-    { name: 'Google Calendar', path: '/logo-gcalendar.svg' },
+    { name: 'Google Calendar', path: '/google_cal_logo.svg' },
   ];
 
   // Duplicate logos for seamless infinite scroll

@@ -630,115 +630,255 @@ export default function Home() {
           </div>
         </section>
 
-        {/* Integrations Section */}
-        <section className="relative mx-auto max-w-7xl px-6 py-24">
+        {/* Connectors Section */}
+        <section className="relative mx-auto max-w-7xl px-6 py-24 bg-white">
           <div className="text-center mb-16">
             <div className="inline-flex items-center rounded-full bg-[#F95B14]/10 px-4 py-1.5 text-sm font-medium text-[#F95B14] ring-1 ring-inset ring-[#F95B14]/20 mb-6">
-              🔌 Integrations
+              🔌 Connectors
             </div>
-            <h2 className="text-4xl sm:text-5xl font-bold text-white mb-6">
-              Automate your entire sales stack
-            </h2>
-            <p className="text-xl text-gray-300 max-w-2xl mx-auto">
+            <GSAPReveal>
+              <h2 className="text-4xl sm:text-5xl font-bold text-black mb-6 headline">
+                Your AI works with every tool you use
+              </h2>
+            </GSAPReveal>
+            <p className="text-xl text-gray-700 max-w-2xl mx-auto">
               Connect with the tools you already use. Our AI agents understand your pipeline, company context, and sales process.
             </p>
           </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
             {/* Gmail */}
-            <div className="rounded-2xl border border-gray-800 bg-gray-900/50 p-6 backdrop-blur-sm hover:border-[#F95B14]/50 transition-all">
-              <div className="flex items-center gap-4 mb-4">
-                <div className="w-12 h-12 rounded-xl bg-[#F95B14]/10 flex items-center justify-center text-2xl">
-                  📧
+            <div className="rounded-2xl border border-gray-200 bg-white p-8 shadow-sm hover:shadow-md transition-all duration-300 hover:scale-105">
+              <div className="flex items-center gap-4 mb-6">
+                <div className="w-16 h-16 rounded-xl bg-white flex items-center justify-center border border-gray-200 shadow-sm">
+                  <Image 
+                    src="/Gmail Icon.svg" 
+                    alt="Gmail" 
+                    width={32}
+                    height={32}
+                    className="w-8 h-8"
+                  />
                 </div>
                 <div>
-                  <h3 className="text-lg font-semibold text-white">Gmail</h3>
-                  <p className="text-xs text-gray-400">Email & Calendar</p>
+                  <h3 className="text-xl font-bold text-black">Gmail</h3>
+                  <p className="text-sm text-gray-600">Email & Calendar</p>
                 </div>
               </div>
-              <p className="text-sm text-gray-300">
-                Auto-draft replies, schedule meetings, and organize your inbox with AI
-              </p>
+              <ul className="space-y-3 text-gray-700">
+                <li className="flex items-start gap-3">
+                  <svg className="w-5 h-5 text-[#F95B14] flex-shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                  </svg>
+                  <span className="text-sm">Auto-draft personalized replies</span>
+                </li>
+                <li className="flex items-start gap-3">
+                  <svg className="w-5 h-5 text-[#F95B14] flex-shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                  </svg>
+                  <span className="text-sm">Schedule meetings automatically</span>
+                </li>
+                <li className="flex items-start gap-3">
+                  <svg className="w-5 h-5 text-[#F95B14] flex-shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                  </svg>
+                  <span className="text-sm">Organize inbox with AI</span>
+                </li>
+              </ul>
             </div>
 
             {/* Outlook */}
-            <div className="rounded-2xl border border-gray-800 bg-gray-900/50 p-6 backdrop-blur-sm hover:border-[#F95B14]/50 transition-all">
-              <div className="flex items-center gap-4 mb-4">
-                <div className="w-12 h-12 rounded-xl bg-[#F95B14]/10 flex items-center justify-center text-2xl">
-                  📨
+            <div className="rounded-2xl border border-gray-200 bg-white p-8 shadow-sm hover:shadow-md transition-all duration-300 hover:scale-105">
+              <div className="flex items-center gap-4 mb-6">
+                <div className="w-16 h-16 rounded-xl bg-white flex items-center justify-center border border-gray-200 shadow-sm">
+                  <Image 
+                    src="/Outlook_icon.svg" 
+                    alt="Outlook" 
+                    width={32}
+                    height={32}
+                    className="w-8 h-8"
+                  />
                 </div>
                 <div>
-                  <h3 className="text-lg font-semibold text-white">Outlook</h3>
-                  <p className="text-xs text-gray-400">Email & Calendar</p>
+                  <h3 className="text-xl font-bold text-black">Outlook</h3>
+                  <p className="text-sm text-gray-600">Email & Calendar</p>
                 </div>
               </div>
-              <p className="text-sm text-gray-300">
-                Seamless integration with Microsoft 365 and Outlook calendar
-              </p>
+              <ul className="space-y-3 text-gray-700">
+                <li className="flex items-start gap-3">
+                  <svg className="w-5 h-5 text-[#F95B14] flex-shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                  </svg>
+                  <span className="text-sm">Microsoft 365 integration</span>
+                </li>
+                <li className="flex items-start gap-3">
+                  <svg className="w-5 h-5 text-[#F95B14] flex-shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                  </svg>
+                  <span className="text-sm">Calendar sync and scheduling</span>
+                </li>
+                <li className="flex items-start gap-3">
+                  <svg className="w-5 h-5 text-[#F95B14] flex-shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                  </svg>
+                  <span className="text-sm">Team collaboration features</span>
+                </li>
+              </ul>
             </div>
 
             {/* HubSpot */}
-            <div className="rounded-2xl border border-gray-800 bg-gray-900/50 p-6 backdrop-blur-sm hover:border-[#F95B14]/50 transition-all">
-              <div className="flex items-center gap-4 mb-4">
-                <div className="w-12 h-12 rounded-xl bg-[#F95B14]/10 flex items-center justify-center text-2xl">
-                  🎯
+            <div className="rounded-2xl border border-gray-200 bg-white p-8 shadow-sm hover:shadow-md transition-all duration-300 hover:scale-105">
+              <div className="flex items-center gap-4 mb-6">
+                <div className="w-16 h-16 rounded-xl bg-white flex items-center justify-center border border-gray-200 shadow-sm">
+                  <Image 
+                    src="/hubspot-1.svg" 
+                    alt="HubSpot" 
+                    width={32}
+                    height={32}
+                    className="w-8 h-8"
+                  />
                 </div>
                 <div>
-                  <h3 className="text-lg font-semibold text-white">HubSpot</h3>
-                  <p className="text-xs text-gray-400">CRM</p>
+                  <h3 className="text-xl font-bold text-black">HubSpot</h3>
+                  <p className="text-sm text-gray-600">CRM</p>
                 </div>
               </div>
-              <p className="text-sm text-gray-300">
-                Sync contacts, deals, and activities automatically to HubSpot
-              </p>
+              <ul className="space-y-3 text-gray-700">
+                <li className="flex items-start gap-3">
+                  <svg className="w-5 h-5 text-[#F95B14] flex-shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                  </svg>
+                  <span className="text-sm">Sync contacts automatically</span>
+                </li>
+                <li className="flex items-start gap-3">
+                  <svg className="w-5 h-5 text-[#F95B14] flex-shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                  </svg>
+                  <span className="text-sm">Update deals and activities</span>
+                </li>
+                <li className="flex items-start gap-3">
+                  <svg className="w-5 h-5 text-[#F95B14] flex-shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                  </svg>
+                  <span className="text-sm">Pipeline management</span>
+                </li>
+              </ul>
             </div>
 
             {/* Monday CRM */}
-            <div className="rounded-2xl border border-gray-800 bg-gray-900/50 p-6 backdrop-blur-sm hover:border-[#F95B14]/50 transition-all">
-              <div className="flex items-center gap-4 mb-4">
-                <div className="w-12 h-12 rounded-xl bg-[#F95B14]/10 flex items-center justify-center text-2xl">
-                  📊
+            <div className="rounded-2xl border border-gray-200 bg-white p-8 shadow-sm hover:shadow-md transition-all duration-300 hover:scale-105">
+              <div className="flex items-center gap-4 mb-6">
+                <div className="w-16 h-16 rounded-xl bg-white flex items-center justify-center border border-gray-200 shadow-sm">
+                  <Image 
+                    src="/monday-icon.svg" 
+                    alt="Monday" 
+                    width={32}
+                    height={32}
+                    className="w-8 h-8"
+                  />
                 </div>
                 <div>
-                  <h3 className="text-lg font-semibold text-white">Monday CRM</h3>
-                  <p className="text-xs text-gray-400">CRM & Project Management</p>
+                  <h3 className="text-xl font-bold text-black">Monday CRM</h3>
+                  <p className="text-sm text-gray-600">CRM & Project Management</p>
                 </div>
               </div>
-              <p className="text-sm text-gray-300">
-                Update deals, create tasks, and manage pipeline in Monday.com
-              </p>
+              <ul className="space-y-3 text-gray-700">
+                <li className="flex items-start gap-3">
+                  <svg className="w-5 h-5 text-[#F95B14] flex-shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                  </svg>
+                  <span className="text-sm">Update deals and tasks</span>
+                </li>
+                <li className="flex items-start gap-3">
+                  <svg className="w-5 h-5 text-[#F95B14] flex-shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                  </svg>
+                  <span className="text-sm">Manage pipeline boards</span>
+                </li>
+                <li className="flex items-start gap-3">
+                  <svg className="w-5 h-5 text-[#F95B14] flex-shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                  </svg>
+                  <span className="text-sm">Team collaboration</span>
+                </li>
+              </ul>
             </div>
 
             {/* Salesforce */}
-            <div className="rounded-2xl border border-gray-800 bg-gray-900/50 p-6 backdrop-blur-sm hover:border-[#F95B14]/50 transition-all">
-              <div className="flex items-center gap-4 mb-4">
-                <div className="w-12 h-12 rounded-xl bg-[#F95B14]/10 flex items-center justify-center text-2xl">
-                  ☁️
+            <div className="rounded-2xl border border-gray-200 bg-white p-8 shadow-sm hover:shadow-md transition-all duration-300 hover:scale-105">
+              <div className="flex items-center gap-4 mb-6">
+                <div className="w-16 h-16 rounded-xl bg-white flex items-center justify-center border border-gray-200 shadow-sm">
+                  <Image 
+                    src="/salesforcelogo.svg" 
+                    alt="Salesforce" 
+                    width={32}
+                    height={32}
+                    className="w-8 h-8"
+                  />
                 </div>
                 <div>
-                  <h3 className="text-lg font-semibold text-white">Salesforce</h3>
-                  <p className="text-xs text-gray-400">CRM</p>
+                  <h3 className="text-xl font-bold text-black">Salesforce</h3>
+                  <p className="text-sm text-gray-600">CRM</p>
                 </div>
               </div>
-              <p className="text-sm text-gray-300">
-                Deep integration with Salesforce for enterprise sales teams
-              </p>
+              <ul className="space-y-3 text-gray-700">
+                <li className="flex items-start gap-3">
+                  <svg className="w-5 h-5 text-[#F95B14] flex-shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                  </svg>
+                  <span className="text-sm">Enterprise CRM integration</span>
+                </li>
+                <li className="flex items-start gap-3">
+                  <svg className="w-5 h-5 text-[#F95B14] flex-shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                  </svg>
+                  <span className="text-sm">Lead and opportunity sync</span>
+                </li>
+                <li className="flex items-start gap-3">
+                  <svg className="w-5 h-5 text-[#F95B14] flex-shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                  </svg>
+                  <span className="text-sm">Advanced reporting</span>
+                </li>
+              </ul>
             </div>
 
-            {/* LinkedIn */}
-            <div className="rounded-2xl border border-gray-800 bg-gray-900/50 p-6 backdrop-blur-sm hover:border-[#F95B14]/50 transition-all">
-              <div className="flex items-center gap-4 mb-4">
-                <div className="w-12 h-12 rounded-xl bg-[#F95B14]/10 flex items-center justify-center text-2xl">
-                  💼
+            {/* Google Calendar */}
+            <div className="rounded-2xl border border-gray-200 bg-white p-8 shadow-sm hover:shadow-md transition-all duration-300 hover:scale-105">
+              <div className="flex items-center gap-4 mb-6">
+                <div className="w-16 h-16 rounded-xl bg-white flex items-center justify-center border border-gray-200 shadow-sm">
+                  <Image 
+                    src="/google_cal_logo.svg" 
+                    alt="Google Calendar" 
+                    width={32}
+                    height={32}
+                    className="w-8 h-8"
+                  />
                 </div>
                 <div>
-                  <h3 className="text-lg font-semibold text-white">LinkedIn</h3>
-                  <p className="text-xs text-gray-400">Sales Navigator</p>
+                  <h3 className="text-xl font-bold text-black">Google Calendar</h3>
+                  <p className="text-sm text-gray-600">Calendar</p>
                 </div>
               </div>
-              <p className="text-sm text-gray-300">
-                Analyze profiles and enrich your outreach with LinkedIn data
-              </p>
+              <ul className="space-y-3 text-gray-700">
+                <li className="flex items-start gap-3">
+                  <svg className="w-5 h-5 text-[#F95B14] flex-shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                  </svg>
+                  <span className="text-sm">Smart meeting scheduling</span>
+                </li>
+                <li className="flex items-start gap-3">
+                  <svg className="w-5 h-5 text-[#F95B14] flex-shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                  </svg>
+                  <span className="text-sm">Calendar event creation</span>
+                </li>
+                <li className="flex items-start gap-3">
+                  <svg className="w-5 h-5 text-[#F95B14] flex-shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                  </svg>
+                  <span className="text-sm">Availability management</span>
+                </li>
+              </ul>
             </div>
           </div>
         </section>

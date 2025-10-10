@@ -270,7 +270,7 @@ export default function Home() {
         });
         // Reload stats
         loadUserStats();
-    } else {
+      } else {
         console.error('❌ Analysis failed:', data.error);
         setError(data.error || 'Failed to analyze profile');
       }
@@ -446,7 +446,7 @@ export default function Home() {
                   </li>
                 </ul>
               </div>
-            <div className="bg-gray-50 rounded-2xl p-8">
+              <div className="bg-gray-50 rounded-2xl p-8">
                   <div className="mb-4 flex items-center gap-3">
                     <div className="w-10 h-10 rounded-full bg-gradient-to-r from-[#F95B14] to-[#e04d0a] animate-pulse" />
                     <div>
@@ -467,6 +467,7 @@ export default function Home() {
                     <span>Drafted in your authentic voice</span>
                   </div>
               </div>
+            </div>
           </div>
         </section>
 
@@ -846,7 +847,7 @@ export default function Home() {
 
   // Authenticated - show app features (keeping existing functionality with brand colors)
   return (
-    <main className="min-h-screen bg-black">
+      <main className="min-h-screen bg-black">
       {/* Hero */}
       <section className="relative isolate overflow-hidden">
         <div className="absolute inset-0 pointer-events-none">

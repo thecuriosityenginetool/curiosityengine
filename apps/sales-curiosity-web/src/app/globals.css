@@ -92,7 +92,7 @@ body {
 
 @keyframes scroll-logos-smooth {
   0% { transform: translateX(0); }
-  100% { transform: translateX(-25%); }
+  100% { transform: translateX(-16.666%); }
 }
 
 .animate-scroll-logos {
@@ -119,5 +119,10 @@ body {
 
 .animate-scroll-logos-smooth:hover {
   animation-play-state: paused;
+}
+
+/* Ensure seamless infinite scroll */
+.animate-scroll-logos-smooth {
+  will-change: transform;
 }
 

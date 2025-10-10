@@ -92,16 +92,25 @@ export default function Navigation() {
           ) : (
             <div className="flex items-center gap-4">
               <Link 
-                className="text-gray-700 hover:text-black font-semibold transition-colors" 
+                className="group flex items-center gap-2 text-gray-700 hover:text-black font-semibold transition-all duration-300 hover:scale-105" 
                 href="/login"
               >
+                <svg className="w-4 h-4 transition-transform group-hover:rotate-12" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 16l-4-4m0 0l4-4m-4 4h14m-5 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h7a3 3 0 013 3v1" />
+                </svg>
                 Sign In
               </Link>
               <Link 
-                className="rounded-lg bg-[#F95B14] px-4 py-2 text-sm font-semibold text-white hover:bg-[#e04d0a] transition-all hover:scale-105 shadow-sm"
+                className="group relative rounded-lg bg-[#F95B14] px-4 py-2 text-sm font-semibold text-white hover:bg-[#e04d0a] transition-all duration-300 hover:scale-105 shadow-sm overflow-hidden"
                 href="/signup"
               >
-                Start Free Trial
+                <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/20 to-transparent -translate-x-full group-hover:translate-x-full transition-transform duration-1000"></div>
+                <div className="flex items-center gap-2 relative z-10">
+                  <svg className="w-4 h-4 transition-transform group-hover:translate-x-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 7l5 5m0 0l-5 5m5-5H6" />
+                  </svg>
+                  Start Free Trial
+                </div>
               </Link>
             </div>
           )}

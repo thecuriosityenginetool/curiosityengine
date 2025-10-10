@@ -12,18 +12,18 @@ export default function LogoCarousel() {
     { name: 'Google Calendar', path: '/google_cal_logo.svg' },
   ];
 
-  // Duplicate logos for seamless infinite scroll - need 4 sets for smooth loop
-  const duplicatedLogos = [...logos, ...logos, ...logos, ...logos];
+  // Duplicate logos for seamless infinite scroll - need 6 sets for perfect loop
+  const duplicatedLogos = [...logos, ...logos, ...logos, ...logos, ...logos, ...logos];
 
   return (
-    <div className="relative w-full flex justify-center overflow-hidden py-12">
+    <div className="relative w-full flex justify-center overflow-hidden py-8">
       <div className="relative w-full overflow-hidden">
         {/* Fade edges */}
         <div className="absolute left-0 top-0 bottom-0 w-20 bg-gradient-to-r from-white via-white/90 to-transparent z-10 pointer-events-none" />
         <div className="absolute right-0 top-0 bottom-0 w-20 bg-gradient-to-l from-white via-white/90 to-transparent z-10 pointer-events-none" />
         
         {/* Scrolling container */}
-        <div className="flex items-center animate-scroll-logos-smooth gap-16">
+        <div className="flex items-center animate-scroll-logos-smooth gap-16" style={{ width: 'max-content' }}>
           {duplicatedLogos.map((logo, index) => (
             <div
               key={`${logo.name}-${index}`}

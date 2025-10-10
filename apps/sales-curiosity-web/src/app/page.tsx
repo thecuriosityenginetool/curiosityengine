@@ -321,8 +321,8 @@ export default function Home() {
             <div 
               className="absolute h-[680px] w-[85rem] rounded-full bg-gradient-to-b from-[#F95B14]/25 via-[#F95B14]/12 to-transparent blur-2xl transition-all duration-1000 ease-out"
               style={{
-                left: `${mousePosition.x - 425}px`,
-                top: `${mousePosition.y - 340}px`,
+                left: `${mousePosition.x}px`,
+                top: `${mousePosition.y}px`,
                 transform: 'translate(-50%, -50%)'
               }}
             />
@@ -347,7 +347,7 @@ export default function Home() {
               </span>
               
               <h1 className="text-5xl font-bold tracking-tight text-black sm:text-6xl lg:text-7xl mb-6 leading-tight">
-                The AI Sales Assistant for{' '}
+                Auto-draft emails from{' '}
                 <span className="text-[#F95B14] inline-block min-w-[280px] sm:min-w-[400px] text-center">
                   {currentRole}
                   <span className="animate-pulse">|</span>
@@ -355,7 +355,7 @@ export default function Home() {
               </h1>
               
               <p className="text-xl text-gray-700 mb-12 leading-relaxed max-w-2xl mx-auto">
-                Begin your day with <strong className="text-black">emails auto-drafted</strong>, <strong className="text-black">LinkedIn profiles analyzed</strong>, and <strong className="text-black">pipeline updates synced</strong>—all in your voice, powered by AI agents that know your sales stack.
+                <strong className="text-black">Auto-draft emails</strong> from LinkedIn profiles and CRM entries, <strong className="text-black">auto-research</strong> LinkedIn accounts and CRM deals, <strong className="text-black">enrich CRM leads</strong> with AI research and <strong className="text-black">generate messages</strong> to leads from your Outlook or Gmail.
               </p>
 
               {/* Try free with 1-click text */}
@@ -395,7 +395,7 @@ export default function Home() {
               </div>
 
               {/* Integration Logos Carousel */}
-              <div className="flex flex-col items-center gap-6">
+              <div className="flex flex-col items-center gap-6 mt-16">
                 <p className="text-sm font-medium text-gray-700">Works seamlessly with</p>
                 <LogoCarousel />
               </div>

@@ -2338,36 +2338,45 @@ function Popup() {
                 : "Connect your Salesforce to check if prospects exist and auto-add new contacts."}
             </p>
             <button
-              onClick={async () => {
+              onClick={async (e) => {
+                e.preventDefault();
+                e.stopPropagation();
+                
                 try {
+                  console.log('🔵 Button clicked!');
+                  console.log('🔵 API Base:', apiBase);
+                  
                   const { authToken } = await chrome.storage.local.get(['authToken']);
+                  console.log('🔵 Auth token exists:', !!authToken);
                   
                   if (!authToken) {
-                    alert('Please log in to the extension first');
+                    alert('❌ Please log in to the extension first');
                     return;
                   }
                   
-                  console.log('Calling Salesforce auth-user API...');
+                  const url = `${apiBase}/api/salesforce/auth-user`;
+                  console.log('🔵 Calling API:', url);
+                  
                   const res = await chrome.runtime.sendMessage({
                     type: "PING_API",
-                    url: `${apiBase}/api/salesforce/auth-user`,
+                    url: url,
                     method: "GET",
                     authToken,
                   });
                   
-                  console.log('Salesforce auth response:', res);
+                  console.log('🔵 API Response:', JSON.stringify(res, null, 2));
                   
                   if (res.ok && res.data?.authUrl) {
-                    console.log('Opening Salesforce OAuth:', res.data.authUrl);
-                    // Open Salesforce OAuth in new tab
+                    console.log('✅ Success! Opening Salesforce:', res.data.authUrl);
                     chrome.tabs.create({ url: res.data.authUrl });
                   } else {
-                    console.error('Failed response:', res);
-                    alert('Failed to initiate Salesforce connection: ' + (res.data?.error || res.error || 'Unknown error'));
+                    console.error('❌ API call failed:', res);
+                    const errorMsg = res.data?.error || res.error || JSON.stringify(res);
+                    alert('❌ Failed to connect Salesforce:\n\n' + errorMsg);
                   }
                 } catch (err) {
-                  console.error('Salesforce connection error:', err);
-                  alert('Error: ' + String(err));
+                  console.error('❌ Exception:', err);
+                  alert('❌ Error: ' + String(err));
                 }
               }}
               disabled={enabledIntegrations.includes('salesforce_user')}

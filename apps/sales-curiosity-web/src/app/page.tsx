@@ -422,7 +422,7 @@ export default function Home() {
                 />
               </div>
 
-              <span className="inline-flex items-center rounded-full bg-[#F95B14]/10 px-4 py-1.5 text-sm font-medium text-[#F95B14] ring-1 ring-inset ring-[#F95B14]/20 mb-8 animate-pulse">
+              <span className="inline-flex items-center rounded-full bg-white px-4 py-1.5 text-sm font-medium text-[#F95B14] ring-1 ring-inset ring-[#F95B14]/20 mb-8 animate-pulse relative z-10">
                 New: AI-Powered Sales Automation
               </span>
               

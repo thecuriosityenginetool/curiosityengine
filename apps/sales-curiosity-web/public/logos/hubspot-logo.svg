@@ -1,0 +1,9 @@
+<svg width="140" height="40" viewBox="0 0 140 40" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <g transform="translate(0, 8)">
+    <path d="M18 6V4C18 2.9 17.1 2 16 2H15V1C15 0.4 14.6 0 14 0C13.4 0 13 0.4 13 1V2H11V1C11 0.4 10.6 0 10 0C9.4 0 9 0.4 9 1V2H8C6.9 2 6 2.9 6 4V6L4 8L12 16L20 8L18 6Z" fill="#FF7A59"/>
+    <circle cx="12" cy="20" r="4" fill="#FF7A59"/>
+    <rect x="10.5" y="14" width="3" height="6" fill="#FF7A59"/>
+  </g>
+  <text x="30" y="22" fill="#5F6368" font-family="Arial, sans-serif" font-size="16" font-weight="600">HubSpot</text>
+</svg>
+

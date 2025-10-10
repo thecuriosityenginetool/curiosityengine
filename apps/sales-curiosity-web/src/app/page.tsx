@@ -6,6 +6,7 @@ import { useSession } from 'next-auth/react';
 import { supabase } from '@/lib/supabase';
 import Link from 'next/link';
 import Image from 'next/image';
+import LogoCarousel from '@/components/ui/LogoCarousel';
 
 type TabType = 'home' | 'context' | 'integrations';
 type ActionType = 'analyze' | 'email';
@@ -359,61 +360,10 @@ export default function Home() {
                 </Link>
               </div>
 
-              {/* Integration Logos with hover effects */}
+              {/* Integration Logos Carousel */}
               <div className="flex flex-col items-center gap-6">
                 <p className="text-sm font-medium text-gray-700">Works seamlessly with</p>
-                <div className="flex flex-wrap justify-center items-center gap-6">
-                  {/* Gmail */}
-                  <div className="group flex items-center gap-2 px-5 py-3 rounded-xl hover:bg-red-50 transition-all duration-300 cursor-pointer hover:scale-110 border border-transparent hover:border-red-100">
-                    <svg className="w-7 h-7 transition-transform group-hover:rotate-12" viewBox="0 0 256 193" fill="none" xmlns="http://www.w3.org/2000/svg">
-                      <path d="M0 48V184C0 189.6 4.4 193 10 193H246C251.6 193 256 189.6 256 184V48L128 120L0 48Z" fill="#EA4335"/>
-                      <path d="M0 48L128 120L256 48V16C256 10.4 251.6 6 246 6H10C4.4 6 0 10.4 0 16V48Z" fill="#C5221F"/>
-                      <path d="M0 48L128 120L256 48L128 6L0 48Z" fill="#FBBC04"/>
-                      <path d="M0 48V184C0 189.6 4.4 193 10 193H32V60L0 48Z" fill="#34A853"/>
-                      <path d="M224 60V193H246C251.6 193 256 189.6 256 184V48L224 60Z" fill="#34A853"/>
-                    </svg>
-                    <span className="text-sm font-bold text-gray-800">Gmail</span>
-                  </div>
-                  
-                  {/* Outlook */}
-                  <div className="group flex items-center gap-2 px-5 py-3 rounded-xl hover:bg-blue-50 transition-all duration-300 cursor-pointer hover:scale-110 border border-transparent hover:border-blue-100">
-                    <svg className="w-7 h-7 transition-transform group-hover:rotate-12" viewBox="0 0 256 256" fill="none" xmlns="http://www.w3.org/2000/svg">
-                      <path d="M0 0H256V256H0V0Z" fill="#0072C6"/>
-                      <path d="M128 70C105.9 70 88 87.9 88 110V146C88 168.1 105.9 186 128 186C150.1 186 168 168.1 168 146V110C168 87.9 150.1 70 128 70ZM128 170C114.7 170 104 159.3 104 146V110C104 96.7 114.7 86 128 86C141.3 86 152 96.7 152 110V146C152 159.3 141.3 170 128 170Z" fill="white"/>
-                    </svg>
-                    <span className="text-sm font-bold text-gray-800">Outlook</span>
-                  </div>
-                  
-                  {/* HubSpot */}
-                  <div className="group flex items-center gap-2 px-5 py-3 rounded-xl hover:bg-orange-50 transition-all duration-300 cursor-pointer hover:scale-110 border border-transparent hover:border-orange-100">
-                    <svg className="w-7 h-7 transition-transform group-hover:rotate-12" viewBox="0 0 256 256" fill="none" xmlns="http://www.w3.org/2000/svg">
-                      <path d="M200 60V42C200 30 190 20 178 20H172V14C172 6 166 0 158 0C150 0 144 6 144 14V20H112V14C112 6 106 0 98 0C90 0 84 6 84 14V20H78C66 20 56 30 56 42V60L36 80L128 172L220 80L200 60ZM128 140L76 88H180L128 140Z" fill="#FF7A59"/>
-                      <circle cx="128" cy="200" r="36" fill="#FF7A59"/>
-                      <rect x="120" y="140" width="16" height="60" fill="#FF7A59"/>
-                    </svg>
-                    <span className="text-sm font-bold text-gray-800">HubSpot</span>
-                  </div>
-                  
-                  {/* Monday.com */}
-                  <div className="group flex items-center gap-2 px-5 py-3 rounded-xl hover:bg-pink-50 transition-all duration-300 cursor-pointer hover:scale-110 border border-transparent hover:border-pink-100">
-                    <svg className="w-7 h-7 transition-transform group-hover:rotate-12" viewBox="0 0 256 256" fill="none" xmlns="http://www.w3.org/2000/svg">
-                      <circle cx="64" cy="128" r="32" fill="#FF3D57"/>
-                      <circle cx="192" cy="128" r="32" fill="#FFCB00"/>
-                      <circle cx="128" cy="64" r="32" fill="#00D647"/>
-                      <circle cx="128" cy="192" r="32" fill="#6C6CFF"/>
-                    </svg>
-                    <span className="text-sm font-bold text-gray-800">Monday</span>
-                  </div>
-                  
-                  {/* Salesforce */}
-                  <div className="group flex items-center gap-2 px-5 py-3 rounded-xl hover:bg-cyan-50 transition-all duration-300 cursor-pointer hover:scale-110 border border-transparent hover:border-cyan-100">
-                    <svg className="w-7 h-7 transition-transform group-hover:rotate-12" viewBox="0 0 256 256" fill="none" xmlns="http://www.w3.org/2000/svg">
-                      <path d="M88 40C77.6 40 68.8 46.4 64.8 56C59.2 54.4 53.6 54.4 48 56C34.4 60 24 72 24 88C24 104 34.4 116 48 120C52 129.6 60.8 136 72 136H184C194.4 136 204 129.6 208 120C221.6 116 232 104 232 88C232 72 221.6 60 208 56C206.4 50.4 202.4 46.4 196.8 42.4C192.8 38.4 186.4 36 180 36C173.6 36 167.2 38.4 162.4 42.4C158.4 34.4 149.6 28 140 28C130.4 28 121.6 34.4 117.6 42.4C112.8 38.4 106.4 36 100 36C95.2 36 91.2 37.6 88 40Z" fill="#00A1E0"/>
-                      <path d="M72 148C61.6 148 52.8 154.4 48.8 164C43.2 162.4 37.6 162.4 32 164C18.4 168 8 180 8 196C8 212 18.4 224 32 228C36 237.6 44.8 244 56 244H168C178.4 244 188 237.6 192 228C205.6 224 216 212 216 196C216 180 205.6 168 192 164C190.4 158.4 186.4 154.4 180.8 150.4C176.8 146.4 170.4 144 164 144C157.6 144 151.2 146.4 146.4 150.4C142.4 142.4 133.6 136 124 136C114.4 136 105.6 142.4 101.6 150.4C96.8 146.4 90.4 144 84 144C79.2 144 75.2 145.6 72 148Z" fill="#1AB6FF"/>
-                    </svg>
-                    <span className="text-sm font-bold text-gray-800">Salesforce</span>
-                  </div>
-                </div>
+                <LogoCarousel />
               </div>
             </div>
           </div>

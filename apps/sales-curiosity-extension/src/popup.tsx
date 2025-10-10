@@ -2365,17 +2365,34 @@ function Popup() {
                   });
                   
                   console.log('🔵 API Response:', JSON.stringify(res, null, 2));
+                  console.log('🔵 res.ok:', res.ok);
+                  console.log('🔵 res.data:', res.data);
+                  console.log('🔵 res.data?.authUrl:', res.data?.authUrl);
+                  console.log('🔵 Condition check:', res.ok, '&&', res.data?.authUrl, '=', (res.ok && res.data?.authUrl));
                   
-                  // DEBUG: Show response in alert BEFORE opening tab
-                  alert('DEBUG Response:\n\n' + JSON.stringify(res, null, 2));
+                  // Extract authUrl directly
+                  const authUrl = res.data?.authUrl;
+                  console.log('🔵 Extracted authUrl:', authUrl);
+                  console.log('🔵 authUrl type:', typeof authUrl);
+                  console.log('🔵 authUrl truthy?:', !!authUrl);
                   
-                  if (res.ok && res.data?.authUrl) {
-                    console.log('✅ Success! Opening Salesforce:', res.data.authUrl);
-                    chrome.tabs.create({ url: res.data.authUrl });
+                  // TESTING: Just show the URL, don't try to open it
+                  if (authUrl) {
+                    console.log('✅ Got Salesforce URL!');
+                    console.log('URL:', authUrl);
+                    
+                    // Copy to clipboard
+                    navigator.clipboard.writeText(authUrl).then(() => {
+                      alert('✅ Salesforce URL copied to clipboard!\n\nPaste it in a new tab to connect.\n\nURL: ' + authUrl.substring(0, 100) + '...');
+                    }).catch(() => {
+                      // Clipboard failed, just show in alert
+                      alert('✅ Open this URL in a new tab:\n\n' + authUrl);
+                    });
+                    
+                    return;
                   } else {
-                    console.error('❌ API call failed:', res);
-                    const errorMsg = res.data?.error || res.error || JSON.stringify(res);
-                    alert('❌ Failed to connect Salesforce:\n\n' + errorMsg);
+                    console.error('❌ No authUrl found!');
+                    alert('❌ No authorization URL received');
                   }
                 } catch (err) {
                   console.error('❌ Exception:', err);
@@ -2399,9 +2416,8 @@ function Popup() {
             </button>
           </div>
 
-        {/* Email Integration */}
-        {(isIndividual || !isOrgMember) && (
-          <div style={{
+        {/* HubSpot CRM Integration */}
+        <div style={{
             background: "white",
             padding: "20px",
             borderRadius: 12,
@@ -2420,13 +2436,13 @@ function Popup() {
                   width: 40,
                   height: 40,
                   borderRadius: 8,
-                  background: "linear-gradient(135deg, #ef4444 0%, #dc2626 100%)",
+                  background: "linear-gradient(135deg, #ff7a59 0%, #ff5c35 100%)",
                   display: "flex",
                   alignItems: "center",
                   justifyContent: "center",
                   fontSize: 20
                 }}>
-                  📧
+                  🟠
                 </div>
                 <div>
                   <h3 style={{
@@ -2435,26 +2451,26 @@ function Popup() {
                     color: "#0f172a",
                     margin: "0 0 2px 0"
                   }}>
-                    Email Integration
+                    HubSpot CRM
                   </h3>
                   <p style={{
                     fontSize: 11,
                     color: "#64748b",
                     margin: 0
                   }}>
-                    Gmail, Outlook, and more
+                    Auto-check contacts & tailor emails
                   </p>
                 </div>
               </div>
               <span style={{
                 fontSize: 11,
                 padding: "4px 10px",
-                background: "#fef3c7",
-                color: "#92400e",
+                background: enabledIntegrations.includes('hubspot_user') ? "#d1fae5" : "#fef3c7",
+                color: enabledIntegrations.includes('hubspot_user') ? "#065f46" : "#92400e",
                 borderRadius: 6,
                 fontWeight: 600
               }}>
-                Coming Soon
+                {enabledIntegrations.includes('hubspot_user') ? "Connected" : "Not Connected"}
               </span>
             </div>
             <p style={{
@@ -2463,33 +2479,54 @@ function Popup() {
               marginBottom: 12,
               lineHeight: 1.5
             }}>
-              Send drafted emails directly from the extension to your email client.
+              {enabledIntegrations.includes('hubspot_user') 
+                ? "Your HubSpot is connected. Emails are automatically tailored based on CRM data."
+                : "Connect your HubSpot to check if prospects exist and auto-add new contacts."}
             </p>
             <button
-              disabled
+              onClick={async () => {
+                const { authToken } = await chrome.storage.local.get(['authToken']);
+                if (!authToken) {
+                  alert('Please log in first');
+                  return;
+                }
+                
+                const res = await chrome.runtime.sendMessage({
+                  type: "PING_API",
+                  url: `${apiBase}/api/hubspot/auth-user`,
+                  method: "GET",
+                  authToken,
+                });
+                
+                if (res.ok && res.data?.authUrl) {
+                  chrome.tabs.create({ url: res.data.authUrl });
+                } else {
+                  alert('Failed to connect. Make sure API keys are configured.');
+                }
+              }}
+              disabled={enabledIntegrations.includes('hubspot_user')}
               style={{
                 width: "100%",
                 padding: "10px",
-                background: "#f1f5f9",
-                color: "#94a3b8",
-                border: "1px solid #e2e8f0",
+                background: enabledIntegrations.includes('hubspot_user') ? "#f1f5f9" : "#ff7a59",
+                color: enabledIntegrations.includes('hubspot_user') ? "#94a3b8" : "white",
+                border: "none",
                 borderRadius: 8,
                 fontSize: 13,
                 fontWeight: 600,
-                cursor: "not-allowed"
+                cursor: enabledIntegrations.includes('hubspot_user') ? "not-allowed" : "pointer"
               }}
             >
-              Connect Email
+              {enabledIntegrations.includes('hubspot_user') ? "✓ Connected" : "Connect HubSpot"}
             </button>
           </div>
-        )}
 
-        {/* CRM Integration */}
-        {(isIndividual || !isOrgMember) && (
-          <div style={{
+        {/* Gmail Integration */}
+        <div style={{
             background: "white",
             padding: "20px",
             borderRadius: 12,
+            marginBottom: 12,
             boxShadow: "0 2px 8px rgba(0, 0, 0, 0.06)",
             border: "1px solid #e5e7eb"
           }}>
@@ -2504,13 +2541,13 @@ function Popup() {
                   width: 40,
                   height: 40,
                   borderRadius: 8,
-                  background: "linear-gradient(135deg, #3b82f6 0%, #2563eb 100%)",
+                  background: "linear-gradient(135deg, #ea4335 0%, #c5221f 100%)",
                   display: "flex",
                   alignItems: "center",
                   justifyContent: "center",
                   fontSize: 20
                 }}>
-                  🔗
+                  📧
                 </div>
                 <div>
                   <h3 style={{
@@ -2519,26 +2556,26 @@ function Popup() {
                     color: "#0f172a",
                     margin: "0 0 2px 0"
                   }}>
-                    CRM Integration
+                    Gmail
                   </h3>
                   <p style={{
                     fontSize: 11,
                     color: "#64748b",
                     margin: 0
                   }}>
-                    Salesforce, HubSpot, and more
+                    Send emails directly from extension
                   </p>
                 </div>
               </div>
               <span style={{
                 fontSize: 11,
                 padding: "4px 10px",
-                background: "#fef3c7",
-                color: "#92400e",
+                background: enabledIntegrations.includes('gmail_user') ? "#d1fae5" : "#fef3c7",
+                color: enabledIntegrations.includes('gmail_user') ? "#065f46" : "#92400e",
                 borderRadius: 6,
                 fontWeight: 600
               }}>
-                Coming Soon
+                {enabledIntegrations.includes('gmail_user') ? "Connected" : "Not Connected"}
               </span>
             </div>
             <p style={{
@@ -2547,26 +2584,257 @@ function Popup() {
               marginBottom: 12,
               lineHeight: 1.5
             }}>
-              Automatically sync analyzed profiles and activities to your CRM.
+              {enabledIntegrations.includes('gmail_user') 
+                ? "Your Gmail is connected. You can send and draft emails directly."
+                : "Connect your Gmail to send drafted emails directly from the extension."}
             </p>
             <button
-              disabled
+              onClick={async () => {
+                const { authToken } = await chrome.storage.local.get(['authToken']);
+                if (!authToken) {
+                  alert('Please log in first');
+                  return;
+                }
+                
+                const res = await chrome.runtime.sendMessage({
+                  type: "PING_API",
+                  url: `${apiBase}/api/gmail/auth-user`,
+                  method: "GET",
+                  authToken,
+                });
+                
+                if (res.ok && res.data?.authUrl) {
+                  chrome.tabs.create({ url: res.data.authUrl });
+                } else {
+                  alert('Failed to connect. Make sure API keys are configured.');
+                }
+              }}
+              disabled={enabledIntegrations.includes('gmail_user')}
               style={{
                 width: "100%",
                 padding: "10px",
-                background: "#f1f5f9",
-                color: "#94a3b8",
-                border: "1px solid #e2e8f0",
+                background: enabledIntegrations.includes('gmail_user') ? "#f1f5f9" : "#ea4335",
+                color: enabledIntegrations.includes('gmail_user') ? "#94a3b8" : "white",
+                border: "none",
                 borderRadius: 8,
                 fontSize: 13,
                 fontWeight: 600,
-                cursor: "not-allowed"
+                cursor: enabledIntegrations.includes('gmail_user') ? "not-allowed" : "pointer"
               }}
             >
-              Connect CRM
+              {enabledIntegrations.includes('gmail_user') ? "✓ Connected" : "Connect Gmail"}
             </button>
           </div>
-        )}
+
+        {/* Outlook Integration */}
+        <div style={{
+            background: "white",
+            padding: "20px",
+            borderRadius: 12,
+            marginBottom: 12,
+            boxShadow: "0 2px 8px rgba(0, 0, 0, 0.06)",
+            border: "1px solid #e5e7eb"
+          }}>
+            <div style={{
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "space-between",
+              marginBottom: 12
+            }}>
+              <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
+                <div style={{
+                  width: 40,
+                  height: 40,
+                  borderRadius: 8,
+                  background: "linear-gradient(135deg, #0078d4 0%, #005a9e 100%)",
+                  display: "flex",
+                  alignItems: "center",
+                  justifyContent: "center",
+                  fontSize: 20
+                }}>
+                  📨
+                </div>
+                <div>
+                  <h3 style={{
+                    fontSize: 14,
+                    fontWeight: 700,
+                    color: "#0f172a",
+                    margin: "0 0 2px 0"
+                  }}>
+                    Outlook
+                  </h3>
+                  <p style={{
+                    fontSize: 11,
+                    color: "#64748b",
+                    margin: 0
+                  }}>
+                    Send emails via Microsoft 365
+                  </p>
+                </div>
+              </div>
+              <span style={{
+                fontSize: 11,
+                padding: "4px 10px",
+                background: enabledIntegrations.includes('outlook_user') ? "#d1fae5" : "#fef3c7",
+                color: enabledIntegrations.includes('outlook_user') ? "#065f46" : "#92400e",
+                borderRadius: 6,
+                fontWeight: 600
+              }}>
+                {enabledIntegrations.includes('outlook_user') ? "Connected" : "Not Connected"}
+              </span>
+            </div>
+            <p style={{
+              fontSize: 12,
+              color: "#64748b",
+              marginBottom: 12,
+              lineHeight: 1.5
+            }}>
+              {enabledIntegrations.includes('outlook_user') 
+                ? "Your Outlook is connected. You can send and draft emails directly."
+                : "Connect your Outlook to send drafted emails directly from the extension."}
+            </p>
+            <button
+              onClick={async () => {
+                const { authToken } = await chrome.storage.local.get(['authToken']);
+                if (!authToken) {
+                  alert('Please log in first');
+                  return;
+                }
+                
+                const res = await chrome.runtime.sendMessage({
+                  type: "PING_API",
+                  url: `${apiBase}/api/outlook/auth-user`,
+                  method: "GET",
+                  authToken,
+                });
+                
+                if (res.ok && res.data?.authUrl) {
+                  chrome.tabs.create({ url: res.data.authUrl });
+                } else {
+                  alert('Failed to connect. Make sure API keys are configured.');
+                }
+              }}
+              disabled={enabledIntegrations.includes('outlook_user')}
+              style={{
+                width: "100%",
+                padding: "10px",
+                background: enabledIntegrations.includes('outlook_user') ? "#f1f5f9" : "#0078d4",
+                color: enabledIntegrations.includes('outlook_user') ? "#94a3b8" : "white",
+                border: "none",
+                borderRadius: 8,
+                fontSize: 13,
+                fontWeight: 600,
+                cursor: enabledIntegrations.includes('outlook_user') ? "not-allowed" : "pointer"
+              }}
+            >
+              {enabledIntegrations.includes('outlook_user') ? "✓ Connected" : "Connect Outlook"}
+            </button>
+          </div>
+
+        {/* Monday.com Integration */}
+        <div style={{
+            background: "white",
+            padding: "20px",
+            borderRadius: 12,
+            marginBottom: 12,
+            boxShadow: "0 2px 8px rgba(0, 0, 0, 0.06)",
+            border: "1px solid #e5e7eb"
+          }}>
+            <div style={{
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "space-between",
+              marginBottom: 12
+            }}>
+              <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
+                <div style={{
+                  width: 40,
+                  height: 40,
+                  borderRadius: 8,
+                  background: "linear-gradient(135deg, #ff3d57 0%, #e02f44 100%)",
+                  display: "flex",
+                  alignItems: "center",
+                  justifyContent: "center",
+                  fontSize: 20
+                }}>
+                  📊
+                </div>
+                <div>
+                  <h3 style={{
+                    fontSize: 14,
+                    fontWeight: 700,
+                    color: "#0f172a",
+                    margin: "0 0 2px 0"
+                  }}>
+                    Monday.com
+                  </h3>
+                  <p style={{
+                    fontSize: 11,
+                    color: "#64748b",
+                    margin: 0
+                  }}>
+                    Sync contacts to your boards
+                  </p>
+                </div>
+              </div>
+              <span style={{
+                fontSize: 11,
+                padding: "4px 10px",
+                background: enabledIntegrations.includes('monday_user') ? "#d1fae5" : "#fef3c7",
+                color: enabledIntegrations.includes('monday_user') ? "#065f46" : "#92400e",
+                borderRadius: 6,
+                fontWeight: 600
+              }}>
+                {enabledIntegrations.includes('monday_user') ? "Connected" : "Not Connected"}
+              </span>
+            </div>
+            <p style={{
+              fontSize: 12,
+              color: "#64748b",
+              marginBottom: 12,
+              lineHeight: 1.5
+            }}>
+              {enabledIntegrations.includes('monday_user') 
+                ? "Your Monday.com is connected. Contacts are automatically synced to your boards."
+                : "Connect Monday.com to sync analyzed profiles and activities to your boards."}
+            </p>
+            <button
+              onClick={async () => {
+                const { authToken } = await chrome.storage.local.get(['authToken']);
+                if (!authToken) {
+                  alert('Please log in first');
+                  return;
+                }
+                
+                const res = await chrome.runtime.sendMessage({
+                  type: "PING_API",
+                  url: `${apiBase}/api/monday/auth-user`,
+                  method: "GET",
+                  authToken,
+                });
+                
+                if (res.ok && res.data?.authUrl) {
+                  chrome.tabs.create({ url: res.data.authUrl });
+                } else {
+                  alert('Failed to connect. Make sure API keys are configured.');
+                }
+              }}
+              disabled={enabledIntegrations.includes('monday_user')}
+              style={{
+                width: "100%",
+                padding: "10px",
+                background: enabledIntegrations.includes('monday_user') ? "#f1f5f9" : "#ff3d57",
+                color: enabledIntegrations.includes('monday_user') ? "#94a3b8" : "white",
+                border: "none",
+                borderRadius: 8,
+                fontSize: 13,
+                fontWeight: 600,
+                cursor: enabledIntegrations.includes('monday_user') ? "not-allowed" : "pointer"
+              }}
+            >
+              {enabledIntegrations.includes('monday_user') ? "✓ Connected" : "Connect Monday.com"}
+            </button>
+          </div>
       </div>
     );
   };

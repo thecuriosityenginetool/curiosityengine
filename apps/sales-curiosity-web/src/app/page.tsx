@@ -546,7 +546,7 @@ export default function Home() {
                       <div className="text-xs text-gray-500">Trained on 2,847 sent emails</div>
                     </div>
                   </div>
-                  <div className="bg-white rounded-lg p-6 mb-6 border border-gray-200 h-48 overflow-hidden">
+                  <div className="bg-white rounded-lg p-6 mb-6 border border-gray-200 h-80 overflow-hidden">
                     <p className="text-gray-700 leading-relaxed whitespace-pre-line h-full overflow-y-auto">
                       {emailText || "Loading AI response..."}
                       {isTyping && <span className="animate-pulse">|</span>}

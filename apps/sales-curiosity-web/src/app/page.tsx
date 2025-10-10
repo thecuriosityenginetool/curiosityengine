@@ -315,7 +315,7 @@ export default function Home() {
     return (
       <main className="min-h-screen bg-white">
         {/* Hero Section */}
-        <section className="relative isolate overflow-hidden bg-gradient-to-b from-[#F95B14]/10 via-white to-white min-h-screen">
+        <section className="relative isolate overflow-hidden bg-gradient-to-b from-[#F95B14]/10 via-white to-white h-screen flex flex-col">
           {/* Mouse-tracking gradient overlay */}
           <div className="absolute inset-0 pointer-events-none">
             <div 
@@ -328,45 +328,45 @@ export default function Home() {
             />
           </div>
 
-          <div className="relative mx-auto max-w-7xl px-6 pt-24 pb-24 sm:pt-32 sm:pb-32 lg:pt-40 lg:pb-40">
+          <div className="relative mx-auto max-w-7xl px-6 flex-1 flex flex-col justify-center py-16">
             <div className="mx-auto max-w-4xl text-center">
               {/* Logo with hover animation */}
-              <div className="mb-12 flex justify-center group">
+              <div className="mb-8 flex justify-center group">
                 <Image 
                   src="/fulllogo_transparent_nobuffer.png" 
                   alt="Sales Curiosity" 
-                  width={300}
-                  height={80}
+                  width={280}
+                  height={75}
                   priority
-                  className="h-20 w-auto transition-all duration-300 group-hover:scale-105"
+                  className="h-18 w-auto transition-all duration-300 group-hover:scale-105"
                 />
               </div>
 
-              <span className="inline-flex items-center rounded-full bg-[#F95B14]/10 px-4 py-1.5 text-sm font-medium text-[#F95B14] ring-1 ring-inset ring-[#F95B14]/20 mb-12 animate-pulse">
+              <span className="inline-flex items-center rounded-full bg-[#F95B14]/10 px-4 py-1.5 text-sm font-medium text-[#F95B14] ring-1 ring-inset ring-[#F95B14]/20 mb-8 animate-pulse">
                 New: AI-Powered Sales Automation
               </span>
               
-              <h1 className="text-5xl font-bold tracking-tight text-black sm:text-6xl lg:text-7xl mb-8 leading-tight">
-                Auto-draft emails from{' '}
+              <h1 className="text-4xl font-bold tracking-tight text-black sm:text-5xl lg:text-6xl mb-6 leading-tight">
+                The AI Sales Assistant for{' '}
                 <span className="text-[#F95B14] inline-block min-w-[280px] sm:min-w-[400px] text-center">
                   {currentRole}
                   <span className="animate-pulse">|</span>
                 </span>
               </h1>
               
-              <p className="text-xl text-gray-700 mb-16 leading-relaxed max-w-2xl mx-auto">
+              <p className="text-lg text-gray-700 mb-10 leading-relaxed max-w-2xl mx-auto">
                 <strong className="text-black">Auto-draft emails</strong> from LinkedIn profiles and CRM entries, <strong className="text-black">auto-research</strong> LinkedIn accounts and CRM deals, <strong className="text-black">enrich CRM leads</strong> with AI research and <strong className="text-black">generate messages</strong> to leads from your Outlook or Gmail.
               </p>
 
               {/* Try free with 1-click text */}
-              <p className="text-lg text-gray-600 mb-12">Try free with 1-click:</p>
+              <p className="text-base text-gray-600 mb-8">Try free with 1-click:</p>
 
               {/* CTA Buttons matching the image */}
-              <div className="flex flex-col sm:flex-row gap-6 justify-center items-center mb-16">
+              <div className="flex flex-col sm:flex-row gap-4 justify-center items-center mb-10">
                 {/* Gmail Button */}
                 <Link 
                   href="/signup?integration=gmail"
-                  className="flex items-center gap-3 px-8 py-4 bg-white border border-gray-200 rounded-lg hover:shadow-md transition-all duration-300 hover:scale-105"
+                  className="flex items-center gap-3 px-6 py-3 bg-white border border-gray-200 rounded-lg hover:shadow-md transition-all duration-300 hover:scale-105"
                 >
                   <Image 
                     src="/Gmail Icon.svg" 
@@ -381,7 +381,7 @@ export default function Home() {
                 {/* Outlook Button */}
                 <Link 
                   href="/signup?integration=outlook"
-                  className="flex items-center gap-3 px-8 py-4 bg-[#0078D4] rounded-lg hover:bg-[#106ebe] transition-all duration-300 hover:scale-105"
+                  className="flex items-center gap-3 px-6 py-3 bg-[#0078D4] rounded-lg hover:bg-[#106ebe] transition-all duration-300 hover:scale-105"
                 >
                   <Image 
                     src="/Outlook_icon.svg" 
@@ -395,7 +395,7 @@ export default function Home() {
               </div>
 
               {/* Integration Logos Carousel */}
-              <div className="flex flex-col items-center gap-8 mt-20">
+              <div className="flex flex-col items-center gap-6 mt-8">
                 <p className="text-sm font-medium text-gray-700">Works seamlessly with</p>
                 <LogoCarousel />
               </div>

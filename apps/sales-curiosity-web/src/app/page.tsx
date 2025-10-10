@@ -485,7 +485,7 @@ export default function Home() {
         <section className="relative mx-auto max-w-7xl px-6 py-24 bg-white">
           <GSAPReveal>
             <h2 className="text-4xl font-bold tracking-tight text-black text-center mb-16 headline">
-              Your AI learns your voice from sent emails
+              Curiosity Engine learns your voice from sent emails
             </h2>
           </GSAPReveal>
           
@@ -632,7 +632,7 @@ export default function Home() {
             </div>
             <GSAPReveal>
               <h2 className="text-4xl sm:text-5xl font-bold text-black mb-6 headline">
-                Your AI works with every tool you use
+                Curiosity Engine works with every tool you use
               </h2>
             </GSAPReveal>
             <p className="text-xl text-gray-700 max-w-2xl mx-auto">

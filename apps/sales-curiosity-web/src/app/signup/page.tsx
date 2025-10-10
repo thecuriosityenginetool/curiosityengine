@@ -20,32 +20,12 @@ function SignupForm() {
   const router = useRouter();
   const searchParams = useSearchParams();
 
-  async function handleGoogleSignup() {
-    try {
-      const { error } = await supabase.auth.signInWithOAuth({
-        provider: 'google',
-        options: {
-          redirectTo: `${window.location.origin}/dashboard`,
-        },
-      });
-      if (error) throw error;
-    } catch (error: any) {
-      setError(error.message);
-    }
+  function handleGoogleSignup() {
+    window.location.href = '/dashboard';
   }
 
-  async function handleMicrosoftSignup() {
-    try {
-      const { error } = await supabase.auth.signInWithOAuth({
-        provider: 'azure',
-        options: {
-          redirectTo: `${window.location.origin}/dashboard`,
-        },
-      });
-      if (error) throw error;
-    } catch (error: any) {
-      setError(error.message);
-    }
+  function handleMicrosoftSignup() {
+    window.location.href = '/dashboard';
   }
 
   useEffect(() => {

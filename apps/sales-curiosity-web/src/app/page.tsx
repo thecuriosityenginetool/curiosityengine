@@ -1159,18 +1159,8 @@ export default function Home() {
                 <ul className="modern-icon-buttons">
                   <li 
                     style={{'--i': '#4285F4', '--j': '#EA4335'} as React.CSSProperties}
-                    onClick={async () => {
-                      try {
-                        const { error } = await supabase.auth.signInWithOAuth({
-                          provider: 'google',
-                          options: {
-                            redirectTo: `${window.location.origin}/dashboard`,
-                          },
-                        });
-                        if (error) throw error;
-                      } catch (error: any) {
-                        console.error('Google signup error:', error);
-                      }
+                    onClick={() => {
+                      window.location.href = '/dashboard';
                     }}
                   >
                     <span className="icon">
@@ -1186,18 +1176,8 @@ export default function Home() {
                   </li>
                   <li 
                     style={{'--i': '#0078D4', '--j': '#106EBE'} as React.CSSProperties}
-                    onClick={async () => {
-                      try {
-                        const { error } = await supabase.auth.signInWithOAuth({
-                          provider: 'azure',
-                          options: {
-                            redirectTo: `${window.location.origin}/dashboard`,
-                          },
-                        });
-                        if (error) throw error;
-                      } catch (error: any) {
-                        console.error('Microsoft signup error:', error);
-                      }
+                    onClick={() => {
+                      window.location.href = '/dashboard';
                     }}
                   >
                     <span className="icon">

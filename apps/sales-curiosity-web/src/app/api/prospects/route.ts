@@ -2,7 +2,6 @@ import { NextRequest, NextResponse } from 'next/server';
 import { openai } from '@/lib/openai';
 import { createClient } from '@supabase/supabase-js';
 import { searchPersonInSalesforce, createSalesforceContact, SalesforceSearchResult } from '@/lib/salesforce';
-import { scrapeLinkedInProfile } from '@/lib/linkedin-scraper';
 
 // Create Supabase client for server-side operations
 const supabase = createClient(
@@ -36,31 +35,11 @@ export async function POST(req: NextRequest) {
     }
 
     const body = await req.json();
-    const { profileData: providedProfileData, linkedinUrl, action = 'analyze', userContext, emailContext } = body;
-
-    // If no profile data is provided but we have a LinkedIn URL, scrape it
-    let profileData = providedProfileData;
-    
-    if (!profileData && linkedinUrl) {
-      console.log('No profile data provided, attempting to scrape LinkedIn URL:', linkedinUrl);
-      try {
-        profileData = await scrapeLinkedInProfile(linkedinUrl);
-        console.log('Successfully scraped LinkedIn profile:', profileData.name);
-      } catch (scrapeError) {
-        console.error('Failed to scrape LinkedIn profile:', scrapeError);
-        return NextResponse.json(
-          { 
-            error: 'Failed to scrape LinkedIn profile. LinkedIn may be blocking automated access. Please paste the profile content manually or ensure you have a valid LinkedIn session.',
-            details: scrapeError instanceof Error ? scrapeError.message : 'Unknown error'
-          },
-          { status: 400, headers: corsHeaders(origin) }
-        );
-      }
-    }
+    const { profileData, linkedinUrl, action = 'analyze', userContext, emailContext } = body;
 
     if (!profileData) {
       return NextResponse.json(
-        { error: 'Either profileData or linkedinUrl is required' },
+        { error: 'profileData is required (from Chrome extension)' },
         { status: 400, headers: corsHeaders(origin) }
       );
     }

@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useRef } from 'react';
 import { useRouter } from 'next/navigation';
 import { supabase } from '@/lib/supabase';
 import Image from 'next/image';
@@ -17,25 +17,28 @@ interface User {
   };
 }
 
-interface UserStats {
-  analysesCount: number;
-  emailsCount: number;
-  recentAnalyses: Array<{
-    id: string;
-    profile_name: string;
-    created_at: string;
-  }>;
+interface CalendarEvent {
+  id: string;
+  title: string;
+  start: string;
+  end: string;
+  description?: string;
+  type?: string;
+  attendees?: string[];
 }
 
-interface TeamStats {
-  totalAnalyses: number;
-  totalEmails: number;
-  activeMembers: number;
+interface ChatMessage {
+  role: 'user' | 'assistant';
+  content: string;
+  timestamp: string;
 }
 
-interface Organization {
-  name: string;
-  account_type: 'individual' | 'organization';
+interface Lead {
+  id: string;
+  profile_name: string;
+  linkedin_url: string;
+  analysis: string;
+  created_at: string;
 }
 
 export default function DashboardPage() {
@@ -43,19 +46,34 @@ export default function DashboardPage() {
   const [loading, setLoading] = useState(true);
   const [user, setUser] = useState<any>(null);
   const [userData, setUserData] = useState<User | null>(null);
-  const [userStats, setUserStats] = useState<UserStats | null>(null);
-  const [teamStats, setTeamStats] = useState<TeamStats | null>(null);
-  const [organization, setOrganization] = useState<Organization | null>(null);
-  const [activeTab, setActiveTab] = useState<'home' | 'context' | 'integrations'>('home');
-  const [linkedinUrl, setLinkedinUrl] = useState('');
-  const [emailContext, setEmailContext] = useState('');
-  const [selectedAction, setSelectedAction] = useState<'analyze' | 'email'>('analyze');
-  const [processing, setProcessing] = useState(false);
-  const [result, setResult] = useState<string | null>(null);
+  const [activeTab, setActiveTab] = useState<'dashboard' | 'leads' | 'context' | 'integrations'>('dashboard');
+  
+  // Dashboard state
+  const [calendarEvents, setCalendarEvents] = useState<CalendarEvent[]>([]);
+  const [chatMessages, setChatMessages] = useState<ChatMessage[]>([]);
+  const [chatInput, setChatInput] = useState('');
+  const [isSendingMessage, setIsSendingMessage] = useState(false);
+  const chatEndRef = useRef<HTMLDivElement>(null);
+  
+  // Leads state
+  const [leads, setLeads] = useState<Lead[]>([]);
+  const [selectedLead, setSelectedLead] = useState<Lead | null>(null);
 
   useEffect(() => {
     checkAuth();
   }, []);
+
+  useEffect(() => {
+    if (activeTab === 'dashboard' && user) {
+      loadCalendarEvents();
+    } else if (activeTab === 'leads' && user) {
+      loadLeads();
+    }
+  }, [activeTab, user]);
+
+  useEffect(() => {
+    chatEndRef.current?.scrollIntoView({ behavior: 'smooth' });
+  }, [chatMessages]);
 
   async function checkAuth() {
     try {
@@ -63,12 +81,11 @@ export default function DashboardPage() {
       
       if (error || !session) {
         router.push('/login');
-      return;
-    }
-    
+        return;
+      }
+
       setUser(session.user);
       
-      // Get user data from database with better error handling
       const { data: userData, error: userError } = await supabase
         .from('users')
         .select('*')
@@ -76,10 +93,7 @@ export default function DashboardPage() {
         .single();
 
       if (userError) {
-        console.error('Error fetching user data:', userError);
-        
-        // If user doesn't exist in users table, create them
-        const { data: newUser, error: createError } = await supabase
+        const { data: newUser } = await supabase
           .from('users')
           .insert({
             id: session.user.id,
@@ -90,34 +104,15 @@ export default function DashboardPage() {
           .select()
           .single();
 
-        if (createError) {
-          console.error('Error creating user:', createError);
-          // Set basic user data even if we can't create in database
-          setUserData({
-            id: session.user.id,
-            email: session.user.email || 'user@example.com',
-            full_name: session.user.user_metadata?.full_name || session.user.email?.split('@')[0] || 'User',
-            role: 'member',
-            user_context: { aboutMe: '', objectives: '' }
-          });
-        } else {
-          setUserData(newUser);
-        }
+        setUserData(newUser || {
+          id: session.user.id,
+          email: session.user.email || 'user@example.com',
+          full_name: session.user.user_metadata?.full_name || 'User',
+          role: 'member',
+          user_context: { aboutMe: '', objectives: '' }
+        });
       } else {
         setUserData(userData);
-      }
-
-      // Try to load user stats, but don't fail if it doesn't work
-      try {
-        await loadUserStats(session.user.id);
-      } catch (statsError) {
-        console.error('Error loading user stats:', statsError);
-        // Set default stats if we can't load them
-        setUserStats({
-          analysesCount: 0,
-          emailsCount: 0,
-          recentAnalyses: []
-        });
       }
 
       setLoading(false);
@@ -127,140 +122,92 @@ export default function DashboardPage() {
     }
   }
 
-  async function loadUserStats(userId: string) {
+  async function loadCalendarEvents() {
     try {
       const { data: { session } } = await supabase.auth.getSession();
       if (!session) return;
 
-      const response = await fetch('/api/user/stats', {
+      const response = await fetch('/api/calendar', {
         headers: {
           'Authorization': `Bearer ${session.access_token}`,
-          'Content-Type': 'application/json',
         },
       });
 
       if (response.ok) {
         const data = await response.json();
-        setUserStats(data.userStats);
-        setTeamStats(data.teamStats);
-        setOrganization(data.organization);
+        setCalendarEvents(data.events || []);
       }
     } catch (error) {
-      console.error('Error loading user stats:', error);
+      console.error('Error loading calendar:', error);
     }
   }
 
-  async function loadUserContext() {
+  async function loadLeads() {
     try {
-      const { data: { session } } = await supabase.auth.getSession();
-      if (!session) return;
+      const { data, error } = await supabase
+        .from('linkedin_analyses')
+        .select('*')
+        .eq('user_id', user.id)
+        .order('created_at', { ascending: false });
 
-      const response = await fetch('/api/user/context', {
-        headers: {
-          'Authorization': `Bearer ${session.access_token}`,
-          'Content-Type': 'application/json',
-        },
-      });
-
-      if (response.ok) {
-        const data = await response.json();
-        if (userData) {
-          setUserData({ ...userData, user_context: data.userContext });
-        }
+      if (!error && data) {
+        setLeads(data);
       }
     } catch (error) {
-      console.error('Error loading user context:', error);
+      console.error('Error loading leads:', error);
     }
   }
 
-  async function saveUserContext(context: { aboutMe: string; objectives: string }) {
-    try {
-      const { data: { session } } = await supabase.auth.getSession();
-      if (!session) return;
+  async function sendChatMessage() {
+    if (!chatInput.trim() || isSendingMessage) return;
 
-      const response = await fetch('/api/user/context', {
-        method: 'PUT',
-        headers: {
-          'Authorization': `Bearer ${session.access_token}`,
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({ userContext: context }),
-      });
+    const userMessage: ChatMessage = {
+      role: 'user',
+      content: chatInput,
+      timestamp: new Date().toISOString()
+    };
 
-      if (response.ok) {
-        await loadUserContext();
-        alert('Context saved successfully!');
-      }
-    } catch (error) {
-      console.error('Error saving user context:', error);
-      alert('Failed to save context');
-    }
-  }
-
-  async function analyzeProfile() {
-    if (!linkedinUrl.trim()) {
-      alert('Please enter a LinkedIn URL');
-      return;
-    }
-
-    setProcessing(true);
-    setResult(null);
+    setChatMessages([...chatMessages, userMessage]);
+    setChatInput('');
+    setIsSendingMessage(true);
 
     try {
       const { data: { session } } = await supabase.auth.getSession();
       if (!session) return;
 
-      const response = await fetch('/api/prospects', {
+      const response = await fetch('/api/chat', {
         method: 'POST',
         headers: {
           'Authorization': `Bearer ${session.access_token}`,
           'Content-Type': 'application/json',
         },
         body: JSON.stringify({
-          linkedinUrl: linkedinUrl.trim(),
-          action: selectedAction,
+          message: chatInput,
+          conversationHistory: chatMessages,
           userContext: userData?.user_context,
-          emailContext: emailContext.trim() || undefined,
-          // profileData will be auto-scraped by the API
+          calendarEvents
         }),
       });
 
       if (response.ok) {
         const data = await response.json();
-        setResult(data.analysis || data.email);
-        await loadUserStats(session.user.id); // Refresh stats
-    } else {
-        const errorData = await response.json();
-        alert(errorData.error || 'Failed to analyze profile');
+        const assistantMessage: ChatMessage = {
+          role: 'assistant',
+          content: data.response,
+          timestamp: new Date().toISOString()
+        };
+        setChatMessages([...chatMessages, userMessage, assistantMessage]);
       }
     } catch (error) {
-      console.error('Error analyzing profile:', error);
-      alert('Error analyzing profile');
+      console.error('Error sending message:', error);
     } finally {
-      setProcessing(false);
+      setIsSendingMessage(false);
     }
   }
 
   async function handleLogout() {
     await supabase.auth.signOut();
     router.push('/login');
-  }
-
-  function extractNameFromUrl(url: string): string {
-    try {
-      const match = url.match(/linkedin\.com\/in\/([^\/\?]+)/);
-      if (match && match[1]) {
-        const slug = match[1];
-        // Convert URL slug to readable name
-        return slug
-          .split('-')
-          .map(word => word.charAt(0).toUpperCase() + word.slice(1))
-          .join(' ');
-      }
-      return 'Professional';
-    } catch (error) {
-      return 'Professional';
-    }
   }
 
   if (loading) {
@@ -286,36 +233,24 @@ export default function DashboardPage() {
   }
 
   const isAdmin = userData.role === 'org_admin' || userData.role === 'super_admin';
-  const isOrgMember = organization?.account_type === 'organization';
 
   return (
-    <div className="min-h-screen bg-white">
+    <div className="min-h-screen bg-gray-50">
       {/* Header */}
       <div className="bg-white border-b border-gray-200">
         <div className="max-w-7xl mx-auto px-6 py-4">
           <div className="flex justify-between items-center">
             <div className="flex items-center space-x-4">
-              <div className="flex items-center space-x-3">
-                <Image
-                  src="/icononly_transparent_nobuffer.png"
-                  alt="Curiosity Engine"
-                  width={32}
-                  height={32}
-                  className="w-8 h-8"
-                />
-                <div>
-                  <h1 className="text-xl font-bold text-gray-900">Sales Curiosity</h1>
-                  <p className="text-sm text-gray-600">
-                    {isOrgMember ? 'Organization Workspace' : 'Personal Workspace'}
-                  </p>
-                </div>
-              </div>
-              <div className={`px-3 py-1 rounded-full text-xs font-medium ${
-                isOrgMember 
-                  ? 'bg-blue-100 text-blue-800' 
-                  : 'bg-cyan-100 text-cyan-800'
-              }`}>
-                {isOrgMember ? '🏢 Organization' : '👤 Personal'}
+              <Image
+                src="/icononly_transparent_nobuffer.png"
+                alt="Curiosity Engine"
+                width={32}
+                height={32}
+                className="w-8 h-8"
+              />
+              <div>
+                <h1 className="text-xl font-bold text-gray-900">Curiosity Engine</h1>
+                <p className="text-sm text-gray-600">AI Sales Assistant</p>
               </div>
             </div>
             
@@ -340,12 +275,13 @@ export default function DashboardPage() {
       </div>
 
       {/* Navigation Tabs */}
-      <div className="bg-gray-50 border-b border-gray-200">
+      <div className="bg-white border-b border-gray-200">
         <div className="max-w-7xl mx-auto px-6">
           <div className="flex space-x-8">
             {[
-              { id: 'home', label: '🏠 Home', icon: '🏠' },
-              { id: 'context', label: '👤 Context', icon: '👤' },
+              { id: 'dashboard', label: '📊 Dashboard', icon: '📊' },
+              { id: 'leads', label: '👥 Leads', icon: '👥' },
+              { id: 'context', label: '⚙️ Settings', icon: '⚙️' },
               { id: 'integrations', label: '🔌 Integrations', icon: '🔌' },
             ].map((tab) => (
               <button
@@ -366,198 +302,268 @@ export default function DashboardPage() {
 
       {/* Main Content */}
       <div className="max-w-7xl mx-auto px-6 py-8">
-        {activeTab === 'home' && (
-          <div className="space-y-8">
-            {/* Stats Card */}
-            <div className="bg-white rounded-lg border border-gray-200 p-6">
-              <h2 className="text-xl font-semibold text-gray-900 mb-4">📈 Your Activity</h2>
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-                <div className="text-center">
-                  <div className="text-3xl font-bold text-[#F95B14]">{userStats?.analysesCount || 0}</div>
-                  <div className="text-sm text-gray-600">Profiles Analyzed</div>
+        {activeTab === 'dashboard' && (
+          <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+            {/* AI Chat - Takes up 2 columns */}
+            <div className="lg:col-span-2">
+              <div className="bg-white rounded-lg border border-gray-200 shadow-sm h-[700px] flex flex-col">
+                <div className="p-4 border-b border-gray-200">
+                  <h2 className="text-lg font-semibold text-gray-900">AI Assistant</h2>
+                  <p className="text-sm text-gray-600">Ask me anything about your calendar, leads, or sales tasks</p>
                 </div>
-                <div className="text-center">
-                  <div className="text-3xl font-bold text-[#F95B14]">{userStats?.emailsCount || 0}</div>
-                  <div className="text-sm text-gray-600">Emails Drafted</div>
-                </div>
-                {teamStats && (
-                  <>
-                    <div className="text-center">
-                      <div className="text-3xl font-bold text-[#F95B14]">{teamStats.totalAnalyses}</div>
-                      <div className="text-sm text-gray-600">Team Analyses</div>
+
+                {/* Chat Messages */}
+                <div className="flex-1 overflow-y-auto p-4 space-y-4">
+                  {chatMessages.length === 0 && (
+                    <div className="text-center text-gray-500 mt-20">
+                      <div className="text-4xl mb-4">💬</div>
+                      <p className="text-lg font-medium">Start a conversation</p>
+                      <p className="text-sm mt-2">Ask me to draft emails, schedule meetings, or analyze your leads</p>
                     </div>
-                    <div className="text-center">
-                      <div className="text-3xl font-bold text-[#F95B14]">{teamStats.activeMembers}</div>
-                      <div className="text-sm text-gray-600">Team Members</div>
-                    </div>
-                  </>
-                )}
-              </div>
-              
-              {userStats?.recentAnalyses && userStats.recentAnalyses.length > 0 && (
-                <div className="mt-6">
-                  <h3 className="text-lg font-medium text-gray-900 mb-3">Recent Analyses</h3>
-                  <div className="space-y-2">
-                    {userStats.recentAnalyses.map((analysis) => (
-                      <div key={analysis.id} className="text-sm text-gray-600">
-                        • {analysis.profile_name}
+                  )}
+
+                  {chatMessages.map((msg, idx) => (
+                    <div key={idx} className={`flex ${msg.role === 'user' ? 'justify-end' : 'justify-start'}`}>
+                      <div className={`max-w-[80%] rounded-lg px-4 py-2 ${
+                        msg.role === 'user' 
+                          ? 'bg-[#F95B14] text-white' 
+                          : 'bg-gray-100 text-gray-900'
+                      }`}>
+                        <div className="text-sm whitespace-pre-wrap">{msg.content}</div>
+                        <div className="text-xs opacity-70 mt-1">
+                          {new Date(msg.timestamp).toLocaleTimeString()}
+                        </div>
                       </div>
-                    ))}
+                    </div>
+                  ))}
+                  {isSendingMessage && (
+                    <div className="flex justify-start">
+                      <div className="bg-gray-100 rounded-lg px-4 py-2">
+                        <div className="flex space-x-2">
+                          <div className="w-2 h-2 bg-gray-400 rounded-full animate-bounce"></div>
+                          <div className="w-2 h-2 bg-gray-400 rounded-full animate-bounce" style={{ animationDelay: '0.1s' }}></div>
+                          <div className="w-2 h-2 bg-gray-400 rounded-full animate-bounce" style={{ animationDelay: '0.2s' }}></div>
+                        </div>
+                      </div>
+                    </div>
+                  )}
+                  <div ref={chatEndRef} />
+                </div>
+
+                {/* Chat Input */}
+                <div className="p-4 border-t border-gray-200">
+                  <div className="flex space-x-2">
+                    <input
+                      type="text"
+                      value={chatInput}
+                      onChange={(e) => setChatInput(e.target.value)}
+                      onKeyPress={(e) => e.key === 'Enter' && sendChatMessage()}
+                      placeholder="Type your message..."
+                      className="flex-1 px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#F95B14] focus:border-transparent outline-none"
+                      disabled={isSendingMessage}
+                    />
+                    <button
+                      onClick={sendChatMessage}
+                      disabled={!chatInput.trim() || isSendingMessage}
+                      className="bg-[#F95B14] text-white px-6 py-2 rounded-lg hover:bg-orange-600 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                    >
+                      Send
+                    </button>
                   </div>
                 </div>
-              )}
+              </div>
             </div>
 
-            {/* LinkedIn Analysis */}
-            <div className="bg-white rounded-lg border border-gray-200 p-6">
-              <h2 className="text-xl font-semibold text-gray-900 mb-4">LinkedIn Profile Analysis</h2>
-              
-              <div className="space-y-4">
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
-                    LinkedIn URL
-                  </label>
-                  <input
-                    type="url"
-                    value={linkedinUrl}
-                    onChange={(e) => setLinkedinUrl(e.target.value)}
-                    placeholder="https://www.linkedin.com/in/profile-name"
-                    className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#F95B14] focus:border-transparent outline-none"
-                  />
-                  <p className="mt-2 text-xs text-gray-500">
-                    🤖 The profile will be automatically scraped and analyzed using AI. Just paste the LinkedIn URL and click analyze!
-                  </p>
+            {/* Calendar - Takes up 1 column */}
+            <div className="lg:col-span-1">
+              <div className="bg-white rounded-lg border border-gray-200 shadow-sm">
+                <div className="p-4 border-b border-gray-200">
+                  <h2 className="text-lg font-semibold text-gray-900">📅 Upcoming Events</h2>
                 </div>
 
-                <div className="flex space-x-4">
-                  <button
-                    onClick={() => setSelectedAction('analyze')}
-                    className={`px-4 py-2 rounded-lg font-medium transition-colors ${
-                      selectedAction === 'analyze'
-                        ? 'bg-[#F95B14] text-white'
-                        : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
-                    }`}
-                  >
-                    🔍 Analyze Profile
-                  </button>
-                  <button
-                    onClick={() => setSelectedAction('email')}
-                    className={`px-4 py-2 rounded-lg font-medium transition-colors ${
-                      selectedAction === 'email'
-                        ? 'bg-[#F95B14] text-white'
-                        : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
-                    }`}
-                  >
-                    ✉️ Draft Email
-                  </button>
+                <div className="p-4 space-y-3 max-h-[640px] overflow-y-auto">
+                  {calendarEvents.length === 0 && (
+                    <div className="text-center text-gray-500 py-8">
+                      <div className="text-3xl mb-2">📅</div>
+                      <p className="text-sm">No upcoming events</p>
+                      <p className="text-xs mt-1">Connect your calendar to see events</p>
+                    </div>
+                  )}
+
+                  {calendarEvents.map((event) => (
+                    <div key={event.id} className="border border-gray-200 rounded-lg p-3 hover:border-[#F95B14] transition-colors">
+                      <div className="flex items-start justify-between">
+                        <div className="flex-1">
+                          <h3 className="font-medium text-gray-900 text-sm">{event.title}</h3>
+                          <p className="text-xs text-gray-600 mt-1">
+                            {new Date(event.start).toLocaleString('en-US', {
+                              month: 'short',
+                              day: 'numeric',
+                              hour: 'numeric',
+                              minute: '2-digit'
+                            })}
+                          </p>
+                          {event.description && (
+                            <p className="text-xs text-gray-500 mt-1">{event.description}</p>
+                          )}
+                        </div>
+                        <span className={`text-xs px-2 py-1 rounded-full ${
+                          event.type === 'meeting' ? 'bg-blue-100 text-blue-800' :
+                          event.type === 'demo' ? 'bg-green-100 text-green-800' :
+                          'bg-purple-100 text-purple-800'
+                        }`}>
+                          {event.type || 'event'}
+                        </span>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {activeTab === 'leads' && (
+          <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+            {/* Leads List */}
+            <div className="lg:col-span-1">
+              <div className="bg-white rounded-lg border border-gray-200 shadow-sm">
+                <div className="p-4 border-b border-gray-200">
+                  <h2 className="text-lg font-semibold text-gray-900">Your Leads</h2>
+                  <p className="text-sm text-gray-600 mt-1">From Chrome Extension</p>
                 </div>
 
-                {selectedAction === 'email' && (
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">
-                      Email Context (Optional)
-                    </label>
-                    <textarea
-                      value={emailContext}
-                      onChange={(e) => setEmailContext(e.target.value)}
-                      placeholder="Add any specific context for the email..."
-                      rows={3}
-                      className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#F95B14] focus:border-transparent outline-none"
-                    />
+                <div className="divide-y divide-gray-200 max-h-[700px] overflow-y-auto">
+                  {leads.length === 0 && (
+                    <div className="p-8 text-center text-gray-500">
+                      <div className="text-4xl mb-2">👥</div>
+                      <p className="text-sm">No leads yet</p>
+                      <p className="text-xs mt-1">Use the Chrome extension to analyze LinkedIn profiles</p>
+                    </div>
+                  )}
+
+                  {leads.map((lead) => (
+                    <div
+                      key={lead.id}
+                      onClick={() => setSelectedLead(lead)}
+                      className={`p-4 cursor-pointer transition-colors ${
+                        selectedLead?.id === lead.id ? 'bg-orange-50 border-l-4 border-[#F95B14]' : 'hover:bg-gray-50'
+                      }`}
+                    >
+                      <h3 className="font-medium text-gray-900">{lead.profile_name}</h3>
+                      <p className="text-xs text-gray-600 mt-1">
+                        {new Date(lead.created_at).toLocaleDateString()}
+                      </p>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            </div>
+
+            {/* Lead Details */}
+            <div className="lg:col-span-2">
+              <div className="bg-white rounded-lg border border-gray-200 shadow-sm">
+                {selectedLead ? (
+                  <>
+                    <div className="p-6 border-b border-gray-200">
+                      <h2 className="text-2xl font-bold text-gray-900">{selectedLead.profile_name}</h2>
+                      <a 
+                        href={selectedLead.linkedin_url} 
+                        target="_blank" 
+                        rel="noopener noreferrer"
+                        className="text-sm text-blue-600 hover:underline mt-1 inline-block"
+                      >
+                        View LinkedIn Profile →
+                      </a>
+                    </div>
+
+                    <div className="p-6">
+                      <h3 className="text-lg font-semibold text-gray-900 mb-4">AI Analysis</h3>
+                      <div 
+                        className="prose prose-sm max-w-none"
+                        dangerouslySetInnerHTML={{ __html: selectedLead.analysis }}
+                      />
+                    </div>
+                  </>
+                ) : (
+                  <div className="p-20 text-center text-gray-500">
+                    <div className="text-5xl mb-4">👈</div>
+                    <p className="text-lg">Select a lead to view details</p>
                   </div>
                 )}
-
-                <button
-                  onClick={analyzeProfile}
-                  disabled={processing || !linkedinUrl.trim()}
-                  className="w-full bg-[#F95B14] text-white px-6 py-3 rounded-lg font-semibold hover:bg-orange-600 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
-                >
-                  {processing ? 'Scraping & Analyzing...' : (selectedAction === 'analyze' ? 'Analyze Profile' : 'Generate Email')}
-                </button>
               </div>
-
-              {result && (
-                <div className="mt-6 p-4 bg-gray-50 rounded-lg">
-                  <h3 className="text-lg font-medium text-gray-900 mb-2">
-                    {selectedAction === 'analyze' ? 'Analysis Result' : 'Generated Email'}
-                  </h3>
-                  <div 
-                    className="text-sm text-gray-700 prose prose-sm max-w-none"
-                    dangerouslySetInnerHTML={{ __html: result }}
-                  />
-                </div>
-              )}
             </div>
           </div>
         )}
 
         {activeTab === 'context' && (
-          <div className="bg-white rounded-lg border border-gray-200 p-6">
-            <h2 className="text-xl font-semibold text-gray-900 mb-4">Your Context</h2>
-            <p className="text-gray-600 mb-6">
-              This information will be used to personalize AI-generated analyses and emails.
-            </p>
-            
-            <ContextForm 
-              context={userData.user_context || { aboutMe: '', objectives: '' }}
-              onSave={saveUserContext}
-            />
+          <div className="max-w-2xl mx-auto">
+            <div className="bg-white rounded-lg border border-gray-200 shadow-sm p-6">
+              <h2 className="text-xl font-semibold text-gray-900 mb-4">Your Context</h2>
+              <p className="text-gray-600 mb-6">
+                This information helps the AI provide personalized assistance.
+              </p>
+              
+              <ContextForm 
+                context={userData.user_context || { aboutMe: '', objectives: '' }}
+                onSave={async (context) => {
+                  const { data: { session } } = await supabase.auth.getSession();
+                  if (!session) return;
+
+                  const response = await fetch('/api/user/context', {
+                    method: 'PUT',
+                    headers: {
+                      'Authorization': `Bearer ${session.access_token}`,
+                      'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({ userContext: context }),
+                  });
+
+                  if (response.ok) {
+                    alert('Context saved successfully!');
+                    if (userData) {
+                      setUserData({ ...userData, user_context: context });
+                    }
+                  }
+                }}
+              />
+            </div>
           </div>
         )}
 
         {activeTab === 'integrations' && (
-          <div className="bg-white rounded-lg border border-gray-200 p-6">
-            <h2 className="text-xl font-semibold text-gray-900 mb-4">
-              Connect your tools to streamline your workflow.
-            </h2>
-            
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-              <div className="border border-gray-200 rounded-lg p-6">
-                <div className="flex items-center justify-between mb-4">
-                  <div className="flex items-center space-x-3">
-                    <div className="text-2xl">📧</div>
-                    <div>
-                      <h3 className="font-semibold text-gray-900">Email Integration</h3>
-                      <p className="text-sm text-gray-600">Gmail, Outlook, and more</p>
-                    </div>
-                  </div>
-                  <span className="px-2 py-1 bg-gray-100 text-gray-600 text-xs rounded-full">
-                    Coming Soon
-                  </span>
-                </div>
-                <p className="text-sm text-gray-600 mb-4">
-                  Send drafted emails directly to your email client
-                </p>
-                <button
-                  disabled
-                  className="w-full bg-gray-100 text-gray-400 px-4 py-2 rounded-lg font-medium cursor-not-allowed"
-                >
-                  Connect Email
-                </button>
-              </div>
-
-              <div className="border border-gray-200 rounded-lg p-6">
-                <div className="flex items-center justify-between mb-4">
-                  <div className="flex items-center space-x-3">
-                    <div className="text-2xl">🔗</div>
-                    <div>
-                      <h3 className="font-semibold text-gray-900">CRM Integration</h3>
-                      <p className="text-sm text-gray-600">Salesforce, HubSpot, and more</p>
-                    </div>
-                  </div>
-                  <span className="px-2 py-1 bg-gray-100 text-gray-600 text-xs rounded-full">
-                    Coming Soon
-                  </span>
-                </div>
-                <p className="text-sm text-gray-600 mb-4">
-                  Automatically sync profiles and activities to your CRM
-                </p>
-                <button
-                  disabled
-                  className="w-full bg-gray-100 text-gray-400 px-4 py-2 rounded-lg font-medium cursor-not-allowed"
-                >
-                  Connect CRM
-                </button>
+          <div className="max-w-4xl mx-auto">
+            <div className="bg-white rounded-lg border border-gray-200 shadow-sm p-6">
+              <h2 className="text-xl font-semibold text-gray-900 mb-4">Integrations</h2>
+              <p className="text-gray-600 mb-6">
+                Connect your tools to streamline your workflow.
+              </p>
+              
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <IntegrationCard 
+                  icon="📧"
+                  title="Email Integration"
+                  description="Gmail, Outlook, and more"
+                  status="coming-soon"
+                />
+                <IntegrationCard 
+                  icon="📅"
+                  title="Calendar Sync"
+                  description="Google Calendar, Outlook Calendar"
+                  status="coming-soon"
+                />
+                <IntegrationCard 
+                  icon="🔗"
+                  title="CRM Integration"
+                  description="Salesforce, HubSpot, and more"
+                  status="coming-soon"
+                />
+                <IntegrationCard 
+                  icon="💼"
+                  title="LinkedIn"
+                  description="Chrome Extension installed"
+                  status="active"
+                />
               </div>
             </div>
           </div>
@@ -573,10 +579,6 @@ function ContextForm({ context, onSave }: {
 }) {
   const [aboutMe, setAboutMe] = useState(context.aboutMe);
   const [objectives, setObjectives] = useState(context.objectives);
-
-  const handleSave = () => {
-    onSave({ aboutMe, objectives });
-  };
 
   return (
     <div className="space-y-6">
@@ -607,7 +609,7 @@ function ContextForm({ context, onSave }: {
       </div>
 
       <button
-        onClick={handleSave}
+        onClick={() => onSave({ aboutMe, objectives })}
         className="bg-[#F95B14] text-white px-6 py-3 rounded-lg font-semibold hover:bg-orange-600 transition-colors"
       >
         Save Context
@@ -616,3 +618,40 @@ function ContextForm({ context, onSave }: {
   );
 }
 
+function IntegrationCard({ icon, title, description, status }: {
+  icon: string;
+  title: string;
+  description: string;
+  status: 'active' | 'coming-soon';
+}) {
+  return (
+    <div className="border border-gray-200 rounded-lg p-6 hover:border-[#F95B14] transition-colors">
+      <div className="flex items-center justify-between mb-4">
+        <div className="flex items-center space-x-3">
+          <div className="text-3xl">{icon}</div>
+          <div>
+            <h3 className="font-semibold text-gray-900">{title}</h3>
+            <p className="text-sm text-gray-600">{description}</p>
+          </div>
+        </div>
+        <span className={`px-3 py-1 text-xs rounded-full ${
+          status === 'active' 
+            ? 'bg-green-100 text-green-800' 
+            : 'bg-gray-100 text-gray-600'
+        }`}>
+          {status === 'active' ? 'Active' : 'Coming Soon'}
+        </span>
+      </div>
+      <button
+        disabled={status === 'coming-soon'}
+        className={`w-full py-2 rounded-lg font-medium transition-colors ${
+          status === 'active'
+            ? 'bg-[#F95B14] text-white hover:bg-orange-600'
+            : 'bg-gray-100 text-gray-400 cursor-not-allowed'
+        }`}
+      >
+        {status === 'active' ? 'Configure' : 'Coming Soon'}
+      </button>
+    </div>
+  );
+}

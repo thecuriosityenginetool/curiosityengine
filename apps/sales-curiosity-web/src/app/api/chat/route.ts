@@ -1,63 +1,140 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { z } from 'zod';
-import { openai } from '../../../lib/openai';
+import { openai } from '@/lib/openai';
+import { createClient } from '@supabase/supabase-js';
 
-const schema = z.object({
-  message: z.string().min(1),
-});
-
-export async function OPTIONS(req: NextRequest) {
-  const origin = req.headers.get('origin');
-  return NextResponse.json({}, { status: 200, headers: corsHeaders(origin) });
-}
+const supabase = createClient(
+  process.env.NEXT_PUBLIC_SUPABASE_URL!,
+  process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
+);
 
 export async function POST(req: NextRequest) {
   try {
-    const origin = req.headers.get('origin');
-    if (!isAllowedOrigin(origin)) {
-      return NextResponse.json({ error: 'Forbidden' }, { status: 403, headers: corsHeaders(origin) });
+    const { message, conversationHistory = [], userContext, calendarEvents = [] } = await req.json();
+
+    if (!message) {
+      return NextResponse.json({ error: 'Message is required' }, { status: 400 });
     }
 
-    const json = await req.json();
-    const parsed = schema.safeParse(json);
-    if (!parsed.success) {
-      return NextResponse.json({ error: 'Invalid payload' }, { status: 400, headers: corsHeaders(origin) });
+    // Get user from auth token
+    const authHeader = req.headers.get('authorization');
+    if (!authHeader) {
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
-    const { message } = parsed.data;
+    const token = authHeader.replace('Bearer ', '');
+    const { data: { user }, error: authError } = await supabase.auth.getUser(token);
 
-    // Simple echo with OpenAI placeholder to be replaced with streaming later
-    const completion = await openai.chat.completions.create({
-      model: 'gpt-4o-mini',
-      messages: [
-        { role: 'system', content: 'You are a helpful assistant.' },
-        { role: 'user', content: message },
-      ],
+    if (authError || !user) {
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+    }
+
+    // Build system prompt with context
+    let systemPrompt = `You are Curiosity Engine, an AI sales assistant. You help sales professionals by:
+- Analyzing calendar events and suggesting optimal meeting times
+- Drafting professional emails and messages
+- Providing insights on prospects and leads
+- Managing tasks and follow-ups
+- Integrating with CRM, email, and calendar tools
+
+Be concise, professional, and action-oriented.`;
+
+    if (userContext) {
+      systemPrompt += `\n\nUser Context:\n${JSON.stringify(userContext, null, 2)}`;
+    }
+
+    if (calendarEvents.length > 0) {
+      systemPrompt += `\n\nUpcoming Calendar Events:\n${calendarEvents.map((event: any) => 
+        `- ${event.title} at ${event.start} ${event.description ? '(' + event.description + ')' : ''}`
+      ).join('\n')}`;
+    }
+
+    // Build conversation history for GPT-5
+    const messages = [
+      ...conversationHistory.map((msg: any) => ({
+        role: msg.role,
+        content: msg.content
+      })),
+      {
+        role: 'user',
+        content: message
+      }
+    ];
+
+    // Call GPT-5 with responses API
+    const response = await openai.responses.create({
+      model: 'gpt-5-mini',
+      input: JSON.stringify({
+        system: systemPrompt,
+        messages
+      }),
+      reasoning: {
+        effort: 'low'
+      },
+      text: {
+        verbosity: 'medium'
+      },
+      max_output_tokens: 1000,
     });
 
-    const content = completion.choices?.[0]?.message?.content || '';
-    return NextResponse.json({ ok: true, content }, { headers: corsHeaders(origin) });
-  } catch (err) {
-    console.error(err);
-    return NextResponse.json({ error: 'Internal Server Error' }, { status: 500, headers: corsHeaders() });
+    const aiResponse = response.output_text;
+
+    // Save chat to database
+    await supabase
+      .from('chat_conversations')
+      .insert({
+        user_id: user.id,
+        messages: [
+          ...conversationHistory,
+          { role: 'user', content: message, timestamp: new Date().toISOString() },
+          { role: 'assistant', content: aiResponse, timestamp: new Date().toISOString() }
+        ]
+      });
+
+    return NextResponse.json({ 
+      response: aiResponse,
+      success: true
+    });
+
+  } catch (error) {
+    console.error('Chat API error:', error);
+    return NextResponse.json(
+      { error: 'Failed to process chat message', details: error instanceof Error ? error.message : 'Unknown error' },
+      { status: 500 }
+    );
   }
 }
 
-function isAllowedOrigin(origin: string | null) {
-  if (!origin) return true; // same-origin
-  if (origin.startsWith('chrome-extension://')) return true;
-  const allowed = [process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000', 'http://localhost:3000', 'https://your-app.vercel.app'];
-  return allowed.some((o) => origin.startsWith(o));
+// Get chat history
+export async function GET(req: NextRequest) {
+  try {
+    const authHeader = req.headers.get('authorization');
+    if (!authHeader) {
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+    }
+
+    const token = authHeader.replace('Bearer ', '');
+    const { data: { user }, error: authError } = await supabase.auth.getUser(token);
+
+    if (authError || !user) {
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+    }
+
+    const { data: conversations, error } = await supabase
+      .from('chat_conversations')
+      .select('*')
+      .eq('user_id', user.id)
+      .order('created_at', { ascending: false })
+      .limit(10);
+
+    if (error) {
+      console.error('Error fetching chat history:', error);
+      return NextResponse.json({ conversations: [] });
+    }
+
+    return NextResponse.json({ conversations: conversations || [] });
+
+  } catch (error) {
+    console.error('Get chat history error:', error);
+    return NextResponse.json({ conversations: [] });
+  }
 }
-
-function corsHeaders(origin?: string | null) {
-  const o = origin || '*';
-  return {
-    'Access-Control-Allow-Origin': o,
-    'Access-Control-Allow-Methods': 'POST, GET, OPTIONS',
-    'Access-Control-Allow-Headers': 'Content-Type, Authorization',
-    'Vary': 'Origin',
-  } as Record<string, string>;
-}
-
-

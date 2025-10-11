@@ -158,7 +158,7 @@ export default function Home() {
     const observer = new IntersectionObserver(
       (entries) => {
         entries.forEach((entry) => {
-          console.log('Intersection observer triggered:', entry.isIntersecting, hasAnimated);
+          // console.log('Intersection observer triggered:', entry.isIntersecting, hasAnimated);
           if (entry.isIntersecting && !hasAnimated) {
             console.log('Starting typing animation...');
             setHasAnimated(true);
@@ -186,7 +186,7 @@ export default function Home() {
     );
 
     if (emailRef.current) {
-      console.log('Observing email element');
+      // console.log('Observing email element');
       observer.observe(emailRef.current);
     }
 
@@ -195,7 +195,7 @@ export default function Home() {
         observer.unobserve(emailRef.current);
       }
     };
-  }, [hasAnimated]);
+  }, []); // Remove hasAnimated dependency to prevent recreating observer
 
   // Removed complex checkAuth - NextAuth handles it all!
 

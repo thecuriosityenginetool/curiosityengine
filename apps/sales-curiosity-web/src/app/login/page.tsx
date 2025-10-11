@@ -9,14 +9,16 @@ function LoginForm() {
   const [password, setPassword] = useState('');
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
-  const [successMessage, setSuccessMessage] = useState('');
   const router = useRouter();
   const searchParams = useSearchParams();
 
   useEffect(() => {
     const message = searchParams.get('message');
     if (message) {
-      setSuccessMessage(message);
+      // Show message briefly then redirect to dashboard
+      setTimeout(() => {
+        window.location.href = '/dashboard';
+      }, 1000);
     }
   }, [searchParams]);
 
@@ -62,29 +64,6 @@ function LoginForm() {
     }
   }
 
-  if (successMessage) {
-    return (
-      <div style={{
-        minHeight: '100vh',
-        display: 'flex',
-        alignItems: 'center',
-        justifyContent: 'center',
-        background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
-      }}>
-        <div style={{
-          background: 'white',
-          padding: '40px',
-          borderRadius: '12px',
-          boxShadow: '0 20px 60px rgba(0,0,0,0.3)',
-          textAlign: 'center'
-        }}>
-          <div style={{ fontSize: '48px', marginBottom: '16px' }}>✅</div>
-          <h2 style={{ fontSize: '24px', marginBottom: '8px' }}>Welcome Back!</h2>
-          <p style={{ color: '#718096' }}>Redirecting to dashboard...</p>
-        </div>
-      </div>
-    );
-  }
 
   return (
     <div className="min-h-screen bg-white flex items-center justify-center px-6 py-20">
@@ -107,11 +86,6 @@ function LoginForm() {
           </div>
         )}
 
-        {successMessage && (
-          <div className="bg-blue-50 border border-blue-200 text-blue-700 px-4 py-3 rounded-lg mb-6">
-            {successMessage}
-          </div>
-        )}
 
         {/* Login Form */}
         <form onSubmit={handleLogin} className="mb-8">

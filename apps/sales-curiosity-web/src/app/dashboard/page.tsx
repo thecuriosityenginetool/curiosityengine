@@ -68,7 +68,7 @@ export default function DashboardPage() {
     
       setUser(session.user);
       
-      // Get user data from database
+      // Get user data from database with better error handling
       const { data: userData, error: userError } = await supabase
         .from('users')
         .select('*')
@@ -77,6 +77,7 @@ export default function DashboardPage() {
 
       if (userError) {
         console.error('Error fetching user data:', userError);
+        
         // If user doesn't exist in users table, create them
         const { data: newUser, error: createError } = await supabase
           .from('users')
@@ -91,6 +92,14 @@ export default function DashboardPage() {
 
         if (createError) {
           console.error('Error creating user:', createError);
+          // Set basic user data even if we can't create in database
+          setUserData({
+            id: session.user.id,
+            email: session.user.email,
+            full_name: session.user.user_metadata?.full_name || '',
+            role: 'member',
+            user_context: { aboutMe: '', objectives: '' }
+          });
         } else {
           setUserData(newUser);
         }
@@ -98,7 +107,19 @@ export default function DashboardPage() {
         setUserData(userData);
       }
 
-      await loadUserStats(session.user.id);
+      // Try to load user stats, but don't fail if it doesn't work
+      try {
+        await loadUserStats(session.user.id);
+      } catch (statsError) {
+        console.error('Error loading user stats:', statsError);
+        // Set default stats if we can't load them
+        setUserStats({
+          analysesCount: 0,
+          emailsCount: 0,
+          recentAnalyses: []
+        });
+      }
+
       setLoading(false);
     } catch (error) {
       console.error('Error in checkAuth:', error);

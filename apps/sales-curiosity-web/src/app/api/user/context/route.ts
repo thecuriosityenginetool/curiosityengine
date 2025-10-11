@@ -15,11 +15,14 @@ function corsHeaders(origin?: string) {
 }
 
 function isAllowedOrigin(origin: string | null) {
-  if (!origin) return false;
+  if (!origin) return true; // Allow requests without origin (like from same domain)
   const allowed = [
     'chrome-extension://',
     process.env.NEXT_PUBLIC_APP_URL || '',
-    'https://your-app.vercel.app'
+    'https://your-app.vercel.app',
+    'http://localhost:3000',
+    'https://curiosityengine.io',
+    'https://www.curiosityengine.io'
   ];
   return allowed.some((prefix) => origin.startsWith(prefix));
 }

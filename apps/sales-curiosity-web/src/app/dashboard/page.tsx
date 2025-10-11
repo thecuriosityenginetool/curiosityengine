@@ -83,8 +83,8 @@ export default function DashboardPage() {
           .from('users')
           .insert({
             id: session.user.id,
-            email: session.user.email,
-            full_name: session.user.user_metadata?.full_name || '',
+            email: session.user.email || 'user@example.com',
+            full_name: session.user.user_metadata?.full_name || session.user.email?.split('@')[0] || 'User',
             role: 'member'
           })
           .select()
@@ -95,8 +95,8 @@ export default function DashboardPage() {
           // Set basic user data even if we can't create in database
           setUserData({
             id: session.user.id,
-            email: session.user.email,
-            full_name: session.user.user_metadata?.full_name || '',
+            email: session.user.email || 'user@example.com',
+            full_name: session.user.user_metadata?.full_name || session.user.email?.split('@')[0] || 'User',
             role: 'member',
             user_context: { aboutMe: '', objectives: '' }
           });

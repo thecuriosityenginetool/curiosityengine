@@ -35,10 +35,15 @@ interface ChatMessage {
 
 interface Lead {
   id: string;
-  profile_name: string;
+  user_id: string;
+  organization_id?: string;
   linkedin_url: string;
-  analysis: string;
+  profile_name?: string;
+  profile_headline?: string;
+  profile_data?: any;
+  ai_analysis?: string;
   created_at: string;
+  updated_at: string;
 }
 
 export default function DashboardPage() {
@@ -154,13 +159,21 @@ export default function DashboardPage() {
 
   async function loadLeads() {
     try {
+      console.log('Loading leads for user:', user.id);
+      
       const { data, error } = await supabase
         .from('linkedin_analyses')
         .select('*')
         .eq('user_id', user.id)
         .order('created_at', { ascending: false });
 
-      if (!error && data) {
+      if (error) {
+        console.error('Error loading leads:', error);
+        return;
+      }
+
+      console.log('Loaded leads:', data?.length || 0, 'leads');
+      if (data) {
         setLeads(data);
       }
     } catch (error) {
@@ -508,7 +521,7 @@ export default function DashboardPage() {
                         selectedLead?.id === lead.id ? 'bg-orange-50 border-l-4 border-[#F95B14]' : 'hover:bg-gray-50'
                       }`}
                     >
-                      <h3 className="font-medium text-gray-900">{lead.profile_name}</h3>
+                      <h3 className="font-medium text-gray-900">{lead.profile_name || 'Unknown Profile'}</h3>
                       <p className="text-xs text-gray-600 mt-1">
                         {new Date(lead.created_at).toLocaleDateString()}
                       </p>
@@ -524,7 +537,7 @@ export default function DashboardPage() {
                 {selectedLead ? (
                   <>
                     <div className="p-6 border-b border-gray-200">
-                      <h2 className="text-2xl font-bold text-gray-900">{selectedLead.profile_name}</h2>
+                      <h2 className="text-2xl font-bold text-gray-900">{selectedLead.profile_name || 'Unknown Profile'}</h2>
                       <a 
                         href={selectedLead.linkedin_url} 
                         target="_blank" 
@@ -539,7 +552,7 @@ export default function DashboardPage() {
                       <h3 className="text-lg font-semibold text-gray-900 mb-4">AI Analysis</h3>
                       <div 
                         className="prose prose-sm max-w-none"
-                        dangerouslySetInnerHTML={{ __html: selectedLead.analysis }}
+                        dangerouslySetInnerHTML={{ __html: selectedLead.ai_analysis || 'No analysis available yet' }}
                       />
                     </div>
                   </>

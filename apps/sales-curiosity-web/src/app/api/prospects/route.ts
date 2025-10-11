@@ -252,29 +252,36 @@ Format your response exactly as follows:
       // Analysis prompt (default)
       prompt = `You are an expert sales intelligence assistant. Analyze this LinkedIn profile and provide insightful, actionable intelligence for a sales professional.
 
+CRITICAL INSTRUCTIONS:
+- ONLY use information explicitly provided in the profile data
+- DO NOT make assumptions or add details that aren't present
+- If information is missing, state "Information not available" rather than guessing
+- Focus on factual observations from the profile
+- Be conservative with insights - only state what you can clearly infer
+
 **Prospect's Profile:**
 ${contextText}
 ${userContextText}
 ${orgContextText}
 
-Based on this LinkedIn profile information, please provide:
+Based ONLY on the LinkedIn profile information provided above, please provide:
 
 **1. Executive Summary**
-A brief 2-3 sentence overview of who this person is professionally and what makes them interesting.
+A brief 2-3 sentence overview of who this person is professionally based on the available profile information. Do not add details that aren't explicitly stated.
 
 **2. Key Insights**
-3-5 notable observations about their career, expertise, industry position, or professional background.
+3-5 factual observations about their career, expertise, or professional background based on what's actually in their profile. Only mention what is clearly stated.
 
 **3. Sales Angles**
-Specific talking points, shared interests, or connection opportunities that would be valuable for outreach.
+Specific talking points or connection opportunities based on their actual profile content. Reference specific details from their profile.
 
 **4. Potential Pain Points**
-Based on their role and industry, what challenges might they be facing that your product/service could address?
+Based on their actual role and industry as stated in their profile, what challenges might they logically be facing? Keep this grounded in their stated responsibilities.
 
 **5. Conversation Starters**
-2-3 personalized, natural opening lines you could use to start a conversation or send a connection request.
+2-3 personalized opening lines that reference specific details from their profile. Make them natural and reference actual content from their profile.
 
-Be specific and actionable. If information is limited, focus on what you can infer from the available data.`;
+Remember: Stick to facts from the profile. If something isn't stated, don't assume it.`;
     }
 
     // Check if we should use mock mode
@@ -361,20 +368,16 @@ ${profileData.name || 'This professional'} is ${profileData.headline || 'a profe
       // Call OpenAI for analysis
       let completion;
       try {
-        completion = await openai.chat.completions.create({
-          model: 'gpt-4o-mini',
-          messages: [
-            {
-              role: 'system',
-              content: 'You are an expert sales intelligence analyst who provides deep, actionable insights about prospects based on their LinkedIn profiles.'
-            },
-            {
-              role: 'user',
-              content: prompt
-            }
-          ],
-          temperature: 0.7,
-          max_tokens: 1500,
+        completion = await openai.responses.create({
+          model: 'gpt-5-mini',
+          input: prompt + '\n\nIMPORTANT: Format your response using HTML tags instead of markdown. Use <h3> for section headers, <p> for paragraphs, <ul> and <li> for bullet points, and <strong> for bold text.',
+          reasoning: {
+            effort: "low"
+          },
+          text: {
+            verbosity: "medium"
+          },
+          max_output_tokens: 1500,
         });
       } catch (openaiError: any) {
         console.error('OpenAI API Error:', {
@@ -387,7 +390,7 @@ ${profileData.name || 'This professional'} is ${profileData.headline || 'a profe
         throw new Error(`OpenAI API failed: ${openaiError.message || openaiError.toString()}`);
       }
 
-      analysis = completion.choices[0]?.message?.content || 'No analysis generated';
+      analysis = completion.output_text || 'No analysis generated';
       console.log('Analysis complete, length:', analysis.length);
     }
 

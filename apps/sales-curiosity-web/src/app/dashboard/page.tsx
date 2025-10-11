@@ -487,7 +487,10 @@ export default function DashboardPage() {
                   <h3 className="text-lg font-medium text-gray-900 mb-2">
                     {selectedAction === 'analyze' ? 'Analysis Result' : 'Generated Email'}
                   </h3>
-                  <div className="text-sm text-gray-700 whitespace-pre-wrap">{result}</div>
+                  <div 
+                    className="text-sm text-gray-700 prose prose-sm max-w-none"
+                    dangerouslySetInnerHTML={{ __html: result }}
+                  />
                 </div>
               )}
             </div>

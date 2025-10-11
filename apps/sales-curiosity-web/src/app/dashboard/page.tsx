@@ -63,6 +63,9 @@ export default function DashboardPage() {
   const [cardMousePositions, setCardMousePositions] = useState<{
     [key: string]: { x: number; y: number };
   }>({});
+  
+  // Chrome extension detection
+  const [hasChromeExtension, setHasChromeExtension] = useState<boolean | null>(null);
 
   useEffect(() => {
     checkAuth();
@@ -73,6 +76,8 @@ export default function DashboardPage() {
       loadCalendarEvents();
     } else if (activeTab === 'leads' && user) {
       loadLeads();
+    } else if (activeTab === 'integrations' && user) {
+      checkChromeExtension();
     }
   }, [activeTab, user]);
 
@@ -210,6 +215,54 @@ export default function DashboardPage() {
     }
   }
 
+  async function checkChromeExtension() {
+    try {
+      // Check if the Chrome extension is installed
+      const extensionId = 'your-extension-id'; // Replace with actual extension ID
+      
+      // Try to communicate with the extension
+      const response = await fetch(`chrome-extension://${extensionId}/manifest.json`);
+      setHasChromeExtension(response.ok);
+    } catch (error) {
+      // Fallback: check if extension object exists in window
+      if (typeof window !== 'undefined' && (window as any).curiosityEngineExtension) {
+        setHasChromeExtension(true);
+      } else {
+        setHasChromeExtension(false);
+      }
+    }
+  }
+
+  async function connectToSalesforce() {
+    // TODO: Implement Salesforce OAuth flow
+    alert('Salesforce integration coming soon!');
+  }
+
+  async function connectToGmail() {
+    // TODO: Implement Gmail OAuth flow
+    alert('Gmail integration coming soon!');
+  }
+
+  async function connectToOutlook() {
+    // TODO: Implement Outlook OAuth flow
+    alert('Outlook integration coming soon!');
+  }
+
+  async function connectToHubSpot() {
+    // TODO: Implement HubSpot OAuth flow
+    alert('HubSpot integration coming soon!');
+  }
+
+  async function connectToGoogleCalendar() {
+    // TODO: Implement Google Calendar OAuth flow
+    alert('Google Calendar integration coming soon!');
+  }
+
+  async function installChromeExtension() {
+    // Redirect to Chrome Web Store
+    window.open('https://chrome.google.com/webstore/detail/curiosity-engine/your-extension-id', '_blank');
+  }
+
   async function handleLogout() {
     await supabase.auth.signOut();
     router.push('/login');
@@ -287,7 +340,7 @@ export default function DashboardPage() {
               { id: 'dashboard', label: '📊 Dashboard', icon: '📊' },
               { id: 'leads', label: '👥 Leads', icon: '👥' },
               { id: 'context', label: '⚙️ Settings', icon: '⚙️' },
-              { id: 'integrations', label: '🔌 Integrations', icon: '🔌' },
+              { id: 'integrations', label: '🔌 Connectors', icon: '🔌' },
             ].map((tab) => (
               <button
                 key={tab.id}
@@ -597,10 +650,17 @@ export default function DashboardPage() {
                       Get contextual "next best step" insights by combining deal history with sales collateral and call notes.
                     </p>
                   </div>
-                  <div className="mt-6">
-                    <span className="px-3 py-1 text-xs rounded-full bg-green-100 text-green-800">
+                  <div className="mt-6 flex items-center justify-between">
+                    <span className="px-3 py-1 text-xs rounded-full bg-gray-100 text-gray-600">
                       Coming Soon
                     </span>
+                    <button
+                      onClick={connectToSalesforce}
+                      disabled
+                      className="px-4 py-2 text-sm font-medium text-gray-400 bg-gray-100 rounded-lg cursor-not-allowed"
+                    >
+                      Connect
+                    </button>
                   </div>
                 </div>
               </div>
@@ -654,10 +714,42 @@ export default function DashboardPage() {
                       Get personalized outreach recommendations based on profile data, job changes, and company updates.
                     </p>
                   </div>
-                  <div className="mt-6">
-                    <span className="px-3 py-1 text-xs rounded-full bg-green-100 text-green-800">
-                      Active
-                    </span>
+                  <div className="mt-6 flex items-center justify-between">
+                    {hasChromeExtension === true ? (
+                      <span className="px-3 py-1 text-xs rounded-full bg-green-100 text-green-800">
+                        Chrome Extension Installed
+                      </span>
+                    ) : hasChromeExtension === false ? (
+                      <span className="px-3 py-1 text-xs rounded-full bg-yellow-100 text-yellow-800">
+                        Chrome Extension Not Found
+                      </span>
+                    ) : (
+                      <span className="px-3 py-1 text-xs rounded-full bg-blue-100 text-blue-800">
+                        Checking...
+                      </span>
+                    )}
+                    {hasChromeExtension === false ? (
+                      <button
+                        onClick={installChromeExtension}
+                        className="px-4 py-2 text-sm font-medium text-white bg-[#F95B14] rounded-lg hover:bg-orange-600 transition-colors"
+                      >
+                        Install Extension
+                      </button>
+                    ) : hasChromeExtension === true ? (
+                      <button
+                        disabled
+                        className="px-4 py-2 text-sm font-medium text-gray-400 bg-gray-100 rounded-lg cursor-not-allowed"
+                      >
+                        Connected
+                      </button>
+                    ) : (
+                      <button
+                        disabled
+                        className="px-4 py-2 text-sm font-medium text-gray-400 bg-gray-100 rounded-lg cursor-not-allowed"
+                      >
+                        Checking...
+                      </button>
+                    )}
                   </div>
                 </div>
               </div>
@@ -713,10 +805,17 @@ export default function DashboardPage() {
                       Schedule meetings automatically and organize your inbox with AI-powered categorization and prioritization.
                     </p>
                   </div>
-                  <div className="mt-6">
+                  <div className="mt-6 flex items-center justify-between">
                     <span className="px-3 py-1 text-xs rounded-full bg-gray-100 text-gray-600">
                       Coming Soon
                     </span>
+                    <button
+                      onClick={connectToGmail}
+                      disabled
+                      className="px-4 py-2 text-sm font-medium text-gray-400 bg-gray-100 rounded-lg cursor-not-allowed"
+                    >
+                      Connect
+                    </button>
                   </div>
                 </div>
               </div>
@@ -772,10 +871,17 @@ export default function DashboardPage() {
                       AI-powered email drafting and meeting scheduling with full Office 365 ecosystem compatibility.
                     </p>
                   </div>
-                  <div className="mt-6">
+                  <div className="mt-6 flex items-center justify-between">
                     <span className="px-3 py-1 text-xs rounded-full bg-gray-100 text-gray-600">
                       Coming Soon
                     </span>
+                    <button
+                      onClick={connectToOutlook}
+                      disabled
+                      className="px-4 py-2 text-sm font-medium text-gray-400 bg-gray-100 rounded-lg cursor-not-allowed"
+                    >
+                      Connect
+                    </button>
                   </div>
                 </div>
               </div>
@@ -831,10 +937,17 @@ export default function DashboardPage() {
                       Generate personalized content and automate marketing sequences based on prospect behavior and engagement.
                     </p>
                   </div>
-                  <div className="mt-6">
+                  <div className="mt-6 flex items-center justify-between">
                     <span className="px-3 py-1 text-xs rounded-full bg-gray-100 text-gray-600">
                       Coming Soon
                     </span>
+                    <button
+                      onClick={connectToHubSpot}
+                      disabled
+                      className="px-4 py-2 text-sm font-medium text-gray-400 bg-gray-100 rounded-lg cursor-not-allowed"
+                    >
+                      Connect
+                    </button>
                   </div>
                 </div>
               </div>
@@ -890,10 +1003,17 @@ export default function DashboardPage() {
                       Automatic calendar event creation with smart reminders and follow-up task generation based on meeting outcomes.
                     </p>
                   </div>
-                  <div className="mt-6">
+                  <div className="mt-6 flex items-center justify-between">
                     <span className="px-3 py-1 text-xs rounded-full bg-gray-100 text-gray-600">
                       Coming Soon
                     </span>
+                    <button
+                      onClick={connectToGoogleCalendar}
+                      disabled
+                      className="px-4 py-2 text-sm font-medium text-gray-400 bg-gray-100 rounded-lg cursor-not-allowed"
+                    >
+                      Connect
+                    </button>
                   </div>
                 </div>
               </div>

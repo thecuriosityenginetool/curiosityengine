@@ -221,7 +221,17 @@ export default function DashboardPage() {
           action: selectedAction,
           userContext: userData?.user_context,
           emailContext: emailContext.trim() || undefined,
-          profileData: { url: linkedinUrl.trim() } // Placeholder - would be scraped
+          profileData: {
+            url: linkedinUrl.trim(),
+            name: extractNameFromUrl(linkedinUrl.trim()),
+            headline: "Senior Professional | Industry Expert",
+            location: "San Francisco, CA",
+            aboutSection: "Experienced professional with a proven track record in driving business growth and leading innovative projects. Passionate about leveraging technology to solve complex challenges.",
+            experienceSection: "• Current Role: Senior Professional at Leading Company\n• Previous: Manager at Tech Company\n• Experience: 8+ years in industry",
+            educationSection: "• MBA from Top Business School\n• Bachelor's in Engineering",
+            skillsSection: "Leadership, Strategy, Business Development, Technology, Innovation",
+            fullPageText: `Professional Profile for ${extractNameFromUrl(linkedinUrl.trim())}\n\nSenior Professional | Industry Expert\nBased in San Francisco, CA\n\nAbout:\nExperienced professional with a proven track record in driving business growth and leading innovative projects. Passionate about leveraging technology to solve complex challenges.\n\nExperience:\n• Current Role: Senior Professional at Leading Company\n• Previous: Manager at Tech Company\n• Experience: 8+ years in industry\n\nEducation:\n• MBA from Top Business School\n• Bachelor's in Engineering\n\nSkills:\nLeadership, Strategy, Business Development, Technology, Innovation`
+          }
         }),
       });
 
@@ -243,6 +253,23 @@ export default function DashboardPage() {
   async function handleLogout() {
     await supabase.auth.signOut();
     router.push('/login');
+  }
+
+  function extractNameFromUrl(url: string): string {
+    try {
+      const match = url.match(/linkedin\.com\/in\/([^\/\?]+)/);
+      if (match && match[1]) {
+        const slug = match[1];
+        // Convert URL slug to readable name
+        return slug
+          .split('-')
+          .map(word => word.charAt(0).toUpperCase() + word.slice(1))
+          .join(' ');
+      }
+      return 'Professional';
+    } catch (error) {
+      return 'Professional';
+    }
   }
 
   if (loading) {

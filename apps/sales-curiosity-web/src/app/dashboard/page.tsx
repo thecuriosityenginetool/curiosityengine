@@ -48,6 +48,7 @@ export default function DashboardPage() {
   const [organization, setOrganization] = useState<Organization | null>(null);
   const [activeTab, setActiveTab] = useState<'home' | 'context' | 'integrations'>('home');
   const [linkedinUrl, setLinkedinUrl] = useState('');
+  const [linkedinProfileText, setLinkedinProfileText] = useState('');
   const [emailContext, setEmailContext] = useState('');
   const [selectedAction, setSelectedAction] = useState<'analyze' | 'email'>('analyze');
   const [processing, setProcessing] = useState(false);
@@ -198,8 +199,8 @@ export default function DashboardPage() {
   }
 
   async function analyzeProfile() {
-    if (!linkedinUrl.trim()) {
-      alert('Please enter a LinkedIn URL');
+    if (!linkedinUrl.trim() && !linkedinProfileText.trim()) {
+      alert('Please enter a LinkedIn URL or paste the profile content');
       return;
     }
 
@@ -210,6 +211,19 @@ export default function DashboardPage() {
       const { data: { session } } = await supabase.auth.getSession();
       if (!session) return;
 
+      // Use actual profile text if provided, otherwise use URL
+      const profileData = linkedinProfileText.trim() 
+        ? {
+            url: linkedinUrl.trim() || 'N/A',
+            name: extractNameFromUrl(linkedinUrl.trim()) || 'Professional',
+            fullPageText: linkedinProfileText.trim()
+          }
+        : {
+            url: linkedinUrl.trim(),
+            name: extractNameFromUrl(linkedinUrl.trim()),
+            fullPageText: `LinkedIn profile URL: ${linkedinUrl.trim()}\n\nNote: No profile content provided. Please paste the actual LinkedIn profile text for accurate analysis.`
+          };
+
       const response = await fetch('/api/prospects', {
         method: 'POST',
         headers: {
@@ -217,21 +231,11 @@ export default function DashboardPage() {
           'Content-Type': 'application/json',
         },
         body: JSON.stringify({
-          linkedinUrl: linkedinUrl.trim(),
+          linkedinUrl: linkedinUrl.trim() || 'N/A',
           action: selectedAction,
           userContext: userData?.user_context,
           emailContext: emailContext.trim() || undefined,
-          profileData: {
-            url: linkedinUrl.trim(),
-            name: extractNameFromUrl(linkedinUrl.trim()),
-            headline: "Senior Professional | Industry Expert",
-            location: "San Francisco, CA",
-            aboutSection: "Experienced professional with a proven track record in driving business growth and leading innovative projects. Passionate about leveraging technology to solve complex challenges.",
-            experienceSection: "• Current Role: Senior Professional at Leading Company\n• Previous: Manager at Tech Company\n• Experience: 8+ years in industry",
-            educationSection: "• MBA from Top Business School\n• Bachelor's in Engineering",
-            skillsSection: "Leadership, Strategy, Business Development, Technology, Innovation",
-            fullPageText: `Professional Profile for ${extractNameFromUrl(linkedinUrl.trim())}\n\nSenior Professional | Industry Expert\nBased in San Francisco, CA\n\nAbout:\nExperienced professional with a proven track record in driving business growth and leading innovative projects. Passionate about leveraging technology to solve complex challenges.\n\nExperience:\n• Current Role: Senior Professional at Leading Company\n• Previous: Manager at Tech Company\n• Experience: 8+ years in industry\n\nEducation:\n• MBA from Top Business School\n• Bachelor's in Engineering\n\nSkills:\nLeadership, Strategy, Business Development, Technology, Innovation`
-          }
+          profileData
         }),
       });
 
@@ -435,6 +439,22 @@ export default function DashboardPage() {
                   />
                 </div>
 
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                    LinkedIn Profile Content (Required for Accurate Analysis)
+                  </label>
+                  <textarea
+                    value={linkedinProfileText}
+                    onChange={(e) => setLinkedinProfileText(e.target.value)}
+                    placeholder="Paste the entire LinkedIn profile text here (name, headline, about section, experience, education, skills, etc.) for accurate AI analysis..."
+                    rows={8}
+                    className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#F95B14] focus:border-transparent outline-none font-mono text-sm"
+                  />
+                  <p className="mt-2 text-xs text-gray-500">
+                    💡 Tip: Copy the entire visible profile content from LinkedIn and paste it here for the most accurate analysis. Without this, the AI cannot provide meaningful insights.
+                  </p>
+                </div>
+
                 <div className="flex space-x-4">
                   <button
                     onClick={() => setSelectedAction('analyze')}
@@ -475,7 +495,7 @@ export default function DashboardPage() {
 
                 <button
                   onClick={analyzeProfile}
-                  disabled={processing || !linkedinUrl.trim()}
+                  disabled={processing || (!linkedinUrl.trim() && !linkedinProfileText.trim())}
                   className="w-full bg-[#F95B14] text-white px-6 py-3 rounded-lg font-semibold hover:bg-orange-600 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
                 >
                   {processing ? 'Processing...' : (selectedAction === 'analyze' ? 'Analyze Profile' : 'Generate Email')}

@@ -48,7 +48,6 @@ export default function DashboardPage() {
   const [organization, setOrganization] = useState<Organization | null>(null);
   const [activeTab, setActiveTab] = useState<'home' | 'context' | 'integrations'>('home');
   const [linkedinUrl, setLinkedinUrl] = useState('');
-  const [linkedinProfileText, setLinkedinProfileText] = useState('');
   const [emailContext, setEmailContext] = useState('');
   const [selectedAction, setSelectedAction] = useState<'analyze' | 'email'>('analyze');
   const [processing, setProcessing] = useState(false);
@@ -199,8 +198,8 @@ export default function DashboardPage() {
   }
 
   async function analyzeProfile() {
-    if (!linkedinUrl.trim() && !linkedinProfileText.trim()) {
-      alert('Please enter a LinkedIn URL or paste the profile content');
+    if (!linkedinUrl.trim()) {
+      alert('Please enter a LinkedIn URL');
       return;
     }
 
@@ -211,19 +210,6 @@ export default function DashboardPage() {
       const { data: { session } } = await supabase.auth.getSession();
       if (!session) return;
 
-      // Use actual profile text if provided, otherwise use URL
-      const profileData = linkedinProfileText.trim() 
-        ? {
-            url: linkedinUrl.trim() || 'N/A',
-            name: extractNameFromUrl(linkedinUrl.trim()) || 'Professional',
-            fullPageText: linkedinProfileText.trim()
-          }
-        : {
-            url: linkedinUrl.trim(),
-            name: extractNameFromUrl(linkedinUrl.trim()),
-            fullPageText: `LinkedIn profile URL: ${linkedinUrl.trim()}\n\nNote: No profile content provided. Please paste the actual LinkedIn profile text for accurate analysis.`
-          };
-
       const response = await fetch('/api/prospects', {
         method: 'POST',
         headers: {
@@ -231,11 +217,11 @@ export default function DashboardPage() {
           'Content-Type': 'application/json',
         },
         body: JSON.stringify({
-          linkedinUrl: linkedinUrl.trim() || 'N/A',
+          linkedinUrl: linkedinUrl.trim(),
           action: selectedAction,
           userContext: userData?.user_context,
           emailContext: emailContext.trim() || undefined,
-          profileData
+          // profileData will be auto-scraped by the API
         }),
       });
 
@@ -244,7 +230,8 @@ export default function DashboardPage() {
         setResult(data.analysis || data.email);
         await loadUserStats(session.user.id); // Refresh stats
     } else {
-        alert('Failed to analyze profile');
+        const errorData = await response.json();
+        alert(errorData.error || 'Failed to analyze profile');
       }
     } catch (error) {
       console.error('Error analyzing profile:', error);
@@ -437,21 +424,8 @@ export default function DashboardPage() {
                     placeholder="https://www.linkedin.com/in/profile-name"
                     className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#F95B14] focus:border-transparent outline-none"
                   />
-                </div>
-
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
-                    LinkedIn Profile Content (Required for Accurate Analysis)
-                  </label>
-                  <textarea
-                    value={linkedinProfileText}
-                    onChange={(e) => setLinkedinProfileText(e.target.value)}
-                    placeholder="Paste the entire LinkedIn profile text here (name, headline, about section, experience, education, skills, etc.) for accurate AI analysis..."
-                    rows={8}
-                    className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#F95B14] focus:border-transparent outline-none font-mono text-sm"
-                  />
                   <p className="mt-2 text-xs text-gray-500">
-                    💡 Tip: Copy the entire visible profile content from LinkedIn and paste it here for the most accurate analysis. Without this, the AI cannot provide meaningful insights.
+                    🤖 The profile will be automatically scraped and analyzed using AI. Just paste the LinkedIn URL and click analyze!
                   </p>
                 </div>
 
@@ -495,10 +469,10 @@ export default function DashboardPage() {
 
                 <button
                   onClick={analyzeProfile}
-                  disabled={processing || (!linkedinUrl.trim() && !linkedinProfileText.trim())}
+                  disabled={processing || !linkedinUrl.trim()}
                   className="w-full bg-[#F95B14] text-white px-6 py-3 rounded-lg font-semibold hover:bg-orange-600 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
                 >
-                  {processing ? 'Processing...' : (selectedAction === 'analyze' ? 'Analyze Profile' : 'Generate Email')}
+                  {processing ? 'Scraping & Analyzing...' : (selectedAction === 'analyze' ? 'Analyze Profile' : 'Generate Email')}
                 </button>
               </div>
 

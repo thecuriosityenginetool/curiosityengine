@@ -27,23 +27,32 @@ function LoginForm() {
 
     try {
       console.log('🔐 Logging in with Supabase...');
+      console.log('Email:', email);
       
       const { data, error } = await supabase.auth.signInWithPassword({
         email,
         password,
       });
 
+      console.log('Supabase response:', { data, error });
+
       if (error) {
         console.error('❌ Login failed:', error.message);
-        setError('Invalid email or password');
+        setError(`Login failed: ${error.message}`);
         setLoading(false);
         return;
       }
 
-      console.log('✅ Login successful! Redirecting...');
-      
-      // Supabase session is now set - redirect to dashboard
-      window.location.href = '/dashboard';
+      if (data.user) {
+        console.log('✅ Login successful! User:', data.user.email);
+        console.log('✅ Session:', data.session);
+        
+        // Supabase session is now set - redirect to dashboard
+        window.location.href = '/dashboard';
+      } else {
+        setError('Login failed - no user data returned');
+        setLoading(false);
+      }
     } catch (err: any) {
       console.error('❌ Login error:', err);
       setError(err.message || 'Failed to login');
@@ -51,171 +60,89 @@ function LoginForm() {
     }
   }
 
-  return (
-    <div style={{
-      minHeight: '100vh',
-      display: 'flex',
-      alignItems: 'center',
-      justifyContent: 'center',
-      background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
-      fontFamily: 'system-ui, -apple-system, sans-serif',
-      padding: '16px'
-    }}>
+  if (successMessage) {
+    return (
       <div style={{
-        background: 'white',
-        padding: '24px',
-        borderRadius: '12px',
-        boxShadow: '0 20px 60px rgba(0,0,0,0.3)',
-        width: '100%',
-        maxWidth: '400px'
+        minHeight: '100vh',
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'center',
+        background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
       }}>
-        <h1 style={{
-          fontSize: '28px',
-          fontWeight: '700',
-          marginBottom: '8px',
-          color: '#1a202c'
+        <div style={{
+          background: 'white',
+          padding: '40px',
+          borderRadius: '12px',
+          boxShadow: '0 20px 60px rgba(0,0,0,0.3)',
+          textAlign: 'center'
         }}>
-          Curiosity Engine
+          <div style={{ fontSize: '48px', marginBottom: '16px' }}>✅</div>
+          <h2 style={{ fontSize: '24px', marginBottom: '8px' }}>Welcome Back!</h2>
+          <p style={{ color: '#718096' }}>Redirecting to dashboard...</p>
+        </div>
+      </div>
+    );
+  }
+
+  return (
+    <div className="min-h-screen bg-white flex items-center justify-center px-6 py-20">
+      {/* Centered Login Form */}
+      <div className="w-full max-w-md">
+        {/* Headline */}
+        <h1 className="text-4xl font-bold text-gray-900 mb-4 text-center">
+          Welcome Back
         </h1>
-        <p style={{
-          color: '#718096',
-          marginBottom: '32px',
-          fontSize: '14px'
-        }}>
-          Sign in to your account
+        
+        {/* Tagline */}
+        <p className="text-lg text-gray-600 mb-8 leading-relaxed text-center">
+          Sign in to your Curiosity Engine account and continue transforming your sales productivity.
         </p>
 
-        {successMessage && (
-          <div style={{
-            padding: '12px',
-            background: '#d1fae5',
-            color: '#065f46',
-            borderRadius: '8px',
-            marginBottom: '20px',
-            fontSize: '14px',
-            border: '1px solid #6ee7b7'
-          }}>
-            ✓ {successMessage}
-          </div>
-        )}
-
+        {/* Error/Info Messages */}
         {error && (
-          <div style={{
-            padding: '12px',
-            background: '#fed7d7',
-            color: '#c53030',
-            borderRadius: '8px',
-            marginBottom: '20px',
-            fontSize: '14px'
-          }}>
+          <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-lg mb-6">
             {error}
           </div>
         )}
 
-        <form onSubmit={handleLogin}>
-          <div style={{ marginBottom: '20px' }}>
-            <label style={{
-              display: 'block',
-              fontSize: '14px',
-              fontWeight: '500',
-              marginBottom: '8px',
-              color: '#2d3748'
-            }}>
-              Email
-            </label>
+        {successMessage && (
+          <div className="bg-blue-50 border border-blue-200 text-blue-700 px-4 py-3 rounded-lg mb-6">
+            {successMessage}
+          </div>
+        )}
+
+        {/* Login Form */}
+        <form onSubmit={handleLogin} className="mb-8">
+          <div className="space-y-4">
             <input
               type="email"
               value={email}
               onChange={(e) => setEmail(e.target.value)}
               required
-              placeholder="you@example.com"
-              style={{
-                width: '100%',
-                padding: '12px',
-                border: '1px solid #e2e8f0',
-                borderRadius: '8px',
-                fontSize: '14px',
-                outline: 'none',
-                transition: 'border-color 0.2s',
-                color: '#1a202c'
-              }}
-              onFocus={(e) => e.target.style.borderColor = '#667eea'}
-              onBlur={(e) => e.target.style.borderColor = '#e2e8f0'}
+              placeholder="Enter your email"
+              className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#F95B14] focus:border-transparent outline-none"
             />
-          </div>
-
-          <div style={{ marginBottom: '24px' }}>
-            <label style={{
-              display: 'block',
-              fontSize: '14px',
-              fontWeight: '500',
-              marginBottom: '8px',
-              color: '#2d3748'
-            }}>
-              Password
-            </label>
             <input
               type="password"
               value={password}
               onChange={(e) => setPassword(e.target.value)}
               required
-              placeholder="••••••••"
-              style={{
-                width: '100%',
-                padding: '12px',
-                border: '1px solid #e2e8f0',
-                borderRadius: '8px',
-                fontSize: '14px',
-                outline: 'none',
-                transition: 'border-color 0.2s',
-                color: '#1a202c'
-              }}
-              onFocus={(e) => e.target.style.borderColor = '#667eea'}
-              onBlur={(e) => e.target.style.borderColor = '#e2e8f0'}
+              placeholder="Enter your password"
+              className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#F95B14] focus:border-transparent outline-none"
             />
+            <button
+              type="submit"
+              disabled={loading}
+              className="w-full px-6 py-3 bg-black text-white rounded-lg font-semibold hover:bg-gray-800 transition-colors disabled:opacity-50"
+            >
+              {loading ? 'Signing in...' : 'Sign In'}
+            </button>
           </div>
-
-          <button
-            type="submit"
-            disabled={loading}
-            style={{
-              width: '100%',
-              padding: '12px',
-              background: loading ? '#a0aec0' : '#667eea',
-              color: 'white',
-              border: 'none',
-              borderRadius: '8px',
-              fontSize: '16px',
-              fontWeight: '600',
-              cursor: loading ? 'not-allowed' : 'pointer',
-              transition: 'background 0.2s'
-            }}
-            onMouseOver={(e) => {
-              if (!loading) e.currentTarget.style.background = '#5a67d8';
-            }}
-            onMouseOut={(e) => {
-              if (!loading) e.currentTarget.style.background = '#667eea';
-            }}
-          >
-            {loading ? 'Signing in...' : 'Sign In'}
-          </button>
         </form>
 
-        <div style={{
-          marginTop: '24px',
-          textAlign: 'center',
-          fontSize: '14px',
-          color: '#718096'
-        }}>
+        <div className="text-sm text-gray-600 text-center">
           Don't have an account?{' '}
-          <a
-            href="/signup"
-            style={{
-              color: '#667eea',
-              fontWeight: '600',
-              textDecoration: 'none'
-            }}
-          >
+          <a href="/signup" className="text-[#F95B14] font-semibold hover:underline">
             Sign up
           </a>
         </div>
@@ -241,4 +168,3 @@ export default function LoginPage() {
     </Suspense>
   );
 }
-

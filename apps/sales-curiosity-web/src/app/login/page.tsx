@@ -43,14 +43,16 @@ function LoginForm() {
         return;
       }
 
-      if (data.user) {
+      if (data.user && data.session) {
         console.log('✅ Login successful! User:', data.user.email);
         console.log('✅ Session:', data.session);
         
-        // Supabase session is now set - redirect to dashboard
-        window.location.href = '/dashboard';
+        // Wait a moment for session to be properly established
+        setTimeout(() => {
+          window.location.href = '/dashboard';
+        }, 500);
       } else {
-        setError('Login failed - no user data returned');
+        setError('Login failed - no user or session data returned');
         setLoading(false);
       }
     } catch (err: any) {

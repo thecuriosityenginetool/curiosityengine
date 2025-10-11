@@ -222,9 +222,9 @@ function Popup() {
     try {
     const res = await chrome.runtime.sendMessage({
       type: "PING_API",
-        url: `${apiBase}/api/auth/login`,
+        url: `${apiBase}/api/extension/auth`,
         method: "POST",
-        body: { email, password },
+        body: { email, password, action: 'login' },
       });
 
       if (res.ok && res.data?.user && res.data?.session) {
@@ -272,14 +272,12 @@ function Popup() {
     try {
     const res = await chrome.runtime.sendMessage({
       type: "PING_API",
-        url: `${apiBase}/api/auth/signup`,
+        url: `${apiBase}/api/extension/auth`,
         method: "POST",
         body: { 
           email, 
           password, 
-          fullName,
-          accountType,
-          organizationName: accountType === 'organization' ? organizationName : undefined
+          action: 'signup'
         },
       });
 
@@ -410,6 +408,25 @@ function Popup() {
 
       // Get auth token
       const { authToken } = await chrome.storage.local.get(['authToken']);
+
+      // First, save the LinkedIn analysis to the database
+      const saveRes = await chrome.runtime.sendMessage({
+        type: "PING_API",
+        url: `${apiBase}/api/extension/linkedin-analysis`,
+        method: "POST",
+        body: {
+          profileData: extractResponse.data,
+          linkedinUrl: currentUrl,
+        },
+        authToken,
+      });
+
+      if (!saveRes.ok) {
+        console.error('Failed to save LinkedIn analysis:', saveRes.error);
+        // Continue with analysis even if save fails
+      } else {
+        console.log('✅ LinkedIn analysis saved with ID:', saveRes.data?.analysisId);
+      }
 
       // Send the extracted data to your API for AI analysis
       const res = await chrome.runtime.sendMessage({

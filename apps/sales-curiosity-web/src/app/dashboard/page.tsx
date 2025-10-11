@@ -58,6 +58,11 @@ export default function DashboardPage() {
   // Leads state
   const [leads, setLeads] = useState<Lead[]>([]);
   const [selectedLead, setSelectedLead] = useState<Lead | null>(null);
+  
+  // Connector card mouse positions
+  const [cardMousePositions, setCardMousePositions] = useState<{
+    [key: string]: { x: number; y: number };
+  }>({});
 
   useEffect(() => {
     checkAuth();
@@ -80,9 +85,9 @@ export default function DashboardPage() {
       const { data: { session }, error } = await supabase.auth.getSession();
       
       if (error || !session) {
-        router.push('/login');
-        return;
-      }
+      router.push('/login');
+      return;
+    }
 
       setUser(session.user);
       
@@ -111,7 +116,7 @@ export default function DashboardPage() {
           role: 'member',
           user_context: { aboutMe: '', objectives: '' }
         });
-      } else {
+    } else {
         setUserData(userData);
       }
 
@@ -532,38 +537,365 @@ export default function DashboardPage() {
         )}
 
         {activeTab === 'integrations' && (
-          <div className="max-w-4xl mx-auto">
-            <div className="bg-white rounded-lg border border-gray-200 shadow-sm p-6">
-              <h2 className="text-xl font-semibold text-gray-900 mb-4">Integrations</h2>
-              <p className="text-gray-600 mb-6">
-                Connect your tools to streamline your workflow.
+          <div className="max-w-7xl mx-auto">
+            <div className="text-center mb-12">
+              <h2 className="text-3xl font-bold text-gray-900 mb-4">🔌 Connectors</h2>
+              <p className="text-lg text-gray-600 max-w-2xl mx-auto">
+                Connect with the tools you already use. Our AI agents understand your pipeline, company context, and sales process.
               </p>
-              
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                <IntegrationCard 
-                  icon="📧"
-                  title="Email Integration"
-                  description="Gmail, Outlook, and more"
-                  status="coming-soon"
+            </div>
+            
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+              {/* Salesforce */}
+              <div 
+                className="rounded-2xl border border-gray-200 bg-white p-8 relative overflow-hidden hover:shadow-lg transition-shadow"
+                onMouseMove={(e) => {
+                  const rect = e.currentTarget.getBoundingClientRect();
+                  setCardMousePositions(prev => ({
+                    ...prev,
+                    salesforce: {
+                      x: e.clientX - rect.left,
+                      y: e.clientY - rect.top
+                    }
+                  }));
+                }}
+                onMouseLeave={() => {
+                  setCardMousePositions(prev => ({
+                    ...prev,
+                    salesforce: { x: 0, y: 0 }
+                  }));
+                }}
+              >
+                {/* Gradient overlay */}
+                <div 
+                  className="absolute h-32 w-32 rounded-full bg-gradient-to-b from-[#F95B14]/20 via-[#F95B14]/10 to-transparent blur-xl transition-all duration-500 ease-out pointer-events-none"
+                  style={{
+                    left: `${cardMousePositions.salesforce?.x || 0}px`,
+                    top: `${cardMousePositions.salesforce?.y || 0}px`,
+                    transform: 'translate(-50%, -50%)'
+                  }}
                 />
-                <IntegrationCard 
-                  icon="📅"
-                  title="Calendar Sync"
-                  description="Google Calendar, Outlook Calendar"
-                  status="coming-soon"
+                <div className="relative z-10">
+                  <div className="flex items-center gap-4 mb-6">
+                    <Image 
+                      src="/salesforcelogo.svg" 
+                      alt="Salesforce" 
+                      width={40}
+                      height={40}
+                      className="w-10 h-10"
+                    />
+                    <div>
+                      <h3 className="text-xl font-bold text-black">Salesforce</h3>
+                      <p className="text-sm text-gray-600">CRM Integration</p>
+                    </div>
+                  </div>
+                  <div className="space-y-3 text-gray-700">
+                    <p className="text-sm leading-relaxed">
+                      Extract live opportunity data and push AI-enriched recommendations back into your CRM with 1-click logging.
+                    </p>
+                    <p className="text-sm leading-relaxed">
+                      Get contextual "next best step" insights by combining deal history with sales collateral and call notes.
+                    </p>
+                  </div>
+                  <div className="mt-6">
+                    <span className="px-3 py-1 text-xs rounded-full bg-green-100 text-green-800">
+                      Coming Soon
+                    </span>
+                  </div>
+                </div>
+              </div>
+
+              {/* LinkedIn */}
+              <div 
+                className="rounded-2xl border border-gray-200 bg-white p-8 relative overflow-hidden hover:shadow-lg transition-shadow"
+                onMouseMove={(e) => {
+                  const rect = e.currentTarget.getBoundingClientRect();
+                  setCardMousePositions(prev => ({
+                    ...prev,
+                    linkedin: {
+                      x: e.clientX - rect.left,
+                      y: e.clientY - rect.top
+                    }
+                  }));
+                }}
+                onMouseLeave={() => {
+                  setCardMousePositions(prev => ({
+                    ...prev,
+                    linkedin: { x: 0, y: 0 }
+                  }));
+                }}
+              >
+                {/* Gradient overlay */}
+                <div 
+                  className="absolute h-32 w-32 rounded-full bg-gradient-to-b from-[#F95B14]/20 via-[#F95B14]/10 to-transparent blur-xl transition-all duration-500 ease-out pointer-events-none"
+                  style={{
+                    left: `${cardMousePositions.linkedin?.x || 0}px`,
+                    top: `${cardMousePositions.linkedin?.y || 0}px`,
+                    transform: 'translate(-50%, -50%)'
+                  }}
                 />
-                <IntegrationCard 
-                  icon="🔗"
-                  title="CRM Integration"
-                  description="Salesforce, HubSpot, and more"
-                  status="coming-soon"
+                <div className="relative z-10">
+                  <div className="flex items-center gap-4 mb-6">
+                    <div className="w-10 h-10 bg-blue-600 rounded-lg flex items-center justify-center">
+                      <svg className="w-6 h-6 text-white" fill="currentColor" viewBox="0 0 24 24">
+                        <path d="M20.447 20.452h-3.554v-5.569c0-1.328-.027-3.037-1.852-3.037-1.853 0-2.136 1.445-2.136 2.939v5.667H9.351V9h3.414v1.561h.046c.477-.9 1.637-1.85 3.37-1.85 3.601 0 4.267 2.37 4.267 5.455v6.286zM5.337 7.433c-1.144 0-2.063-.926-2.063-2.065 0-1.138.92-2.063 2.063-2.063 1.14 0 2.064.925 2.064 2.063 0 1.139-.925 2.065-2.064 2.065zm1.782 13.019H3.555V9h3.564v11.452zM22.225 0H1.771C.792 0 0 .774 0 1.729v20.542C0 23.227.792 24 1.771 24h20.451C23.2 24 24 23.227 24 22.271V1.729C24 .774 23.2 0 22.222 0h.003z"/>
+                      </svg>
+                    </div>
+                    <div>
+                      <h3 className="text-xl font-bold text-black">LinkedIn</h3>
+                      <p className="text-sm text-gray-600">Profile Analysis</p>
+                    </div>
+                  </div>
+                  <div className="space-y-3 text-gray-700">
+                    <p className="text-sm leading-relaxed">
+                      Analyze LinkedIn profiles and company pages to extract contextual insights and buying signals in real-time.
+                    </p>
+                    <p className="text-sm leading-relaxed">
+                      Get personalized outreach recommendations based on profile data, job changes, and company updates.
+                    </p>
+                  </div>
+                  <div className="mt-6">
+                    <span className="px-3 py-1 text-xs rounded-full bg-green-100 text-green-800">
+                      Active
+                    </span>
+                  </div>
+                </div>
+              </div>
+
+              {/* Gmail */}
+              <div 
+                className="rounded-2xl border border-gray-200 bg-white p-8 relative overflow-hidden hover:shadow-lg transition-shadow"
+                onMouseMove={(e) => {
+                  const rect = e.currentTarget.getBoundingClientRect();
+                  setCardMousePositions(prev => ({
+                    ...prev,
+                    gmail: {
+                      x: e.clientX - rect.left,
+                      y: e.clientY - rect.top
+                    }
+                  }));
+                }}
+                onMouseLeave={() => {
+                  setCardMousePositions(prev => ({
+                    ...prev,
+                    gmail: { x: 0, y: 0 }
+                  }));
+                }}
+              >
+                {/* Gradient overlay */}
+                <div 
+                  className="absolute h-32 w-32 rounded-full bg-gradient-to-b from-[#F95B14]/20 via-[#F95B14]/10 to-transparent blur-xl transition-all duration-500 ease-out pointer-events-none"
+                  style={{
+                    left: `${cardMousePositions.gmail?.x || 0}px`,
+                    top: `${cardMousePositions.gmail?.y || 0}px`,
+                    transform: 'translate(-50%, -50%)'
+                  }}
                 />
-                <IntegrationCard 
-                  icon="💼"
-                  title="LinkedIn"
-                  description="Chrome Extension installed"
-                  status="active"
+                <div className="relative z-10">
+                  <div className="flex items-center gap-4 mb-6">
+                    <Image 
+                      src="/Gmail Icon.svg" 
+                      alt="Gmail" 
+                      width={40}
+                      height={40}
+                      className="w-10 h-10"
+                    />
+                    <div>
+                      <h3 className="text-xl font-bold text-black">Gmail</h3>
+                      <p className="text-sm text-gray-600">Email Automation</p>
+                    </div>
+                  </div>
+                  <div className="space-y-3 text-gray-700">
+                    <p className="text-sm leading-relaxed">
+                      Auto-draft personalized replies and follow-ups based on your sent email history and writing style.
+                    </p>
+                    <p className="text-sm leading-relaxed">
+                      Schedule meetings automatically and organize your inbox with AI-powered categorization and prioritization.
+                    </p>
+                  </div>
+                  <div className="mt-6">
+                    <span className="px-3 py-1 text-xs rounded-full bg-gray-100 text-gray-600">
+                      Coming Soon
+                    </span>
+                  </div>
+                </div>
+              </div>
+
+              {/* Outlook */}
+              <div 
+                className="rounded-2xl border border-gray-200 bg-white p-8 relative overflow-hidden hover:shadow-lg transition-shadow"
+                onMouseMove={(e) => {
+                  const rect = e.currentTarget.getBoundingClientRect();
+                  setCardMousePositions(prev => ({
+                    ...prev,
+                    outlook: {
+                      x: e.clientX - rect.left,
+                      y: e.clientY - rect.top
+                    }
+                  }));
+                }}
+                onMouseLeave={() => {
+                  setCardMousePositions(prev => ({
+                    ...prev,
+                    outlook: { x: 0, y: 0 }
+                  }));
+                }}
+              >
+                {/* Gradient overlay */}
+                <div 
+                  className="absolute h-32 w-32 rounded-full bg-gradient-to-b from-[#F95B14]/20 via-[#F95B14]/10 to-transparent blur-xl transition-all duration-500 ease-out pointer-events-none"
+                  style={{
+                    left: `${cardMousePositions.outlook?.x || 0}px`,
+                    top: `${cardMousePositions.outlook?.y || 0}px`,
+                    transform: 'translate(-50%, -50%)'
+                  }}
                 />
+                <div className="relative z-10">
+                  <div className="flex items-center gap-4 mb-6">
+                    <Image 
+                      src="/Outlook_icon.svg" 
+                      alt="Outlook" 
+                      width={40}
+                      height={40}
+                      className="w-10 h-10"
+                    />
+                    <div>
+                      <h3 className="text-xl font-bold text-black">Outlook</h3>
+                      <p className="text-sm text-gray-600">Microsoft 365</p>
+                    </div>
+                  </div>
+                  <div className="space-y-3 text-gray-700">
+                    <p className="text-sm leading-relaxed">
+                      Seamless Microsoft 365 integration with calendar sync, team collaboration, and enterprise-grade security.
+                    </p>
+                    <p className="text-sm leading-relaxed">
+                      AI-powered email drafting and meeting scheduling with full Office 365 ecosystem compatibility.
+                    </p>
+                  </div>
+                  <div className="mt-6">
+                    <span className="px-3 py-1 text-xs rounded-full bg-gray-100 text-gray-600">
+                      Coming Soon
+                    </span>
+                  </div>
+                </div>
+              </div>
+
+              {/* HubSpot */}
+              <div 
+                className="rounded-2xl border border-gray-200 bg-white p-8 relative overflow-hidden hover:shadow-lg transition-shadow"
+                onMouseMove={(e) => {
+                  const rect = e.currentTarget.getBoundingClientRect();
+                  setCardMousePositions(prev => ({
+                    ...prev,
+                    hubspot: {
+                      x: e.clientX - rect.left,
+                      y: e.clientY - rect.top
+                    }
+                  }));
+                }}
+                onMouseLeave={() => {
+                  setCardMousePositions(prev => ({
+                    ...prev,
+                    hubspot: { x: 0, y: 0 }
+                  }));
+                }}
+              >
+                {/* Gradient overlay */}
+                <div 
+                  className="absolute h-32 w-32 rounded-full bg-gradient-to-b from-[#F95B14]/20 via-[#F95B14]/10 to-transparent blur-xl transition-all duration-500 ease-out pointer-events-none"
+                  style={{
+                    left: `${cardMousePositions.hubspot?.x || 0}px`,
+                    top: `${cardMousePositions.hubspot?.y || 0}px`,
+                    transform: 'translate(-50%, -50%)'
+                  }}
+                />
+                <div className="relative z-10">
+                  <div className="flex items-center gap-4 mb-6">
+                    <Image 
+                      src="/hubspot-1.svg" 
+                      alt="HubSpot" 
+                      width={40}
+                      height={40}
+                      className="w-10 h-10"
+                    />
+                    <div>
+                      <h3 className="text-xl font-bold text-black">HubSpot</h3>
+                      <p className="text-sm text-gray-600">CRM & Marketing</p>
+                    </div>
+                  </div>
+                  <div className="space-y-3 text-gray-700">
+                    <p className="text-sm leading-relaxed">
+                      Sync contacts, deals, and activities automatically with AI-enriched lead scoring and pipeline insights.
+                    </p>
+                    <p className="text-sm leading-relaxed">
+                      Generate personalized content and automate marketing sequences based on prospect behavior and engagement.
+                    </p>
+                  </div>
+                  <div className="mt-6">
+                    <span className="px-3 py-1 text-xs rounded-full bg-gray-100 text-gray-600">
+                      Coming Soon
+                    </span>
+                  </div>
+                </div>
+              </div>
+
+              {/* Google Calendar */}
+              <div 
+                className="rounded-2xl border border-gray-200 bg-white p-8 relative overflow-hidden hover:shadow-lg transition-shadow"
+                onMouseMove={(e) => {
+                  const rect = e.currentTarget.getBoundingClientRect();
+                  setCardMousePositions(prev => ({
+                    ...prev,
+                    googlecal: {
+                      x: e.clientX - rect.left,
+                      y: e.clientY - rect.top
+                    }
+                  }));
+                }}
+                onMouseLeave={() => {
+                  setCardMousePositions(prev => ({
+                    ...prev,
+                    googlecal: { x: 0, y: 0 }
+                  }));
+                }}
+              >
+                {/* Gradient overlay */}
+                <div 
+                  className="absolute h-32 w-32 rounded-full bg-gradient-to-b from-[#F95B14]/20 via-[#F95B14]/10 to-transparent blur-xl transition-all duration-500 ease-out pointer-events-none"
+                  style={{
+                    left: `${cardMousePositions.googlecal?.x || 0}px`,
+                    top: `${cardMousePositions.googlecal?.y || 0}px`,
+                    transform: 'translate(-50%, -50%)'
+                  }}
+                />
+                <div className="relative z-10">
+                  <div className="flex items-center gap-4 mb-6">
+                    <Image 
+                      src="/Google_Calendar_logo.svg" 
+                      alt="Google Calendar" 
+                      width={40}
+                      height={40}
+                      className="w-10 h-10"
+                    />
+                    <div>
+                      <h3 className="text-xl font-bold text-black">Google Calendar</h3>
+                      <p className="text-sm text-gray-600">Smart Scheduling</p>
+                    </div>
+                  </div>
+                  <div className="space-y-3 text-gray-700">
+                    <p className="text-sm leading-relaxed">
+                      AI-powered meeting scheduling that analyzes availability patterns and optimizes for prospect time zones.
+                    </p>
+                    <p className="text-sm leading-relaxed">
+                      Automatic calendar event creation with smart reminders and follow-up task generation based on meeting outcomes.
+                    </p>
+                  </div>
+                  <div className="mt-6">
+                    <span className="px-3 py-1 text-xs rounded-full bg-gray-100 text-gray-600">
+                      Coming Soon
+                    </span>
+                  </div>
+                </div>
               </div>
             </div>
           </div>
@@ -618,40 +950,3 @@ function ContextForm({ context, onSave }: {
   );
 }
 
-function IntegrationCard({ icon, title, description, status }: {
-  icon: string;
-  title: string;
-  description: string;
-  status: 'active' | 'coming-soon';
-}) {
-  return (
-    <div className="border border-gray-200 rounded-lg p-6 hover:border-[#F95B14] transition-colors">
-      <div className="flex items-center justify-between mb-4">
-        <div className="flex items-center space-x-3">
-          <div className="text-3xl">{icon}</div>
-          <div>
-            <h3 className="font-semibold text-gray-900">{title}</h3>
-            <p className="text-sm text-gray-600">{description}</p>
-          </div>
-        </div>
-        <span className={`px-3 py-1 text-xs rounded-full ${
-          status === 'active' 
-            ? 'bg-green-100 text-green-800' 
-            : 'bg-gray-100 text-gray-600'
-        }`}>
-          {status === 'active' ? 'Active' : 'Coming Soon'}
-        </span>
-      </div>
-      <button
-        disabled={status === 'coming-soon'}
-        className={`w-full py-2 rounded-lg font-medium transition-colors ${
-          status === 'active'
-            ? 'bg-[#F95B14] text-white hover:bg-orange-600'
-            : 'bg-gray-100 text-gray-400 cursor-not-allowed'
-        }`}
-      >
-        {status === 'active' ? 'Configure' : 'Coming Soon'}
-      </button>
-    </div>
-  );
-}

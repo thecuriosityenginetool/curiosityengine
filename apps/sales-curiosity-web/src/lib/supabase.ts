@@ -1,4 +1,5 @@
 import { createBrowserClient } from '@supabase/ssr';
+import type { Database } from '@/types/supabase';
 
 // Create Supabase client - singleton pattern
 let client: ReturnType<typeof createBrowserClient> | null = null;
@@ -19,7 +20,7 @@ export function createClient() {
   
   console.log('🆕 Creating Supabase client');
   
-  client = createBrowserClient(url, key);
+  client = createBrowserClient<Database>(url, key);
   
   console.log('✅ Supabase client created successfully');
   

@@ -15,7 +15,6 @@ function SignupForm() {
   const [organizationName, setOrganizationName] = useState('');
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
-  const [success, setSuccess] = useState(false);
   const [infoMessage, setInfoMessage] = useState('');
   const router = useRouter();
   const searchParams = useSearchParams();
@@ -59,11 +58,13 @@ function SignupForm() {
         throw new Error(error.message);
       }
 
-      if (data.user) {
-        setSuccess(true);
-        setTimeout(() => {
-          router.push('/login?message=Account created! Please sign in.');
-        }, 2000);
+      if (data.user && data.session) {
+        console.log('✅ Account created and user logged in:', data.user.email);
+        // User is automatically logged in, redirect to dashboard
+        window.location.href = '/dashboard';
+      } else if (data.user) {
+        console.log('✅ Account created, redirecting to login');
+        router.push('/login?message=Account created! Please sign in.');
       }
     } catch (err: any) {
       setError(err.message || 'Failed to create account');
@@ -72,29 +73,6 @@ function SignupForm() {
     }
   }
 
-  if (success) {
-    return (
-      <div style={{
-        minHeight: '100vh',
-        display: 'flex',
-        alignItems: 'center',
-        justifyContent: 'center',
-        background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
-      }}>
-        <div style={{
-          background: 'white',
-          padding: '40px',
-          borderRadius: '12px',
-          boxShadow: '0 20px 60px rgba(0,0,0,0.3)',
-          textAlign: 'center'
-        }}>
-          <div style={{ fontSize: '48px', marginBottom: '16px' }}>✅</div>
-          <h2 style={{ fontSize: '24px', marginBottom: '8px' }}>Account Created!</h2>
-          <p style={{ color: '#718096' }}>Redirecting to login...</p>
-        </div>
-      </div>
-    );
-  }
 
   return (
     <div className="min-h-screen bg-white flex items-center justify-center px-6 py-20">

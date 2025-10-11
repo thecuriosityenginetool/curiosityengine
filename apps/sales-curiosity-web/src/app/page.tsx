@@ -571,7 +571,7 @@ export default function Home() {
             </p>
           </div>
 
-          <div className="rounded-3xl border border-gray-800 bg-gray-900/50 p-12 backdrop-blur-sm">
+          <div className="rounded-3xl border border-gray-200 bg-white p-12 relative overflow-hidden">
             <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
               <div className="text-center">
                 <div className="inline-flex items-center justify-center w-16 h-16 rounded-2xl bg-[#F95B14]/10 text-[#F95B14] mb-4 mx-auto">
@@ -579,8 +579,8 @@ export default function Home() {
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 10V3L4 14h7v7l9-11h-7z" />
                   </svg>
                 </div>
-                <h3 className="text-lg font-semibold text-white mb-2">Instant Analysis</h3>
-                <p className="text-sm text-gray-400">
+                <h3 className="text-lg font-semibold text-black mb-2">Instant Analysis</h3>
+                <p className="text-sm text-gray-600">
                   Get AI insights directly on LinkedIn profile pages in seconds
                 </p>
               </div>
@@ -591,8 +591,8 @@ export default function Home() {
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
                   </svg>
                 </div>
-                <h3 className="text-lg font-semibold text-white mb-2">Draft Emails</h3>
-                <p className="text-sm text-gray-400">
+                <h3 className="text-lg font-semibold text-black mb-2">Draft Emails</h3>
+                <p className="text-sm text-gray-600">
                   Generate personalized outreach emails in your voice, instantly
                 </p>
               </div>
@@ -603,8 +603,8 @@ export default function Home() {
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
                   </svg>
                 </div>
-                <h3 className="text-lg font-semibold text-white mb-2">Sync to CRM</h3>
-                <p className="text-sm text-gray-400">
+                <h3 className="text-lg font-semibold text-black mb-2">Sync to CRM</h3>
+                <p className="text-sm text-gray-600">
                   Automatically save prospects and activities to your CRM
                 </p>
               </div>
@@ -613,8 +613,15 @@ export default function Home() {
             <div className="mt-12 text-center">
               <Link
                 href="/install"
-                className="inline-flex items-center gap-2 px-8 py-4 bg-[#F95B14] text-white text-lg font-semibold rounded-lg hover:bg-[#e04d0a] transition-all shadow-lg shadow-[#F95B14]/30 hover:scale-105"
+                className="inline-flex items-center gap-3 px-8 py-4 bg-[#F95B14] text-white text-lg font-semibold rounded-lg hover:bg-[#e04d0a] transition-all shadow-lg shadow-[#F95B14]/30 hover:scale-105"
               >
+                <Image 
+                  src="/chrome_icon.svg" 
+                  alt="Chrome" 
+                  width={20}
+                  height={20}
+                  className="w-5 h-5"
+                />
                 Download Chrome Extension
                 <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M14 5l7 7m0 0l-7 7m7-7H3" />

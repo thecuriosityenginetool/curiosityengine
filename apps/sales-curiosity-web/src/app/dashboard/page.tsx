@@ -1526,7 +1526,7 @@ Include: greeting, meeting confirmation, brief agenda, offer to share materials,
                     transform: 'translate(-50%, -50%)'
                   }}
                 />
-                <div className="relative z-10">
+                <div>
                   <div className="flex items-center gap-4 mb-6">
                     <div className="w-10 h-10 bg-blue-600 rounded-lg flex items-center justify-center">
                       <svg className="w-6 h-6 text-white" fill="currentColor" viewBox="0 0 24 24">
@@ -1615,7 +1615,7 @@ Include: greeting, meeting confirmation, brief agenda, offer to share materials,
                     transform: 'translate(-50%, -50%)'
                   }}
                 />
-                <div className="relative z-10">
+                <div>
                   <div className="flex items-center gap-4 mb-6">
                     <Image 
                       src="/Gmail Icon.svg" 
@@ -1681,7 +1681,7 @@ Include: greeting, meeting confirmation, brief agenda, offer to share materials,
                     transform: 'translate(-50%, -50%)'
                   }}
                 />
-                <div className="relative z-10">
+                <div>
                   <div className="flex items-center gap-4 mb-6">
                     <Image 
                       src="/Outlook_icon.svg" 
@@ -1757,7 +1757,7 @@ Include: greeting, meeting confirmation, brief agenda, offer to share materials,
                     transform: 'translate(-50%, -50%)'
                   }}
                 />
-                <div className="relative z-10">
+                <div>
                   <div className="flex items-center gap-4 mb-6">
                     <Image 
                       src="/hubspot-1.svg" 
@@ -1823,7 +1823,7 @@ Include: greeting, meeting confirmation, brief agenda, offer to share materials,
                     transform: 'translate(-50%, -50%)'
                   }}
                 />
-                <div className="relative z-10">
+                <div>
                   <div className="flex items-center gap-4 mb-6">
                     <Image 
                       src="/Google_Calendar_logo.svg" 

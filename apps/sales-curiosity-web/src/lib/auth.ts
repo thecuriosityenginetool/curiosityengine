@@ -8,6 +8,9 @@ const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!;
 const serviceRoleKey = process.env.SUPABASE_SERVICE_ROLE_KEY!;
 
 console.log('🔧 NextAuth config - Using service role:', !!serviceRoleKey);
+console.log('🔧 Microsoft Client ID configured:', !!process.env.MICROSOFT_CLIENT_ID);
+console.log('🔧 Microsoft Client Secret configured:', !!process.env.MICROSOFT_CLIENT_SECRET);
+console.log('🔧 Azure Tenant ID:', process.env.AZURE_AD_TENANT_ID || 'common');
 
 const supabase = createClient(supabaseUrl, serviceRoleKey, {
   auth: {
@@ -37,8 +40,11 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
         params: {
           scope: "openid email profile offline_access",
           prompt: "consent",
+          response_type: "code",
         }
       },
+      // Explicitly set the wellKnown endpoint
+      wellKnown: `https://login.microsoftonline.com/${process.env.AZURE_AD_TENANT_ID || "common"}/v2.0/.well-known/openid-configuration`,
     }),
   ],
   callbacks: {

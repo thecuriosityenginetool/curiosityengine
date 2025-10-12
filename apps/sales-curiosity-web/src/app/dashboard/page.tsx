@@ -2,6 +2,7 @@
 
 import { useEffect, useState, useRef } from 'react';
 import { useRouter } from 'next/navigation';
+import { useSession } from 'next-auth/react';
 import { supabase } from '@/lib/supabase';
 import Image from 'next/image';
 
@@ -48,6 +49,7 @@ interface Lead {
 
 export default function DashboardPage() {
   const router = useRouter();
+  const { data: session, status } = useSession();
   const [loading, setLoading] = useState(true);
   const [user, setUser] = useState<any>(null);
   const [userData, setUserData] = useState<User | null>(null);
@@ -73,8 +75,17 @@ export default function DashboardPage() {
   const [hasChromeExtension, setHasChromeExtension] = useState<boolean | null>(null);
 
   useEffect(() => {
-    checkAuth();
-  }, []);
+    if (status === 'loading') return;
+    
+    if (status === 'unauthenticated') {
+      router.push('/login');
+      return;
+    }
+    
+    if (status === 'authenticated' && session?.user) {
+      checkAuth();
+    }
+  }, [status, session]);
 
   useEffect(() => {
     if (activeTab === 'dashboard' && user) {
@@ -92,48 +103,37 @@ export default function DashboardPage() {
 
   async function checkAuth() {
     try {
-      const { data: { session }, error } = await supabase.auth.getSession();
-      
-      if (error || !session) {
-      router.push('/login');
-      return;
-    }
+      if (!session?.user?.email) {
+        router.push('/login');
+        return;
+      }
 
       setUser(session.user);
       
+      // Fetch user data from database
       const { data: userData, error: userError } = await supabase
         .from('users')
         .select('*')
-        .eq('id', session.user.id)
+        .eq('email', session.user.email)
         .single();
 
-      if (userError) {
-        const { data: newUser } = await supabase
-          .from('users')
-          .insert({
-            id: session.user.id,
-            email: session.user.email || 'user@example.com',
-            full_name: session.user.user_metadata?.full_name || session.user.email?.split('@')[0] || 'User',
-            role: 'member'
-          })
-          .select()
-          .single();
-
-        setUserData(newUser || {
-          id: session.user.id,
-          email: session.user.email || 'user@example.com',
-          full_name: session.user.user_metadata?.full_name || 'User',
+      if (userData) {
+        setUserData(userData);
+      } else {
+        // User doesn't exist in database yet, show basic info
+        setUserData({
+          id: session.user.id || '',
+          email: session.user.email,
+          full_name: session.user.name || session.user.email?.split('@')[0] || 'User',
           role: 'member',
           user_context: { aboutMe: '', objectives: '' }
         });
-    } else {
-        setUserData(userData);
       }
 
       setLoading(false);
     } catch (error) {
       console.error('Error in checkAuth:', error);
-      router.push('/login');
+      setLoading(false);
     }
   }
 

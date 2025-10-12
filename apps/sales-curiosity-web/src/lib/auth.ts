@@ -71,6 +71,8 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
           return false;
         }
 
+        let userId = existingUser?.id;
+
         if (!existingUser) {
           // Create new user
           console.log('[AUTH] Creating new user:', user.email);
@@ -91,14 +93,13 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
             return false;
           }
           
-          console.log('[AUTH] User created successfully');
+          userId = newUser?.id;
+          console.log('[AUTH] User created successfully with ID:', userId);
         }
 
         // Store OAuth tokens for email sending
-        if (account?.access_token) {
+        if (account?.access_token && userId) {
           console.log('[AUTH] Storing OAuth tokens for email access');
-          
-          const userId = existingUser?.id || user.id;
           
           await supabase
             .from('user_oauth_tokens')

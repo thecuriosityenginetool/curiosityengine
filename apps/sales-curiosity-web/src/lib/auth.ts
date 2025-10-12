@@ -105,20 +105,33 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
         if (account?.access_token && userId) {
           console.log('[AUTH] Storing OAuth tokens for email access');
           
-          await supabase
-            .from('user_oauth_tokens')
-            .upsert({
-              user_id: userId,
-              provider: account.provider,
-              access_token: account.access_token,
-              refresh_token: account.refresh_token,
-              token_expiry: account.expires_at ? new Date(account.expires_at * 1000).toISOString() : null,
-              updated_at: new Date().toISOString(),
-            }, {
-              onConflict: 'user_id,provider'
-            });
+          try {
+            const { error: tokenError } = await supabase
+              .from('user_oauth_tokens')
+              .upsert({
+                user_id: userId,
+                provider: account.provider,
+                access_token: account.access_token,
+                refresh_token: account.refresh_token,
+                token_expiry: account.expires_at ? new Date(account.expires_at * 1000).toISOString() : null,
+                updated_at: new Date().toISOString(),
+              }, {
+                onConflict: 'user_id,provider'
+              });
+            
+            if (tokenError) {
+              console.error('[AUTH-WARNING] Failed to store OAuth tokens:', tokenError.message);
+              // Don't fail the sign in if token storage fails - user can still use the app
+            } else {
+              console.log('[AUTH] OAuth tokens stored successfully');
+            }
+          } catch (tokenErr) {
+            console.error('[AUTH-WARNING] Exception storing tokens:', tokenErr);
+            // Don't fail the sign in
+          }
         }
 
+        console.log('[AUTH] Sign in successful for:', user.email);
         return true;
       } catch (error) {
         console.error('[AUTH-ERROR] Exception during sign in:', error);

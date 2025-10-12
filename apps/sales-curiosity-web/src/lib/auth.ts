@@ -43,20 +43,31 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
   ],
   callbacks: {
     async signIn({ user, account, profile }) {
-      console.log('🔐 OAuth SignIn callback for:', user.email);
+      console.log('🔐 OAuth SignIn callback for:', user.email, 'provider:', account?.provider);
       
       if (!user.email) {
         console.error('[AUTH] No email in user object');
         return false;
       }
 
+      // Check if Supabase is configured
+      if (!supabaseUrl || !serviceRoleKey) {
+        console.error('[AUTH] Supabase not configured, but allowing sign in');
+        return true;
+      }
+
       try {
         // Check if user exists
-        const { data: existingUser } = await supabase
+        const { data: existingUser, error: selectError } = await supabase
           .from('users')
           .select('id')
           .eq('email', user.email)
           .single();
+
+        if (selectError && selectError.code !== 'PGRST116') {
+          // PGRST116 is "not found" error - that's ok
+          console.error('[AUTH] Error checking user:', selectError);
+        }
 
         if (!existingUser) {
           // Create new user
@@ -68,13 +79,18 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
               email: user.email,
               full_name: user.name || user.email?.split('@')[0],
               role: 'member',
-              email_provider: account?.provider || 'google',
+              email_provider: account?.provider === 'azure-ad' ? 'microsoft' : account?.provider || 'google',
             });
 
           if (createError) {
             console.error('[AUTH] Create user error:', createError.message);
+            console.error('[AUTH] Create user details:', createError);
             // Still allow sign in even if user creation fails
+          } else {
+            console.log('[AUTH] ✅ User created successfully');
           }
+        } else {
+          console.log('[AUTH] ✅ Existing user found:', existingUser.id);
         }
 
         return true;
@@ -87,39 +103,59 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
     async jwt({ token, user, account }) {
       // On initial sign in, add user data and tokens to JWT
       if (user && user.email) {
+        console.log('[AUTH] JWT callback for:', user.email);
+        
+        // Set basic user info from OAuth provider
+        token.email = user.email;
+        token.name = user.name;
+        
         try {
-          // Fetch user data from database
-          const { data: userData, error: userError } = await supabase
-            .from('users')
-            .select('id, email, full_name, role, organization_id')
-            .eq('email', user.email)
-            .single();
+          // Fetch user data from database if Supabase is configured
+          if (supabaseUrl && serviceRoleKey) {
+            const { data: userData, error: userError } = await supabase
+              .from('users')
+              .select('id, email, full_name, role, organization_id')
+              .eq('email', user.email)
+              .single();
 
-          if (!userError && userData) {
-            token.id = userData.id;
-            token.role = userData.role;
-            token.organizationId = userData.organization_id;
-            
-            // Fetch organization data if user is in an org
-            if (userData.organization_id) {
-              const { data: orgData } = await supabase
-                .from('organizations')
-                .select('name, account_type')
-                .eq('id', userData.organization_id)
-                .single();
+            if (!userError && userData) {
+              console.log('[AUTH] ✅ User data loaded:', userData.id);
+              token.id = userData.id;
+              token.role = userData.role;
+              token.organizationId = userData.organization_id;
               
-              if (orgData) {
-                token.organizationName = orgData.name;
-                token.accountType = orgData.account_type;
+              // Fetch organization data if user is in an org
+              if (userData.organization_id) {
+                const { data: orgData } = await supabase
+                  .from('organizations')
+                  .select('name, account_type')
+                  .eq('id', userData.organization_id)
+                  .single();
+                
+                if (orgData) {
+                  token.organizationName = orgData.name;
+                  token.accountType = orgData.account_type;
+                }
+              } else {
+                token.organizationName = null;
+                token.accountType = 'individual';
               }
             } else {
-              token.organizationName = null;
+              console.error('[AUTH] Error loading user data:', userError);
+              // Set defaults if user data not found
+              token.role = 'member';
               token.accountType = 'individual';
             }
+          } else {
+            console.log('[AUTH] Supabase not configured, using basic OAuth data');
+            token.role = 'member';
+            token.accountType = 'individual';
           }
         } catch (error) {
-          console.error('[AUTH] Error in jwt callback:', error);
-          // Return token as-is if there's an error
+          console.error('[AUTH] Exception in jwt callback:', error);
+          // Set safe defaults
+          token.role = 'member';
+          token.accountType = 'individual';
         }
       }
 

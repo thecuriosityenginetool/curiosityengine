@@ -68,24 +68,27 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
           .from('users')
           .select('id')
           .eq('email', user.email)
-          .single();
+          .maybeSingle(); // Use maybeSingle() instead of single() to avoid error on no results
 
-        if (selectError && selectError.code !== 'PGRST116') {
-          // PGRST116 is "not found" error - that's ok
+        if (selectError) {
           console.error('[AUTH] Error checking user:', selectError);
         }
 
         if (!existingUser) {
-          // Create new user
+          // Create new user - generate a UUID for them
           console.log('[AUTH] Creating new user:', user.email);
+          
+          // Generate a UUID for the new user (since we're not using Supabase Auth)
+          const userId = crypto.randomUUID();
           
           const { error: createError } = await supabase
             .from('users')
             .insert({
+              id: userId,
               email: user.email,
               full_name: user.name || user.email?.split('@')[0],
               role: 'member',
-              email_provider: account?.provider === 'azure-ad' ? 'microsoft' : account?.provider || 'google',
+              is_active: true,
             });
 
           if (createError) {
@@ -93,7 +96,7 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
             console.error('[AUTH] Create user details:', createError);
             // Still allow sign in even if user creation fails
           } else {
-            console.log('[AUTH] ✅ User created successfully');
+            console.log('[AUTH] ✅ User created successfully with ID:', userId);
           }
         } else {
           console.log('[AUTH] ✅ Existing user found:', existingUser.id);

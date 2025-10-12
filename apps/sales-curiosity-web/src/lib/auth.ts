@@ -21,12 +21,16 @@ const MicrosoftProvider: Provider = {
   id: "microsoft",
   name: "Microsoft",
   type: "oidc",
+  issuer: "https://login.microsoftonline.com/common/v2.0",
   wellKnown: "https://login.microsoftonline.com/common/v2.0/.well-known/openid-configuration",
   authorization: {
+    url: "https://login.microsoftonline.com/common/oauth2/v2.0/authorize",
     params: {
       scope: "openid email profile offline_access https://graph.microsoft.com/Mail.Send https://graph.microsoft.com/Mail.ReadWrite"
     }
   },
+  token: "https://login.microsoftonline.com/common/oauth2/v2.0/token",
+  userinfo: "https://graph.microsoft.com/oidc/userinfo",
   clientId: process.env.MICROSOFT_CLIENT_ID,
   clientSecret: process.env.MICROSOFT_CLIENT_SECRET,
   profile(profile) {

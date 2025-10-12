@@ -60,6 +60,7 @@ export default function DashboardPage() {
   const [chatMessages, setChatMessages] = useState<ChatMessage[]>([]);
   const [chatInput, setChatInput] = useState('');
   const [isSendingMessage, setIsSendingMessage] = useState(false);
+  const [currentChatId, setCurrentChatId] = useState<string | null>(null);
   const chatEndRef = useRef<HTMLDivElement>(null);
   
   // Leads state
@@ -190,11 +191,39 @@ export default function DashboardPage() {
       timestamp: new Date().toISOString()
     };
 
+    const messageContent = chatInput;
     setChatMessages([...chatMessages, userMessage]);
     setChatInput('');
     setIsSendingMessage(true);
 
     try {
+      // Create chat if this is the first message
+      if (!currentChatId) {
+        const chatResponse = await fetch('/api/chats', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            title: messageContent.substring(0, 50) + (messageContent.length > 50 ? '...' : ''),
+            initialMessage: messageContent
+          }),
+        });
+
+        if (chatResponse.ok) {
+          const { chat } = await chatResponse.json();
+          setCurrentChatId(chat.id);
+        }
+      } else {
+        // Save user message to existing chat
+        await fetch(`/api/chats/${currentChatId}/messages`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            role: 'user',
+            content: messageContent
+          }),
+        });
+      }
+
       const { data: { session } } = await supabase.auth.getSession();
       if (!session) return;
 
@@ -205,7 +234,7 @@ export default function DashboardPage() {
           'Content-Type': 'application/json',
         },
         body: JSON.stringify({
-          message: chatInput,
+          message: messageContent,
           conversationHistory: chatMessages,
           userContext: userData?.user_context,
           calendarEvents
@@ -220,6 +249,18 @@ export default function DashboardPage() {
           timestamp: new Date().toISOString()
         };
         setChatMessages([...chatMessages, userMessage, assistantMessage]);
+        
+        // Save assistant message
+        if (currentChatId) {
+          await fetch(`/api/chats/${currentChatId}/messages`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              role: 'assistant',
+              content: data.response
+            }),
+          });
+        }
       }
     } catch (error) {
       console.error('Error sending message:', error);
@@ -274,6 +315,71 @@ export default function DashboardPage() {
   async function installChromeExtension() {
     // Redirect to Chrome Web Store
     window.open('https://chrome.google.com/webstore/detail/curiosity-engine/your-extension-id', '_blank');
+  }
+
+  async function handleCalendarEventClick(event: CalendarEvent) {
+    try {
+      setIsSendingMessage(true);
+      
+      // Generate message based on calendar event
+      const prompt = `Generate a professional follow-up email for this upcoming meeting:
+Title: ${event.title}
+Date: ${new Date(event.start).toLocaleDateString()} at ${new Date(event.start).toLocaleTimeString()}
+Description: ${event.description || 'No description provided'}
+Attendees: ${event.attendees?.join(', ') || 'No attendees listed'}
+
+Please include:
+1. A friendly greeting
+2. Confirmation of the meeting details
+3. A brief agenda or talking points
+4. An offer to share any preparatory materials
+5. A professional closing
+
+Keep it concise and actionable.`;
+
+      const response = await fetch('/api/chat', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          message: prompt,
+          conversationHistory: [],
+          userContext: userData?.user_context,
+        }),
+      });
+
+      if (response.ok) {
+        const data = await response.json();
+        
+        // Create Outlook draft
+        const draftResponse = await fetch('/api/email/draft', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            to: event.attendees || [],
+            subject: `RE: ${event.title}`,
+            body: data.response,
+            provider: 'microsoft' // Force Outlook
+          }),
+        });
+
+        if (draftResponse.ok) {
+          alert(`✅ Draft created in Outlook for: ${event.title}`);
+        } else {
+          // Show the generated message in chat if draft creation fails
+          const assistantMessage: ChatMessage = {
+            role: 'assistant',
+            content: `I've generated a message for "${event.title}":\n\n${data.response}\n\n(Note: Could not create Outlook draft. Please connect your Outlook account in Settings.)`,
+            timestamp: new Date().toISOString()
+          };
+          setChatMessages([...chatMessages, assistantMessage]);
+        }
+      }
+    } catch (error) {
+      console.error('Error handling calendar event:', error);
+      alert('Error generating message. Please try again.');
+    } finally {
+      setIsSendingMessage(false);
+    }
   }
 
   async function handleLogout() {
@@ -461,10 +567,19 @@ export default function DashboardPage() {
                   )}
 
                   {calendarEvents.map((event) => (
-                    <div key={event.id} className="border border-gray-200 rounded-lg p-3 hover:border-[#F95B14] transition-colors">
+                    <div 
+                      key={event.id} 
+                      className="border border-gray-200 rounded-lg p-3 hover:border-[#F95B14] hover:bg-orange-50 transition-all cursor-pointer group"
+                      onClick={() => handleCalendarEventClick(event)}
+                    >
                       <div className="flex items-start justify-between">
                         <div className="flex-1">
-                          <h3 className="font-medium text-gray-900 text-sm">{event.title}</h3>
+                          <div className="flex items-center gap-2">
+                            <h3 className="font-medium text-gray-900 text-sm">{event.title}</h3>
+                            <span className="text-xs text-gray-400 group-hover:text-[#F95B14] transition-colors">
+                              ✉️ Draft
+                            </span>
+                          </div>
                           <p className="text-xs text-gray-600 mt-1">
                             {new Date(event.start).toLocaleString('en-US', {
                               month: 'short',

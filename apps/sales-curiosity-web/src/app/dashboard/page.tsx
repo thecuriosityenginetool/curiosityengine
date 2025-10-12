@@ -447,9 +447,7 @@ export default function DashboardPage() {
       setShowEventMenu(false);
       setIsSendingMessage(true);
       
-      // Start new chat and clear messages
-      setCurrentChatId(null);
-
+      const userMessageContent = `Meeting Insights for: ${event.title}`;
       const prompt = `Provide meeting insights and preparation for:
 Title: ${event.title}
 Date: ${new Date(event.start).toLocaleDateString()} at ${new Date(event.start).toLocaleTimeString()}
@@ -462,10 +460,27 @@ Please provide:
 3. Questions to ask
 4. Follow-up actions to consider`;
 
+      // Create new chat
+      const chatResponse = await fetch('/api/chats', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          title: `Meeting Insights: ${event.title}`,
+          initialMessage: userMessageContent
+        }),
+      });
+
+      let newChatId = null;
+      if (chatResponse.ok) {
+        const { chat } = await chatResponse.json();
+        newChatId = chat.id;
+        setCurrentChatId(newChatId);
+      }
+
       // Show user's prompt in chat
       const userMessage: ChatMessage = {
         role: 'user',
-        content: `Meeting Insights for: ${event.title}`,
+        content: userMessageContent,
         timestamp: new Date().toISOString()
       };
       setChatMessages([userMessage]);
@@ -488,7 +503,21 @@ Please provide:
           timestamp: new Date().toISOString()
         };
         setChatMessages([userMessage, assistantMessage]);
+        
+        // Save assistant message to chat
+        if (newChatId) {
+          await fetch(`/api/chats/${newChatId}/messages`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              role: 'assistant',
+              content: data.response
+            }),
+          });
+        }
+        
         await createActivityLog('meeting_scheduled', `Meeting Insights: ${event.title}`, `Generated insights for meeting with ${event.attendees?.join(', ')}`);
+        loadChatHistory(); // Reload chat list
       }
     } catch (error) {
       console.error('Error generating insights:', error);
@@ -502,9 +531,7 @@ Please provide:
       setShowEventMenu(false);
       setIsSendingMessage(true);
       
-      // Start new chat
-      setCurrentChatId(null);
-
+      const userMessageContent = `Generate Email for: ${event.title}`;
       const prompt = `Generate a professional follow-up email for:
 Title: ${event.title}
 Date: ${new Date(event.start).toLocaleDateString()} at ${new Date(event.start).toLocaleTimeString()}
@@ -513,10 +540,27 @@ Attendees: ${event.attendees?.join(', ') || 'No attendees listed'}
 
 Include: greeting, meeting confirmation, brief agenda, offer to share materials, professional closing.`;
 
+      // Create new chat
+      const chatResponse = await fetch('/api/chats', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          title: `Email: ${event.title}`,
+          initialMessage: userMessageContent
+        }),
+      });
+
+      let newChatId = null;
+      if (chatResponse.ok) {
+        const { chat } = await chatResponse.json();
+        newChatId = chat.id;
+        setCurrentChatId(newChatId);
+      }
+
       // Show user's prompt in chat
       const userMessage: ChatMessage = {
         role: 'user',
-        content: `Generate Email for: ${event.title}`,
+        content: userMessageContent,
         timestamp: new Date().toISOString()
       };
       setChatMessages([userMessage]);
@@ -539,7 +583,21 @@ Include: greeting, meeting confirmation, brief agenda, offer to share materials,
           timestamp: new Date().toISOString()
         };
         setChatMessages([userMessage, assistantMessage]);
+        
+        // Save assistant message to chat
+        if (newChatId) {
+          await fetch(`/api/chats/${newChatId}/messages`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              role: 'assistant',
+              content: data.response
+            }),
+          });
+        }
+        
         await createActivityLog('email_draft_created', `Email Generated: ${event.title}`, `Generated email for meeting with ${event.attendees?.join(', ')}`);
+        loadChatHistory(); // Reload chat list
       }
     } catch (error) {
       console.error('Error generating email:', error);

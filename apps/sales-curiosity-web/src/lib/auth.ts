@@ -26,7 +26,7 @@ const MicrosoftProvider: Provider = {
   authorization: {
     url: "https://login.microsoftonline.com/common/oauth2/v2.0/authorize",
     params: {
-      scope: "openid email profile offline_access https://graph.microsoft.com/Mail.Send https://graph.microsoft.com/Mail.ReadWrite"
+      scope: "openid email profile offline_access"
     }
   },
   token: "https://login.microsoftonline.com/common/oauth2/v2.0/token",

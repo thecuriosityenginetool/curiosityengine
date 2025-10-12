@@ -14,7 +14,7 @@ function SignupForm() {
   };
 
   const handleMicrosoftSignUp = async () => {
-    await signIn('microsoft', { callbackUrl: '/dashboard' });
+    await signIn('azure-ad', { callbackUrl: '/dashboard' });
   };
 
   return (

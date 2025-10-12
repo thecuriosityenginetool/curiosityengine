@@ -23,7 +23,7 @@ function LoginForm() {
   };
 
   const handleMicrosoftSignIn = async () => {
-    await signIn('microsoft', { callbackUrl: '/dashboard' });
+    await signIn('azure-ad', { callbackUrl: '/dashboard' });
   };
 
   return (

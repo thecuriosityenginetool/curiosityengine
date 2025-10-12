@@ -1517,15 +1517,6 @@ Include: greeting, meeting confirmation, brief agenda, offer to share materials,
                   }));
                 }}
               >
-                {/* Gradient overlay */}
-                <div 
-                  className="absolute h-32 w-32 rounded-full bg-gradient-to-b from-[#F95B14]/20 via-[#F95B14]/10 to-transparent blur-xl transition-all duration-500 ease-out pointer-events-none"
-                  style={{
-                    left: `${cardMousePositions.linkedin?.x || 0}px`,
-                    top: `${cardMousePositions.linkedin?.y || 0}px`,
-                    transform: 'translate(-50%, -50%)'
-                  }}
-                />
                 <div>
                   <div className="flex items-center gap-4 mb-6">
                     <div className="w-10 h-10 bg-blue-600 rounded-lg flex items-center justify-center">
@@ -1606,15 +1597,6 @@ Include: greeting, meeting confirmation, brief agenda, offer to share materials,
                   }));
                 }}
               >
-                {/* Gradient overlay */}
-                <div 
-                  className="absolute h-32 w-32 rounded-full bg-gradient-to-b from-[#F95B14]/20 via-[#F95B14]/10 to-transparent blur-xl transition-all duration-500 ease-out pointer-events-none"
-                  style={{
-                    left: `${cardMousePositions.gmail?.x || 0}px`,
-                    top: `${cardMousePositions.gmail?.y || 0}px`,
-                    transform: 'translate(-50%, -50%)'
-                  }}
-                />
                 <div>
                   <div className="flex items-center gap-4 mb-6">
                     <Image 
@@ -1672,15 +1654,6 @@ Include: greeting, meeting confirmation, brief agenda, offer to share materials,
                   }));
                 }}
               >
-                {/* Gradient overlay */}
-                <div 
-                  className="absolute h-32 w-32 rounded-full bg-gradient-to-b from-[#F95B14]/20 via-[#F95B14]/10 to-transparent blur-xl transition-all duration-500 ease-out pointer-events-none"
-                  style={{
-                    left: `${cardMousePositions.outlook?.x || 0}px`,
-                    top: `${cardMousePositions.outlook?.y || 0}px`,
-                    transform: 'translate(-50%, -50%)'
-                  }}
-                />
                 <div>
                   <div className="flex items-center gap-4 mb-6">
                     <Image 
@@ -1748,15 +1721,6 @@ Include: greeting, meeting confirmation, brief agenda, offer to share materials,
                   }));
                 }}
               >
-                {/* Gradient overlay */}
-                <div 
-                  className="absolute h-32 w-32 rounded-full bg-gradient-to-b from-[#F95B14]/20 via-[#F95B14]/10 to-transparent blur-xl transition-all duration-500 ease-out pointer-events-none"
-                  style={{
-                    left: `${cardMousePositions.hubspot?.x || 0}px`,
-                    top: `${cardMousePositions.hubspot?.y || 0}px`,
-                    transform: 'translate(-50%, -50%)'
-                  }}
-                />
                 <div>
                   <div className="flex items-center gap-4 mb-6">
                     <Image 
@@ -1814,15 +1778,6 @@ Include: greeting, meeting confirmation, brief agenda, offer to share materials,
                   }));
                 }}
               >
-                {/* Gradient overlay */}
-                <div 
-                  className="absolute h-32 w-32 rounded-full bg-gradient-to-b from-[#F95B14]/20 via-[#F95B14]/10 to-transparent blur-xl transition-all duration-500 ease-out pointer-events-none"
-                  style={{
-                    left: `${cardMousePositions.googlecal?.x || 0}px`,
-                    top: `${cardMousePositions.googlecal?.y || 0}px`,
-                    transform: 'translate(-50%, -50%)'
-                  }}
-                />
                 <div>
                   <div className="flex items-center gap-4 mb-6">
                     <Image 

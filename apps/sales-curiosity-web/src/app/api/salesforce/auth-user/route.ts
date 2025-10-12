@@ -1,33 +1,12 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { getSalesforceAuthUrl } from '@/lib/salesforce';
 import { createClient } from '@supabase/supabase-js';
+import { auth } from '@/lib/auth';
 
 const supabase = createClient(
   process.env.NEXT_PUBLIC_SUPABASE_URL!,
   process.env.SUPABASE_SERVICE_ROLE_KEY!
 );
-
-function corsHeaders(origin?: string) {
-  return {
-    'Access-Control-Allow-Origin': origin || '*',
-    'Access-Control-Allow-Methods': 'GET, OPTIONS',
-    'Access-Control-Allow-Headers': 'Content-Type, Authorization',
-  };
-}
-
-function isAllowedOrigin(origin: string | null) {
-  if (!origin) return false;
-  const allowed = [
-    'chrome-extension://',
-    process.env.NEXT_PUBLIC_APP_URL || '',
-  ];
-  return allowed.some((prefix) => origin.startsWith(prefix));
-}
-
-export async function OPTIONS(req: NextRequest) {
-  const origin = req.headers.get('origin');
-  return NextResponse.json({}, { status: 200, headers: corsHeaders(origin) });
-}
 
 /**
  * Initiate Salesforce OAuth flow for individual user
@@ -35,53 +14,31 @@ export async function OPTIONS(req: NextRequest) {
  */
 export async function GET(req: NextRequest) {
   try {
-    const origin = req.headers.get('origin');
+    const session = await auth();
     
-    if (!isAllowedOrigin(origin)) {
-      return NextResponse.json(
-        { error: 'Forbidden' },
-        { status: 403, headers: corsHeaders(origin) }
-      );
+    if (!session?.user?.email) {
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
-    // Get auth token from header
-    const authHeader = req.headers.get('authorization');
-    if (!authHeader || !authHeader.startsWith('Bearer ')) {
-      return NextResponse.json(
-        { error: 'Unauthorized' },
-        { status: 401, headers: corsHeaders(origin) }
-      );
-    }
-
-    const token = authHeader.substring(7);
-    const { data: { user }, error: authError } = await supabase.auth.getUser(token);
-    
-    if (authError || !user) {
-      return NextResponse.json(
-        { error: 'Invalid token' },
-        { status: 401, headers: corsHeaders(origin) }
-      );
-    }
-
-    // Get user's organization to verify they're individual account
-    const { data: userData, error: userError } = await supabase
+    // Get user data
+    const { data: userData } = await supabase
       .from('users')
-      .select('id, organization_id, organizations(account_type)')
-      .eq('id', user.id)
-      .single();
+      .select('id, organization_id')
+      .eq('email', session.user.email)
+      .maybeSingle();
 
-    if (userError || !userData) {
-      return NextResponse.json(
-        { error: 'User not found' },
-        { status: 404, headers: corsHeaders(origin) }
-      );
+    if (!userData) {
+      return NextResponse.json({ error: 'User not found' }, { status: 404 });
     }
+
+    // Use user ID for individual connections, create dummy org if needed
+    const organizationId = userData.organization_id || userData.id;
 
     // Create state token with user_id and organization_id
     const state = Buffer.from(
       JSON.stringify({
-        userId: user.id,
-        organizationId: userData.organization_id,
+        userId: userData.id,
+        organizationId: organizationId,
         type: 'user', // Mark this as user-level connection
         timestamp: Date.now(),
       })
@@ -90,18 +47,15 @@ export async function GET(req: NextRequest) {
     // Generate Salesforce OAuth URL (user-level = true)
     const authUrl = getSalesforceAuthUrl(state, true);
 
-    return NextResponse.json(
-      {
-        ok: true,
-        authUrl,
-      },
-      { headers: corsHeaders(origin) }
-    );
+    return NextResponse.json({
+      ok: true,
+      authUrl,
+    });
   } catch (error) {
     console.error('Error initiating user Salesforce OAuth:', error);
     return NextResponse.json(
       { error: 'Failed to initiate OAuth flow' },
-      { status: 500, headers: corsHeaders() }
+      { status: 500 }
     );
   }
 }

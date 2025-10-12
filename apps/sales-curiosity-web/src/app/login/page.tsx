@@ -11,9 +11,19 @@ function LoginForm() {
   const { data: session, status } = useSession();
   const error = searchParams.get('error');
 
+  // Log error for debugging
+  useEffect(() => {
+    if (error) {
+      console.error('🔴 NextAuth Error:', error);
+      console.error('🔴 Full URL:', window.location.href);
+      console.error('🔴 All search params:', Object.fromEntries(searchParams.entries()));
+    }
+  }, [error, searchParams]);
+
   // Redirect if already logged in
   useEffect(() => {
     if (status === 'authenticated' && session?.user) {
+      console.log('✅ User authenticated, redirecting to dashboard');
       router.push('/dashboard');
     }
   }, [status, session, router]);
@@ -54,7 +64,9 @@ function LoginForm() {
         {/* Error Message */}
         {error && (
           <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-lg mb-6">
-            Authentication failed. Please try again.
+            <p className="font-semibold">Authentication failed</p>
+            <p className="text-sm mt-1">Error: {error}</p>
+            <p className="text-xs mt-2">Check the browser console for more details.</p>
           </div>
         )}
 

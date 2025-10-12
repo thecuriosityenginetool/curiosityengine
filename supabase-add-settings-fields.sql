@@ -102,6 +102,39 @@ COMMENT ON COLUMN public.sales_materials.extracted_text IS 'AI-extracted text co
 COMMENT ON COLUMN public.sales_materials.file_url IS 'URL to the file in Supabase Storage';
 COMMENT ON COLUMN public.sales_materials.category IS 'Type of sales material';
 
+-- Create storage bucket for sales materials
+INSERT INTO storage.buckets (id, name, public, file_size_limit, allowed_mime_types)
+VALUES (
+  'sales-materials',
+  'sales-materials',
+  true,
+  10485760, -- 10MB
+  ARRAY['application/pdf', 'application/vnd.openxmlformats-officedocument.wordprocessingml.document', 'text/plain', 'application/vnd.openxmlformats-officedocument.presentationml.presentation']
+)
+ON CONFLICT (id) DO NOTHING;
+
+-- Storage policies for sales-materials bucket
+CREATE POLICY "Users can upload their own sales materials"
+  ON storage.objects FOR INSERT
+  WITH CHECK (
+    bucket_id = 'sales-materials' AND
+    auth.uid()::text = (storage.foldername(name))[1]
+  );
+
+CREATE POLICY "Users can view their own sales materials"
+  ON storage.objects FOR SELECT
+  USING (
+    bucket_id = 'sales-materials' AND
+    auth.uid()::text = (storage.foldername(name))[1]
+  );
+
+CREATE POLICY "Users can delete their own sales materials"
+  ON storage.objects FOR DELETE
+  USING (
+    bucket_id = 'sales-materials' AND
+    auth.uid()::text = (storage.foldername(name))[1]
+  );
+
 -- Verify changes
 SELECT 
   table_name, 

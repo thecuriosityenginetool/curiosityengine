@@ -74,6 +74,16 @@ export default function DashboardPage() {
   // Activity logs state
   const [activityLogs, setActivityLogs] = useState<any[]>([]);
   
+  // Settings state
+  const [profileData, setProfileData] = useState({
+    full_name: '',
+    job_title: '',
+    company_name: '',
+    company_url: ''
+  });
+  const [salesMaterials, setSalesMaterials] = useState<any[]>([]);
+  const [uploadingFile, setUploadingFile] = useState(false);
+  
   // Connector card mouse positions
   const [cardMousePositions, setCardMousePositions] = useState<{
     [key: string]: { x: number; y: number };
@@ -105,6 +115,9 @@ export default function DashboardPage() {
       checkChromeExtension();
     } else if (activeTab === 'logs' && user) {
       loadActivityLogs();
+    } else if (activeTab === 'context' && user) {
+      loadProfileData();
+      loadSalesMaterials();
     }
   }, [activeTab, user]);
 
@@ -558,6 +571,105 @@ Include: greeting, meeting confirmation, brief agenda, offer to share materials,
     } catch (error) {
       console.error('Error updating CRM:', error);
       alert('❌ Error updating CRM. Please connect your CRM first.');
+    }
+  }
+
+  async function loadProfileData() {
+    try {
+      const response = await fetch('/api/user/profile');
+      if (response.ok) {
+        const data = await response.json();
+        setProfileData({
+          full_name: data.user.full_name || '',
+          job_title: data.user.job_title || '',
+          company_name: data.user.company_name || '',
+          company_url: data.user.company_url || ''
+        });
+      }
+    } catch (error) {
+      console.error('Error loading profile:', error);
+    }
+  }
+
+  async function saveProfileData() {
+    try {
+      const response = await fetch('/api/user/profile', {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(profileData),
+      });
+
+      if (response.ok) {
+        alert('✅ Profile saved successfully!');
+      } else {
+        alert('❌ Failed to save profile');
+      }
+    } catch (error) {
+      console.error('Error saving profile:', error);
+      alert('❌ Error saving profile');
+    }
+  }
+
+  async function loadSalesMaterials() {
+    try {
+      const response = await fetch('/api/sales-materials');
+      if (response.ok) {
+        const data = await response.json();
+        setSalesMaterials(data.materials || []);
+      }
+    } catch (error) {
+      console.error('Error loading materials:', error);
+    }
+  }
+
+  async function handleFileUpload(event: React.ChangeEvent<HTMLInputElement>) {
+    const file = event.target.files?.[0];
+    if (!file) return;
+
+    setUploadingFile(true);
+    try {
+      const formData = new FormData();
+      formData.append('file', file);
+      formData.append('category', 'sales_guide');
+
+      const response = await fetch('/api/sales-materials', {
+        method: 'POST',
+        body: formData,
+      });
+
+      if (response.ok) {
+        alert('✅ File uploaded successfully!');
+        loadSalesMaterials();
+        await createActivityLog('integration_connected', `Sales Material Uploaded: ${file.name}`);
+      } else {
+        alert('❌ Failed to upload file');
+      }
+    } catch (error) {
+      console.error('Error uploading file:', error);
+      alert('❌ Error uploading file');
+    } finally {
+      setUploadingFile(false);
+      event.target.value = ''; // Reset input
+    }
+  }
+
+  async function deleteMaterial(materialId: string) {
+    if (!confirm('Are you sure you want to delete this material?')) return;
+
+    try {
+      const response = await fetch(`/api/sales-materials?id=${materialId}`, {
+        method: 'DELETE',
+      });
+
+      if (response.ok) {
+        alert('✅ Material deleted');
+        loadSalesMaterials();
+      } else {
+        alert('❌ Failed to delete material');
+      }
+    } catch (error) {
+      console.error('Error deleting material:', error);
+      alert('❌ Error deleting material');
     }
   }
 
@@ -1020,7 +1132,8 @@ Include: greeting, meeting confirmation, brief agenda, offer to share materials,
                     </label>
                     <input
                       type="text"
-                      defaultValue={userData.full_name || ''}
+                      value={profileData.full_name}
+                      onChange={(e) => setProfileData({...profileData, full_name: e.target.value})}
                       className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#F95B14] focus:border-transparent outline-none"
                       placeholder="John Doe"
                     />
@@ -1031,6 +1144,8 @@ Include: greeting, meeting confirmation, brief agenda, offer to share materials,
                     </label>
                     <input
                       type="text"
+                      value={profileData.job_title}
+                      onChange={(e) => setProfileData({...profileData, job_title: e.target.value})}
                       className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#F95B14] focus:border-transparent outline-none"
                       placeholder="Sales Manager"
                     />
@@ -1041,6 +1156,8 @@ Include: greeting, meeting confirmation, brief agenda, offer to share materials,
                     </label>
                     <input
                       type="text"
+                      value={profileData.company_name}
+                      onChange={(e) => setProfileData({...profileData, company_name: e.target.value})}
                       className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#F95B14] focus:border-transparent outline-none"
                       placeholder="Acme Corp"
                     />
@@ -1051,10 +1168,20 @@ Include: greeting, meeting confirmation, brief agenda, offer to share materials,
                     </label>
                     <input
                       type="url"
+                      value={profileData.company_url}
+                      onChange={(e) => setProfileData({...profileData, company_url: e.target.value})}
                       className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#F95B14] focus:border-transparent outline-none"
                       placeholder="https://acme.com"
                     />
                   </div>
+                </div>
+                <div className="mt-4">
+                  <button
+                    onClick={saveProfileData}
+                    className="bg-[#F95B14] text-white px-6 py-2 rounded-lg font-semibold hover:bg-orange-600 transition-colors"
+                  >
+                    Save Profile
+                  </button>
                 </div>
               </div>
 
@@ -1099,19 +1226,48 @@ Include: greeting, meeting confirmation, brief agenda, offer to share materials,
                     accept=".pdf,.docx,.txt,.pptx"
                     className="hidden"
                     id="sales-materials-upload"
+                    onChange={handleFileUpload}
+                    disabled={uploadingFile}
                   />
                   <label
                     htmlFor="sales-materials-upload"
                     className="cursor-pointer"
                   >
-                    <div className="text-4xl mb-2">📄</div>
-                    <p className="text-sm font-medium text-gray-900">Click to upload sales materials</p>
-                    <p className="text-xs text-gray-500 mt-1">PDF, DOCX, TXT, PPTX (Max 10MB)</p>
+                    {uploadingFile ? (
+                      <>
+                        <div className="text-4xl mb-2">⏳</div>
+                        <p className="text-sm font-medium text-gray-900">Uploading...</p>
+                      </>
+                    ) : (
+                      <>
+                        <div className="text-4xl mb-2">📄</div>
+                        <p className="text-sm font-medium text-gray-900">Click to upload sales materials</p>
+                        <p className="text-xs text-gray-500 mt-1">PDF, DOCX, TXT, PPTX (Max 10MB)</p>
+                      </>
+                    )}
                   </label>
                 </div>
-                {/* Uploaded files list - placeholder */}
+                {/* Uploaded files list */}
                 <div className="mt-4 space-y-2">
-                  {/* Files will be listed here */}
+                  {salesMaterials.length > 0 && (
+                    <h4 className="text-sm font-medium text-gray-700 mb-2">Uploaded Materials ({salesMaterials.length})</h4>
+                  )}
+                  {salesMaterials.map((material) => (
+                    <div key={material.id} className="flex items-center justify-between p-3 bg-gray-50 rounded-lg border border-gray-200">
+                      <div className="flex-1">
+                        <p className="text-sm font-medium text-gray-900">{material.file_name}</p>
+                        <p className="text-xs text-gray-500 mt-1">
+                          {material.category} • {(material.file_size / 1024).toFixed(1)} KB • {new Date(material.created_at).toLocaleDateString()}
+                        </p>
+                      </div>
+                      <button
+                        onClick={() => deleteMaterial(material.id)}
+                        className="text-red-600 hover:text-red-800 transition-colors ml-4"
+                      >
+                        🗑️
+                      </button>
+                    </div>
+                  ))}
                 </div>
               </div>
 

@@ -135,10 +135,14 @@ export default function Home() {
         }
       });
       
-      // Redirect org admins immediately
+      // Redirect based on role
       if (session.user.role === 'org_admin' || session.user.role === 'super_admin') {
         console.log('🏢 Org admin detected, redirecting...');
         router.push('/admin/organization');
+      } else {
+        // Regular members go to dashboard
+        console.log('👤 Regular member, redirecting to dashboard...');
+        router.push('/dashboard');
       }
     }
   }, [status, session, router]);

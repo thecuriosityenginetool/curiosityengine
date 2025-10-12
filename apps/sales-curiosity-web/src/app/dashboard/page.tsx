@@ -2,7 +2,7 @@
 
 import { useEffect, useState, useRef } from 'react';
 import { useRouter } from 'next/navigation';
-import { useSession } from 'next-auth/react';
+import { useSession, signOut } from 'next-auth/react';
 import { supabase } from '@/lib/supabase';
 import Image from 'next/image';
 
@@ -277,8 +277,7 @@ export default function DashboardPage() {
   }
 
   async function handleLogout() {
-    await supabase.auth.signOut();
-    router.push('/login');
+    await signOut({ callbackUrl: '/' });
   }
 
   if (loading) {

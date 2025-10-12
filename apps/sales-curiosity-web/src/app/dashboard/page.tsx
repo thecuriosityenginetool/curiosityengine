@@ -90,11 +90,6 @@ export default function DashboardPage() {
   const [hasOutlookConnection, setHasOutlookConnection] = useState(false);
   const [hasSalesforceConnection, setHasSalesforceConnection] = useState(false);
   
-  // Connector card mouse positions
-  const [cardMousePositions, setCardMousePositions] = useState<{
-    [key: string]: { x: number; y: number };
-  }>({});
-  
   // Chrome extension detection
   const [hasChromeExtension, setHasChromeExtension] = useState<boolean | null>(null);
 
@@ -390,50 +385,50 @@ export default function DashboardPage() {
 
   async function checkChromeExtension() {
     try {
-      // Check if the Chrome extension is installed
-      const extensionId = 'your-extension-id'; // Replace with actual extension ID
-      
-      // Try to communicate with the extension
-      const response = await fetch(`chrome-extension://${extensionId}/manifest.json`);
-      setHasChromeExtension(response.ok);
-    } catch (error) {
-      // Fallback: check if extension object exists in window
-      if (typeof window !== 'undefined' && (window as any).curiosityEngineExtension) {
-        setHasChromeExtension(true);
+      // Check if extension is installed by looking for injected script
+      if (typeof window !== 'undefined') {
+        // Extension injects a global variable
+        setHasChromeExtension(!!(window as any).salesCuriosityExtension);
       } else {
         setHasChromeExtension(false);
       }
+    } catch (error) {
+      setHasChromeExtension(false);
     }
   }
 
   async function connectToSalesforce() {
-    // TODO: Implement Salesforce OAuth flow
-    alert('Salesforce integration coming soon!');
+    connectSalesforce(); // Use the function we created
   }
 
   async function connectToGmail() {
-    // TODO: Implement Gmail OAuth flow
+    // Gmail uses Google OAuth - similar to Outlook
     alert('Gmail integration coming soon!');
   }
 
   async function connectToOutlook() {
-    // TODO: Implement Outlook OAuth flow
-    alert('Outlook integration coming soon!');
+    connectOutlook(); // Use the function we created
   }
 
   async function connectToHubSpot() {
-    // TODO: Implement HubSpot OAuth flow
-    alert('HubSpot integration coming soon!');
+    try {
+      const response = await fetch('/api/hubspot/auth-user');
+      if (response.ok) {
+        const data = await response.json();
+        window.location.href = data.authUrl;
+      }
+    } catch (error) {
+      console.error('Error connecting HubSpot:', error);
+    }
   }
 
   async function connectToGoogleCalendar() {
-    // TODO: Implement Google Calendar OAuth flow
     alert('Google Calendar integration coming soon!');
   }
 
   async function installChromeExtension() {
-    // Redirect to Chrome Web Store
-    window.open('https://chrome.google.com/webstore/detail/curiosity-engine/your-extension-id', '_blank');
+    // Link to your published extension or download page
+    window.open('https://www.curiosityengine.io/install', '_blank');
   }
 
   function handleCalendarEventClick(event: CalendarEvent, e: React.MouseEvent) {
@@ -978,14 +973,14 @@ Include: greeting, meeting confirmation, brief agenda, offer to share materials,
                         msg.role === 'user' ? '' : 'space-y-2'
                       }`}>
                         <div className={`rounded-lg px-4 py-2 ${
-                          msg.role === 'user' 
-                            ? 'bg-[#F95B14] text-white' 
-                            : 'bg-gray-100 text-gray-900'
-                        }`}>
-                          <div className="text-sm whitespace-pre-wrap">{msg.content}</div>
-                          <div className="text-xs opacity-70 mt-1">
-                            {new Date(msg.timestamp).toLocaleTimeString()}
-                          </div>
+                        msg.role === 'user' 
+                          ? 'bg-[#F95B14] text-white' 
+                          : 'bg-gray-100 text-gray-900'
+                      }`}>
+                        <div className="text-sm whitespace-pre-wrap">{msg.content}</div>
+                        <div className="text-xs opacity-70 mt-1">
+                          {new Date(msg.timestamp).toLocaleTimeString()}
+                        </div>
                         </div>
                         {/* Action buttons for assistant messages */}
                         {msg.role === 'assistant' && (
@@ -1095,34 +1090,34 @@ Include: greeting, meeting confirmation, brief agenda, offer to share materials,
                         className="border border-gray-200 rounded-lg p-3 hover:border-[#F95B14] hover:bg-orange-50 transition-all cursor-pointer group"
                         onClick={(e) => handleCalendarEventClick(event, e)}
                       >
-                        <div className="flex items-start justify-between">
-                          <div className="flex-1">
+                      <div className="flex items-start justify-between">
+                        <div className="flex-1">
                             <div className="flex items-center gap-2">
-                              <h3 className="font-medium text-gray-900 text-sm">{event.title}</h3>
+                          <h3 className="font-medium text-gray-900 text-sm">{event.title}</h3>
                               <span className="text-xs text-gray-400 group-hover:text-[#F95B14] transition-colors">
                                 ⚡ Actions
                               </span>
                             </div>
-                            <p className="text-xs text-gray-600 mt-1">
-                              {new Date(event.start).toLocaleString('en-US', {
-                                month: 'short',
-                                day: 'numeric',
-                                hour: 'numeric',
-                                minute: '2-digit'
-                              })}
-                            </p>
-                            {event.description && (
-                              <p className="text-xs text-gray-500 mt-1">{event.description}</p>
-                            )}
-                          </div>
-                          <span className={`text-xs px-2 py-1 rounded-full ${
-                            event.type === 'meeting' ? 'bg-blue-100 text-blue-800' :
-                            event.type === 'demo' ? 'bg-green-100 text-green-800' :
-                            'bg-purple-100 text-purple-800'
-                          }`}>
-                            {event.type || 'event'}
-                          </span>
+                          <p className="text-xs text-gray-600 mt-1">
+                            {new Date(event.start).toLocaleString('en-US', {
+                              month: 'short',
+                              day: 'numeric',
+                              hour: 'numeric',
+                              minute: '2-digit'
+                            })}
+                          </p>
+                          {event.description && (
+                            <p className="text-xs text-gray-500 mt-1">{event.description}</p>
+                          )}
                         </div>
+                        <span className={`text-xs px-2 py-1 rounded-full ${
+                          event.type === 'meeting' ? 'bg-blue-100 text-blue-800' :
+                          event.type === 'demo' ? 'bg-green-100 text-green-800' :
+                          'bg-purple-100 text-purple-800'
+                        }`}>
+                          {event.type || 'event'}
+                        </span>
+                      </div>
                       </div>
                       
                       {/* Dropdown Menu - appears above if it's one of the last events */}
@@ -1308,9 +1303,9 @@ Include: greeting, meeting confirmation, brief agenda, offer to share materials,
               {/* Context Section */}
               <div className="mb-8">
                 <h3 className="text-lg font-semibold text-gray-900 mb-4">AI Context</h3>
-                <ContextForm 
-                  context={userData.user_context || { aboutMe: '', objectives: '' }}
-                  onSave={async (context) => {
+              <ContextForm 
+                context={userData.user_context || { aboutMe: '', objectives: '' }}
+                onSave={async (context) => {
                   const { data: { session } } = await supabase.auth.getSession();
                   if (!session) return;
 
@@ -1331,7 +1326,7 @@ Include: greeting, meeting confirmation, brief agenda, offer to share materials,
                   }
                 }}
               />
-              </div>
+            </div>
 
               {/* Sales Materials Upload */}
               <div className="mb-8">
@@ -1366,7 +1361,7 @@ Include: greeting, meeting confirmation, brief agenda, offer to share materials,
                       </>
                     )}
                   </label>
-                </div>
+          </div>
                 {/* Uploaded files list */}
                 <div className="mt-4 space-y-2">
                   {salesMaterials.length > 0 && (
@@ -1432,35 +1427,8 @@ Include: greeting, meeting confirmation, brief agenda, offer to share materials,
             
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
               {/* Salesforce */}
-              <div 
-                className="rounded-2xl border border-gray-200 bg-white p-8 relative overflow-hidden hover:shadow-lg transition-shadow"
-                onMouseMove={(e) => {
-                  const rect = e.currentTarget.getBoundingClientRect();
-                  setCardMousePositions(prev => ({
-                    ...prev,
-                    salesforce: {
-                      x: e.clientX - rect.left,
-                      y: e.clientY - rect.top
-                    }
-                  }));
-                }}
-                onMouseLeave={() => {
-                  setCardMousePositions(prev => ({
-                    ...prev,
-                    salesforce: { x: 0, y: 0 }
-                  }));
-                }}
-              >
-                {/* Gradient overlay */}
-                <div 
-                  className="absolute h-32 w-32 rounded-full bg-gradient-to-b from-[#F95B14]/20 via-[#F95B14]/10 to-transparent blur-xl transition-all duration-500 ease-out pointer-events-none"
-                  style={{
-                    left: `${cardMousePositions.salesforce?.x || 0}px`,
-                    top: `${cardMousePositions.salesforce?.y || 0}px`,
-                    transform: 'translate(-50%, -50%)'
-                  }}
-                />
-                <div className="relative z-10">
+              <div className="rounded-2xl border border-gray-200 bg-white p-8 hover:shadow-lg transition-shadow">
+                <div>
                   <div className="flex items-center gap-4 mb-6">
                     <Image 
                       src="/salesforcelogo.svg" 
@@ -1483,15 +1451,25 @@ Include: greeting, meeting confirmation, brief agenda, offer to share materials,
                     </p>
                   </div>
                   <div className="mt-6 flex items-center justify-between">
-                    <span className="px-3 py-1 text-xs rounded-full bg-gray-100 text-gray-600">
-                      Coming Soon
+                    {hasSalesforceConnection ? (
+                      <span className="px-3 py-1 text-xs rounded-full bg-green-100 text-green-800 font-medium">
+                        ✓ Connected
                     </span>
+                    ) : (
+                      <span className="px-3 py-1 text-xs rounded-full bg-blue-100 text-blue-800 font-medium">
+                        Ready to Connect
+                      </span>
+                    )}
                     <button
                       onClick={connectToSalesforce}
-                      disabled
-                      className="px-4 py-2 text-sm font-medium text-gray-400 bg-gray-100 rounded-lg cursor-not-allowed"
+                      disabled={hasSalesforceConnection}
+                      className={`px-4 py-2 text-sm font-medium rounded-lg transition-colors ${
+                        hasSalesforceConnection
+                          ? 'text-gray-400 bg-gray-100 cursor-not-allowed'
+                          : 'text-white bg-[#F95B14] hover:bg-orange-600'
+                      }`}
                     >
-                      Connect
+                      {hasSalesforceConnection ? 'Connected' : 'Connect'}
                     </button>
                   </div>
                 </div>
@@ -1704,15 +1682,25 @@ Include: greeting, meeting confirmation, brief agenda, offer to share materials,
                     </p>
                   </div>
                   <div className="mt-6 flex items-center justify-between">
-                    <span className="px-3 py-1 text-xs rounded-full bg-gray-100 text-gray-600">
-                      Coming Soon
+                    {hasOutlookConnection ? (
+                      <span className="px-3 py-1 text-xs rounded-full bg-green-100 text-green-800 font-medium">
+                        ✓ Connected
                     </span>
+                    ) : (
+                      <span className="px-3 py-1 text-xs rounded-full bg-blue-100 text-blue-800 font-medium">
+                        Ready to Connect
+                      </span>
+                    )}
                     <button
                       onClick={connectToOutlook}
-                      disabled
-                      className="px-4 py-2 text-sm font-medium text-gray-400 bg-gray-100 rounded-lg cursor-not-allowed"
+                      disabled={hasOutlookConnection}
+                      className={`px-4 py-2 text-sm font-medium rounded-lg transition-colors ${
+                        hasOutlookConnection
+                          ? 'text-gray-400 bg-gray-100 cursor-not-allowed'
+                          : 'text-white bg-[#F95B14] hover:bg-orange-600'
+                      }`}
                     >
-                      Connect
+                      {hasOutlookConnection ? 'Connected' : 'Connect'}
                     </button>
                   </div>
                 </div>
@@ -1859,7 +1847,7 @@ Include: greeting, meeting confirmation, brief agenda, offer to share materials,
               <div className="p-6 border-b border-gray-200">
                 <h2 className="text-2xl font-bold text-gray-900">📋 Activity Logs</h2>
                 <p className="text-gray-600 mt-2">Track all AI-powered actions and integrations</p>
-              </div>
+      </div>
 
               <div className="divide-y divide-gray-200">
                 {activityLogs.length === 0 && (

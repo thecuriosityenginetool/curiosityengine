@@ -26,7 +26,7 @@ export async function GET(
       .from('users')
       .select('id')
       .eq('email', session.user.email)
-      .single();
+      .maybeSingle();
 
     if (!user) {
       return NextResponse.json({ error: 'User not found' }, { status: 404 });
@@ -37,7 +37,7 @@ export async function GET(
       .select('id')
       .eq('id', chatId)
       .eq('user_id', user.id)
-      .single();
+      .maybeSingle();
 
     if (!chat) {
       return NextResponse.json({ error: 'Chat not found' }, { status: 404 });
@@ -90,7 +90,7 @@ export async function POST(
       .from('users')
       .select('id')
       .eq('email', session.user.email)
-      .single();
+      .maybeSingle();
 
     if (!user) {
       return NextResponse.json({ error: 'User not found' }, { status: 404 });
@@ -101,7 +101,7 @@ export async function POST(
       .select('id')
       .eq('id', chatId)
       .eq('user_id', user.id)
-      .single();
+      .maybeSingle();
 
     if (!chat) {
       return NextResponse.json({ error: 'Chat not found' }, { status: 404 });
@@ -117,7 +117,7 @@ export async function POST(
         metadata: metadata || {},
       })
       .select()
-      .single();
+      .maybeSingle();
 
     if (error) {
       console.error('Error creating message:', error);

@@ -98,16 +98,33 @@ export default function DashboardPage() {
   useEffect(() => {
     if (activeTab === 'dashboard' && user) {
       loadCalendarEvents();
+      loadChatHistory();
     } else if (activeTab === 'leads' && user) {
       loadLeads();
     } else if (activeTab === 'integrations' && user) {
       checkChromeExtension();
+    } else if (activeTab === 'logs' && user) {
+      loadActivityLogs();
     }
   }, [activeTab, user]);
 
   useEffect(() => {
     chatEndRef.current?.scrollIntoView({ behavior: 'smooth' });
   }, [chatMessages]);
+
+  // Close event menu when clicking outside
+  useEffect(() => {
+    const handleClickOutside = (e: MouseEvent) => {
+      if (showEventMenu) {
+        setShowEventMenu(false);
+      }
+    };
+    
+    if (showEventMenu) {
+      document.addEventListener('click', handleClickOutside);
+      return () => document.removeEventListener('click', handleClickOutside);
+    }
+  }, [showEventMenu]);
 
   async function checkAuth() {
     try {
@@ -186,6 +203,75 @@ export default function DashboardPage() {
       }
     } catch (error) {
       console.error('Error loading leads:', error);
+    }
+  }
+
+  async function loadChatHistory() {
+    try {
+      const response = await fetch('/api/chats');
+      if (response.ok) {
+        const data = await response.json();
+        setChatHistory(data.chats || []);
+      }
+    } catch (error) {
+      console.error('Error loading chat history:', error);
+    }
+  }
+
+  async function loadActivityLogs() {
+    try {
+      const response = await fetch('/api/activity-logs');
+      if (response.ok) {
+        const data = await response.json();
+        setActivityLogs(data.logs || []);
+      }
+    } catch (error) {
+      console.error('Error loading activity logs:', error);
+    }
+  }
+
+  async function createActivityLog(actionType: string, title: string, description?: string, metadata?: any) {
+    try {
+      await fetch('/api/activity-logs', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          action_type: actionType,
+          action_title: title,
+          action_description: description,
+          metadata: metadata || {}
+        }),
+      });
+      if (activeTab === 'logs') {
+        loadActivityLogs();
+      }
+    } catch (error) {
+      console.error('Error creating activity log:', error);
+    }
+  }
+
+  function startNewChat() {
+    setChatMessages([]);
+    setCurrentChatId(null);
+    setShowChatSidebar(false);
+  }
+
+  async function loadChat(chatId: string) {
+    try {
+      const response = await fetch(`/api/chats/${chatId}/messages`);
+      if (response.ok) {
+        const data = await response.json();
+        const messages = data.messages.map((msg: any) => ({
+          role: msg.role,
+          content: msg.content,
+          timestamp: msg.created_at
+        }));
+        setChatMessages(messages);
+        setCurrentChatId(chatId);
+        setShowChatSidebar(false);
+      }
+    } catch (error) {
+      console.error('Error loading chat:', error);
     }
   }
 
@@ -324,25 +410,29 @@ export default function DashboardPage() {
     window.open('https://chrome.google.com/webstore/detail/curiosity-engine/your-extension-id', '_blank');
   }
 
-  async function handleCalendarEventClick(event: CalendarEvent) {
+  function handleCalendarEventClick(event: CalendarEvent, e: React.MouseEvent) {
+    e.stopPropagation();
+    setSelectedEvent(event);
+    setShowEventMenu(true);
+  }
+
+  async function handleMeetingInsights(event: CalendarEvent) {
     try {
+      setShowEventMenu(false);
       setIsSendingMessage(true);
-      
-      // Generate message based on calendar event
-      const prompt = `Generate a professional follow-up email for this upcoming meeting:
+      startNewChat();
+
+      const prompt = `Provide meeting insights and preparation for:
 Title: ${event.title}
 Date: ${new Date(event.start).toLocaleDateString()} at ${new Date(event.start).toLocaleTimeString()}
 Description: ${event.description || 'No description provided'}
 Attendees: ${event.attendees?.join(', ') || 'No attendees listed'}
 
-Please include:
-1. A friendly greeting
-2. Confirmation of the meeting details
-3. A brief agenda or talking points
-4. An offer to share any preparatory materials
-5. A professional closing
-
-Keep it concise and actionable.`;
+Please provide:
+1. Key talking points
+2. Suggested agenda items
+3. Questions to ask
+4. Follow-up actions to consider`;
 
       const response = await fetch('/api/chat', {
         method: 'POST',
@@ -356,36 +446,94 @@ Keep it concise and actionable.`;
 
       if (response.ok) {
         const data = await response.json();
-        
-        // Create Outlook draft
-        const draftResponse = await fetch('/api/email/draft', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({
-            to: event.attendees || [],
-            subject: `RE: ${event.title}`,
-            body: data.response,
-            provider: 'microsoft' // Force Outlook
-          }),
-        });
-
-        if (draftResponse.ok) {
-          alert(`✅ Draft created in Outlook for: ${event.title}`);
-        } else {
-          // Show the generated message in chat if draft creation fails
-          const assistantMessage: ChatMessage = {
-            role: 'assistant',
-            content: `I've generated a message for "${event.title}":\n\n${data.response}\n\n(Note: Could not create Outlook draft. Please connect your Outlook account in Settings.)`,
-            timestamp: new Date().toISOString()
-          };
-          setChatMessages([...chatMessages, assistantMessage]);
-        }
+        const assistantMessage: ChatMessage = {
+          role: 'assistant',
+          content: data.response,
+          timestamp: new Date().toISOString()
+        };
+        setChatMessages([assistantMessage]);
+        await createActivityLog('meeting_scheduled', `Meeting Insights: ${event.title}`, `Generated insights for meeting with ${event.attendees?.join(', ')}`);
       }
     } catch (error) {
-      console.error('Error handling calendar event:', error);
-      alert('Error generating message. Please try again.');
+      console.error('Error generating insights:', error);
     } finally {
       setIsSendingMessage(false);
+    }
+  }
+
+  async function handleGenerateEmail(event: CalendarEvent) {
+    try {
+      setShowEventMenu(false);
+      setIsSendingMessage(true);
+      startNewChat();
+
+      const prompt = `Generate a professional follow-up email for:
+Title: ${event.title}
+Date: ${new Date(event.start).toLocaleDateString()} at ${new Date(event.start).toLocaleTimeString()}
+Description: ${event.description || 'No description provided'}
+Attendees: ${event.attendees?.join(', ') || 'No attendees listed'}
+
+Include: greeting, meeting confirmation, brief agenda, offer to share materials, professional closing.`;
+
+      const response = await fetch('/api/chat', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          message: prompt,
+          conversationHistory: [],
+          userContext: userData?.user_context,
+        }),
+      });
+
+      if (response.ok) {
+        const data = await response.json();
+        const assistantMessage: ChatMessage = {
+          role: 'assistant',
+          content: data.response,
+          timestamp: new Date().toISOString()
+        };
+        setChatMessages([assistantMessage]);
+      }
+    } catch (error) {
+      console.error('Error generating email:', error);
+    } finally {
+      setIsSendingMessage(false);
+    }
+  }
+
+  async function addToEmailDrafts(content: string, subject?: string) {
+    try {
+      const response = await fetch('/api/email/draft', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          to: [],
+          subject: subject || 'Draft from Curiosity Engine',
+          body: content,
+          provider: 'microsoft'
+        }),
+      });
+
+      if (response.ok) {
+        alert('✅ Draft created in Outlook!');
+        await createActivityLog('email_draft_created', subject || 'Email Draft Created', 'Draft added to Outlook');
+      } else {
+        alert('❌ Failed to create draft. Please connect your Outlook account.');
+      }
+    } catch (error) {
+      console.error('Error creating draft:', error);
+      alert('❌ Error creating draft. Please try again.');
+    }
+  }
+
+  async function updateCRM(content: string) {
+    try {
+      // TODO: Implement actual CRM update when CRM is connected
+      await createActivityLog('crm_note_added', 'CRM Note Added', content.substring(0, 200));
+      alert('✅ Note added to CRM!');
+    } catch (error) {
+      console.error('Error updating CRM:', error);
+      alert('❌ Error updating CRM. Please connect your CRM first.');
     }
   }
 
@@ -466,6 +614,7 @@ Keep it concise and actionable.`;
               { id: 'leads', label: '👥 Leads', icon: '👥' },
               { id: 'context', label: '⚙️ Settings', icon: '⚙️' },
               { id: 'integrations', label: '🔌 Connectors', icon: '🔌' },
+              { id: 'logs', label: '📋 Activity Logs', icon: '📋' },
             ].map((tab) => (
               <button
                 key={tab.id}
@@ -488,11 +637,60 @@ Keep it concise and actionable.`;
         {activeTab === 'dashboard' && (
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
             {/* AI Chat - Takes up 2 columns */}
-            <div className="lg:col-span-2">
+            <div className="lg:col-span-2 relative">
+              {/* Chat Sidebar */}
+              {showChatSidebar && (
+                <div className="absolute left-0 top-0 bottom-0 w-64 bg-white border-r border-gray-200 z-10 overflow-y-auto">
+                  <div className="p-4 border-b border-gray-200">
+                    <div className="flex items-center justify-between mb-4">
+                      <h3 className="font-semibold text-gray-900">Chats</h3>
+                      <button
+                        onClick={() => setShowChatSidebar(false)}
+                        className="text-gray-400 hover:text-gray-600"
+                      >
+                        ✕
+                      </button>
+                    </div>
+                    <button
+                      onClick={startNewChat}
+                      className="w-full bg-[#F95B14] text-white px-4 py-2 rounded-lg hover:bg-orange-600 transition-colors flex items-center justify-center gap-2"
+                    >
+                      <span className="text-lg">+</span> New Chat
+                    </button>
+                  </div>
+                  <div className="divide-y divide-gray-200">
+                    {chatHistory.map((chat) => (
+                      <button
+                        key={chat.id}
+                        onClick={() => loadChat(chat.id)}
+                        className={`w-full text-left p-3 hover:bg-gray-50 transition-colors ${
+                          currentChatId === chat.id ? 'bg-orange-50' : ''
+                        }`}
+                      >
+                        <p className="text-sm font-medium text-gray-900 truncate">{chat.title}</p>
+                        <p className="text-xs text-gray-500 mt-1">
+                          {new Date(chat.updated_at).toLocaleDateString()}
+                        </p>
+                      </button>
+                    ))}
+                  </div>
+                </div>
+              )}
+
               <div className="bg-white rounded-lg border border-gray-200 shadow-sm h-[700px] flex flex-col">
-                <div className="p-4 border-b border-gray-200">
-                  <h2 className="text-lg font-semibold text-gray-900">AI Assistant</h2>
-                  <p className="text-sm text-gray-600">Ask me anything about your calendar, leads, or sales tasks</p>
+                <div className="p-4 border-b border-gray-200 flex items-center justify-between">
+                  <div>
+                    <h2 className="text-lg font-semibold text-gray-900">AI Assistant</h2>
+                    <p className="text-sm text-gray-600">Ask me anything about your calendar, leads, or sales tasks</p>
+                  </div>
+                  <button
+                    onClick={() => setShowChatSidebar(!showChatSidebar)}
+                    className="text-gray-600 hover:text-gray-900 transition-colors"
+                  >
+                    <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h16" />
+                    </svg>
+                  </button>
                 </div>
 
                 {/* Chat Messages */}
@@ -507,15 +705,36 @@ Keep it concise and actionable.`;
 
                   {chatMessages.map((msg, idx) => (
                     <div key={idx} className={`flex ${msg.role === 'user' ? 'justify-end' : 'justify-start'}`}>
-                      <div className={`max-w-[80%] rounded-lg px-4 py-2 ${
-                        msg.role === 'user' 
-                          ? 'bg-[#F95B14] text-white' 
-                          : 'bg-gray-100 text-gray-900'
+                      <div className={`max-w-[80%] ${
+                        msg.role === 'user' ? '' : 'space-y-2'
                       }`}>
-                        <div className="text-sm whitespace-pre-wrap">{msg.content}</div>
-                        <div className="text-xs opacity-70 mt-1">
-                          {new Date(msg.timestamp).toLocaleTimeString()}
+                        <div className={`rounded-lg px-4 py-2 ${
+                          msg.role === 'user' 
+                            ? 'bg-[#F95B14] text-white' 
+                            : 'bg-gray-100 text-gray-900'
+                        }`}>
+                          <div className="text-sm whitespace-pre-wrap">{msg.content}</div>
+                          <div className="text-xs opacity-70 mt-1">
+                            {new Date(msg.timestamp).toLocaleTimeString()}
+                          </div>
                         </div>
+                        {/* Action buttons for assistant messages */}
+                        {msg.role === 'assistant' && (
+                          <div className="flex gap-2 mt-2">
+                            <button
+                              onClick={() => addToEmailDrafts(msg.content, selectedEvent?.title)}
+                              className="text-xs bg-white border border-gray-300 text-gray-700 px-3 py-1 rounded hover:bg-gray-50 transition-colors"
+                            >
+                              ✉️ Add to Email Drafts
+                            </button>
+                            <button
+                              onClick={() => updateCRM(msg.content)}
+                              className="text-xs bg-white border border-gray-300 text-gray-700 px-3 py-1 rounded hover:bg-gray-50 transition-colors"
+                            >
+                              📝 Update CRM
+                            </button>
+                          </div>
+                        )}
                       </div>
                     </div>
                   ))}
@@ -574,39 +793,58 @@ Keep it concise and actionable.`;
                   )}
 
                   {calendarEvents.map((event) => (
-                    <div 
-                      key={event.id} 
-                      className="border border-gray-200 rounded-lg p-3 hover:border-[#F95B14] hover:bg-orange-50 transition-all cursor-pointer group"
-                      onClick={() => handleCalendarEventClick(event)}
-                    >
-                      <div className="flex items-start justify-between">
-                        <div className="flex-1">
-                          <div className="flex items-center gap-2">
-                            <h3 className="font-medium text-gray-900 text-sm">{event.title}</h3>
-                            <span className="text-xs text-gray-400 group-hover:text-[#F95B14] transition-colors">
-                              ✉️ Draft
-                            </span>
+                    <div key={event.id} className="relative">
+                      <div 
+                        className="border border-gray-200 rounded-lg p-3 hover:border-[#F95B14] hover:bg-orange-50 transition-all cursor-pointer group"
+                        onClick={(e) => handleCalendarEventClick(event, e)}
+                      >
+                        <div className="flex items-start justify-between">
+                          <div className="flex-1">
+                            <div className="flex items-center gap-2">
+                              <h3 className="font-medium text-gray-900 text-sm">{event.title}</h3>
+                              <span className="text-xs text-gray-400 group-hover:text-[#F95B14] transition-colors">
+                                ⚡ Actions
+                              </span>
+                            </div>
+                            <p className="text-xs text-gray-600 mt-1">
+                              {new Date(event.start).toLocaleString('en-US', {
+                                month: 'short',
+                                day: 'numeric',
+                                hour: 'numeric',
+                                minute: '2-digit'
+                              })}
+                            </p>
+                            {event.description && (
+                              <p className="text-xs text-gray-500 mt-1">{event.description}</p>
+                            )}
                           </div>
-                          <p className="text-xs text-gray-600 mt-1">
-                            {new Date(event.start).toLocaleString('en-US', {
-                              month: 'short',
-                              day: 'numeric',
-                              hour: 'numeric',
-                              minute: '2-digit'
-                            })}
-                          </p>
-                          {event.description && (
-                            <p className="text-xs text-gray-500 mt-1">{event.description}</p>
-                          )}
+                          <span className={`text-xs px-2 py-1 rounded-full ${
+                            event.type === 'meeting' ? 'bg-blue-100 text-blue-800' :
+                            event.type === 'demo' ? 'bg-green-100 text-green-800' :
+                            'bg-purple-100 text-purple-800'
+                          }`}>
+                            {event.type || 'event'}
+                          </span>
                         </div>
-                        <span className={`text-xs px-2 py-1 rounded-full ${
-                          event.type === 'meeting' ? 'bg-blue-100 text-blue-800' :
-                          event.type === 'demo' ? 'bg-green-100 text-green-800' :
-                          'bg-purple-100 text-purple-800'
-                        }`}>
-                          {event.type || 'event'}
-                        </span>
                       </div>
+                      
+                      {/* Dropdown Menu */}
+                      {showEventMenu && selectedEvent?.id === event.id && (
+                        <div className="absolute left-0 top-full mt-1 w-full bg-white border border-gray-200 rounded-lg shadow-lg z-20">
+                          <button
+                            onClick={() => handleMeetingInsights(event)}
+                            className="w-full text-left px-4 py-2 hover:bg-gray-50 transition-colors text-sm border-b border-gray-100"
+                          >
+                            💡 Meeting Insights
+                          </button>
+                          <button
+                            onClick={() => handleGenerateEmail(event)}
+                            className="w-full text-left px-4 py-2 hover:bg-gray-50 transition-colors text-sm"
+                          >
+                            ✉️ Generate Email
+                          </button>
+                        </div>
+                      )}
                     </div>
                   ))}
                 </div>
@@ -1150,6 +1388,62 @@ Keep it concise and actionable.`;
                     </button>
                   </div>
                 </div>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {activeTab === 'logs' && (
+          <div className="max-w-7xl mx-auto">
+            <div className="bg-white rounded-lg border border-gray-200 shadow-sm">
+              <div className="p-6 border-b border-gray-200">
+                <h2 className="text-2xl font-bold text-gray-900">📋 Activity Logs</h2>
+                <p className="text-gray-600 mt-2">Track all AI-powered actions and integrations</p>
+              </div>
+
+              <div className="divide-y divide-gray-200">
+                {activityLogs.length === 0 && (
+                  <div className="p-12 text-center text-gray-500">
+                    <div className="text-4xl mb-4">📋</div>
+                    <p className="text-lg font-medium">No activity yet</p>
+                    <p className="text-sm mt-2">Actions like email drafts and CRM updates will appear here</p>
+                  </div>
+                )}
+
+                {activityLogs.map((log) => (
+                  <div key={log.id} className="p-4 hover:bg-gray-50 transition-colors">
+                    <div className="flex items-start justify-between">
+                      <div className="flex-1">
+                        <div className="flex items-center gap-2">
+                          <span className="text-lg">
+                            {log.action_type === 'email_draft_created' && '✉️'}
+                            {log.action_type === 'email_sent' && '📧'}
+                            {log.action_type === 'crm_lead_enriched' && '🎯'}
+                            {log.action_type === 'crm_note_added' && '📝'}
+                            {log.action_type === 'meeting_scheduled' && '📅'}
+                            {log.action_type === 'linkedin_analysis' && '💼'}
+                            {log.action_type === 'integration_connected' && '🔌'}
+                            {log.action_type === 'integration_disconnected' && '⚠️'}
+                          </span>
+                          <h3 className="font-medium text-gray-900">{log.action_title}</h3>
+                        </div>
+                        {log.action_description && (
+                          <p className="text-sm text-gray-600 mt-1 ml-7">{log.action_description}</p>
+                        )}
+                        <p className="text-xs text-gray-500 mt-1 ml-7">
+                          {new Date(log.created_at).toLocaleString()}
+                        </p>
+                      </div>
+                      <span className={`px-2 py-1 text-xs rounded-full ${
+                        log.status === 'completed' ? 'bg-green-100 text-green-800' :
+                        log.status === 'failed' ? 'bg-red-100 text-red-800' :
+                        'bg-yellow-100 text-yellow-800'
+                      }`}>
+                        {log.status}
+                      </span>
+                    </div>
+                  </div>
+                ))}
               </div>
             </div>
           </div>

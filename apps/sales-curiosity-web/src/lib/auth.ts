@@ -1,6 +1,6 @@
 import NextAuth from "next-auth";
 import Google from "next-auth/providers/google";
-import { Provider } from "next-auth/providers";
+import AzureAD from "next-auth/providers/azure-ad";
 import { createClient } from '@supabase/supabase-js';
 
 // Create Supabase client with service role - MUST bypass RLS
@@ -16,33 +16,6 @@ const supabase = createClient(supabaseUrl, serviceRoleKey, {
   }
 });
 
-// Custom Microsoft provider (Azure AD)
-const MicrosoftProvider: Provider = {
-  id: "microsoft",
-  name: "Microsoft",
-  type: "oidc",
-  issuer: "https://login.microsoftonline.com/common/v2.0",
-  wellKnown: "https://login.microsoftonline.com/common/v2.0/.well-known/openid-configuration",
-  authorization: {
-    url: "https://login.microsoftonline.com/common/oauth2/v2.0/authorize",
-    params: {
-      scope: "openid email profile offline_access"
-    }
-  },
-  token: "https://login.microsoftonline.com/common/oauth2/v2.0/token",
-  userinfo: "https://graph.microsoft.com/oidc/userinfo",
-  clientId: process.env.MICROSOFT_CLIENT_ID,
-  clientSecret: process.env.MICROSOFT_CLIENT_SECRET,
-  profile(profile) {
-    return {
-      id: profile.sub,
-      name: profile.name,
-      email: profile.email,
-      image: null,
-    }
-  },
-}
-
 export const { handlers, signIn, signOut, auth } = NextAuth({
   providers: [
     Google({
@@ -56,7 +29,16 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
         },
       },
     }),
-    MicrosoftProvider,
+    AzureAD({
+      clientId: process.env.MICROSOFT_CLIENT_ID!,
+      clientSecret: process.env.MICROSOFT_CLIENT_SECRET!,
+      tenantId: "common",
+      authorization: {
+        params: {
+          scope: "openid email profile offline_access"
+        }
+      },
+    }),
   ],
   callbacks: {
     async signIn({ user, account, profile }) {

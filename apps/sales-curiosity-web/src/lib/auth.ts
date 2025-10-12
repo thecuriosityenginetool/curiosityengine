@@ -171,14 +171,18 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
     },
     async session({ session, token }) {
       // Add user data to session
-      if (token) {
+      if (token && token.id) {
         session.user.id = token.id as string;
-        session.user.role = token.role as string;
-        session.user.organizationId = token.organizationId as string | null;
-        session.user.organizationName = token.organizationName as string | null;
-        session.user.accountType = token.accountType as string;
-        session.accessToken = token.accessToken as string;
-        session.provider = token.provider as string;
+        session.user.role = (token.role as string) || 'member';
+        session.user.organizationId = (token.organizationId as string | null) || null;
+        session.user.organizationName = (token.organizationName as string | null) || null;
+        session.user.accountType = (token.accountType as string) || 'individual';
+        if (token.accessToken) {
+          session.accessToken = token.accessToken as string;
+        }
+        if (token.provider) {
+          session.provider = token.provider as string;
+        }
       }
       return session;
     }

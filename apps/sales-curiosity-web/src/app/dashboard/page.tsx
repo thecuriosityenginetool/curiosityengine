@@ -680,9 +680,31 @@ Include: greeting, meeting confirmation, brief agenda, offer to share materials,
     }
 
     try {
-      // TODO: Implement actual CRM update when CRM is connected
-      await createActivityLog('crm_note_added', 'CRM Note Added', content.substring(0, 200));
-      alert('✅ Note added to CRM!');
+      // Extract lead information from content (basic parsing)
+      // This is a simple implementation - can be enhanced with better AI parsing
+      const leadName = selectedEvent?.title || 'Unknown Lead';
+      const company = selectedEvent?.description || 'Unknown Company';
+      
+      const response = await fetch('/api/salesforce/enrich-lead', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          leadName,
+          company,
+          title: '',
+          email: '',
+          phone: '',
+          notes: content
+        }),
+      });
+
+      if (response.ok) {
+        const data = await response.json();
+        alert(`✅ ${data.message}`);
+        await createActivityLog('crm_lead_enriched', `Lead Enriched: ${leadName}`, content.substring(0, 200));
+      } else {
+        alert('❌ Failed to update Salesforce. Please try again.');
+      }
     } catch (error) {
       console.error('Error updating CRM:', error);
       alert('❌ Error updating CRM. Please try again.');

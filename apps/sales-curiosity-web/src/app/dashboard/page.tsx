@@ -62,7 +62,7 @@ export default function DashboardPage() {
   const [isSendingMessage, setIsSendingMessage] = useState(false);
   const [currentChatId, setCurrentChatId] = useState<string | null>(null);
   const [chatHistory, setChatHistory] = useState<any[]>([]);
-  const [showChatSidebar, setShowChatSidebar] = useState(false);
+  const [showChatSidebar, setShowChatSidebar] = useState(true);
   const [selectedEvent, setSelectedEvent] = useState<CalendarEvent | null>(null);
   const [showEventMenu, setShowEventMenu] = useState(false);
   const chatEndRef = useRef<HTMLDivElement>(null);
@@ -304,6 +304,13 @@ export default function DashboardPage() {
         if (chatResponse.ok) {
           const { chat } = await chatResponse.json();
           setCurrentChatId(chat.id);
+          
+          // Auto-generate chat title based on first message
+          fetch(`/api/chats/${chat.id}/rename`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ firstMessage: messageContent }),
+          }).then(() => loadChatHistory()); // Reload to show new title
         }
       } else {
         // Save user message to existing chat
@@ -317,13 +324,9 @@ export default function DashboardPage() {
         });
       }
 
-      const { data: { session } } = await supabase.auth.getSession();
-      if (!session) return;
-
       const response = await fetch('/api/chat', {
         method: 'POST',
         headers: {
-          'Authorization': `Bearer ${session.access_token}`,
           'Content-Type': 'application/json',
         },
         body: JSON.stringify({
@@ -656,50 +659,75 @@ Include: greeting, meeting confirmation, brief agenda, offer to share materials,
       {/* Main Content */}
       <div className="max-w-7xl mx-auto px-6 py-8">
         {activeTab === 'dashboard' && (
-          <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-            {/* Chat History Sidebar - Left side */}
-            <div className="lg:col-span-1">
-              <div className="bg-white rounded-lg border border-gray-200 shadow-sm h-[700px] flex flex-col">
-                <div className="p-4 border-b border-gray-200">
-                  <button
-                    onClick={startNewChat}
-                    className="w-full bg-[#F95B14] text-white px-4 py-2 rounded-lg hover:bg-orange-600 transition-colors flex items-center justify-center gap-2 font-semibold"
-                  >
-                    <span className="text-xl">+</span> New Chat
-                  </button>
-                </div>
-                <div className="flex-1 overflow-y-auto divide-y divide-gray-200">
-                  {chatHistory.length === 0 && (
-                    <div className="p-8 text-center text-gray-500">
-                      <div className="text-3xl mb-2">💬</div>
-                      <p className="text-sm">No chats yet</p>
-                      <p className="text-xs mt-1">Start a conversation</p>
+          <div className="grid grid-cols-1 lg:grid-cols-4 gap-6">
+            {/* Chat History Sidebar - Collapsible */}
+            {showChatSidebar && (
+              <div className="lg:col-span-1">
+                <div className="bg-white rounded-lg border border-gray-200 shadow-sm h-[700px] flex flex-col">
+                  <div className="p-4 border-b border-gray-200">
+                    <div className="flex items-center justify-between mb-3">
+                      <h3 className="font-semibold text-gray-900">Chats</h3>
+                      <button
+                        onClick={() => setShowChatSidebar(false)}
+                        className="text-gray-400 hover:text-gray-600 transition-colors"
+                        title="Collapse sidebar"
+                      >
+                        ◀
+                      </button>
                     </div>
-                  )}
-                  {chatHistory.map((chat) => (
                     <button
-                      key={chat.id}
-                      onClick={() => loadChat(chat.id)}
-                      className={`w-full text-left p-3 hover:bg-gray-50 transition-colors ${
-                        currentChatId === chat.id ? 'bg-orange-50 border-l-4 border-[#F95B14]' : ''
-                      }`}
+                      onClick={startNewChat}
+                      className="w-full bg-[#F95B14] text-white px-4 py-2 rounded-lg hover:bg-orange-600 transition-colors flex items-center justify-center gap-2 font-semibold"
                     >
-                      <p className="text-sm font-medium text-gray-900 truncate">{chat.title}</p>
-                      <p className="text-xs text-gray-500 mt-1">
-                        {new Date(chat.updated_at).toLocaleDateString()}
-                      </p>
+                      <span className="text-xl">+</span> New Chat
                     </button>
-                  ))}
+                  </div>
+                  <div className="flex-1 overflow-y-auto divide-y divide-gray-200">
+                    {chatHistory.length === 0 && (
+                      <div className="p-8 text-center text-gray-500">
+                        <div className="text-3xl mb-2">💬</div>
+                        <p className="text-sm">No chats yet</p>
+                        <p className="text-xs mt-1">Start a conversation</p>
+                      </div>
+                    )}
+                    {chatHistory.map((chat) => (
+                      <button
+                        key={chat.id}
+                        onClick={() => loadChat(chat.id)}
+                        className={`w-full text-left p-3 hover:bg-gray-50 transition-colors ${
+                          currentChatId === chat.id ? 'bg-orange-50 border-l-4 border-[#F95B14]' : ''
+                        }`}
+                      >
+                        <p className="text-sm font-medium text-gray-900 truncate">{chat.title}</p>
+                        <p className="text-xs text-gray-500 mt-1">
+                          {new Date(chat.updated_at).toLocaleDateString()}
+                        </p>
+                      </button>
+                    ))}
+                  </div>
                 </div>
               </div>
-            </div>
+            )}
 
-            {/* AI Chat - Middle column */}
-            <div className="lg:col-span-1">
+            {/* AI Chat - Expands when sidebar collapsed */}
+            <div className={showChatSidebar ? 'lg:col-span-2' : 'lg:col-span-3'}>
               <div className="bg-white rounded-lg border border-gray-200 shadow-sm h-[700px] flex flex-col">
-                <div className="p-4 border-b border-gray-200">
-                  <h2 className="text-lg font-semibold text-gray-900">AI Assistant</h2>
-                  <p className="text-sm text-gray-600">Ask me anything about your calendar, leads, or sales tasks</p>
+                <div className="p-4 border-b border-gray-200 flex items-center justify-between">
+                  <div className="flex-1">
+                    <h2 className="text-lg font-semibold text-gray-900">AI Assistant</h2>
+                    <p className="text-sm text-gray-600">Ask me anything about your calendar, leads, or sales tasks</p>
+                  </div>
+                  {!showChatSidebar && (
+                    <button
+                      onClick={() => setShowChatSidebar(true)}
+                      className="text-gray-600 hover:text-gray-900 transition-colors ml-2"
+                      title="Show chat history"
+                    >
+                      <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h7" />
+                      </svg>
+                    </button>
+                  )}
                 </div>
 
                 {/* Chat Messages */}
@@ -732,41 +760,44 @@ Include: greeting, meeting confirmation, brief agenda, offer to share materials,
                           <div className="flex gap-3 mt-2">
                             {/* Email Draft Action */}
                             <div className="group relative">
-                              <div className="w-8 h-8 rounded-full bg-white border-2 border-gray-200 flex items-center justify-center cursor-pointer hover:border-[#F95B14] transition-colors">
-                                <svg className="w-4 h-4" viewBox="0 0 23 23" xmlns="http://www.w3.org/2000/svg">
+                              <button
+                                onClick={() => addToEmailDrafts(msg.content, selectedEvent?.title)}
+                                className="w-10 h-10 rounded-full bg-white border-2 border-gray-200 flex items-center justify-center cursor-pointer hover:border-[#F95B14] hover:shadow-md transition-all"
+                                title="Create Draft in Outlook"
+                              >
+                                <svg className="w-5 h-5" viewBox="0 0 23 23" xmlns="http://www.w3.org/2000/svg">
                                   <path fill="#f35325" d="M1 1h10v10H1z"/>
                                   <path fill="#81bc06" d="M12 1h10v10H12z"/>
                                   <path fill="#05a6f0" d="M1 12h10v10H1z"/>
                                   <path fill="#ffba08" d="M12 12h10v10H12z"/>
                                 </svg>
-                              </div>
-                              {/* Hover tooltip */}
-                              <div className="absolute left-0 top-full mt-1 hidden group-hover:block bg-gray-900 text-white text-xs px-3 py-2 rounded shadow-lg whitespace-nowrap z-10">
-                                <button
-                                  onClick={() => addToEmailDrafts(msg.content, selectedEvent?.title)}
-                                  className="hover:text-[#F95B14] transition-colors"
-                                >
-                                  ✉️ Create Draft in Outlook
-                                </button>
+                              </button>
+                              {/* Hover tooltip - positioned to not cut off */}
+                              <div className="absolute left-1/2 -translate-x-1/2 bottom-full mb-2 hidden group-hover:block bg-gray-900 text-white text-xs px-3 py-2 rounded shadow-lg whitespace-nowrap z-50 pointer-events-none">
+                                ✉️ Create Draft in Outlook
+                                <div className="absolute top-full left-1/2 -translate-x-1/2 -mt-1 border-4 border-transparent border-t-gray-900"></div>
                               </div>
                             </div>
 
                             {/* CRM Action */}
                             <div className="group relative">
-                              <div className="w-8 h-8 rounded-full bg-white border-2 border-gray-200 flex items-center justify-center cursor-pointer hover:border-blue-500 transition-colors">
-                                <svg className="w-4 h-4" viewBox="0 0 24 24" fill="#00A1E0" xmlns="http://www.w3.org/2000/svg">
-                                  <path d="M12 0C5.373 0 0 5.373 0 12s5.373 12 12 12 12-5.373 12-12S18.627 0 12 0z"/>
-                                  <path fill="white" d="M8 7h8v2H8V7zm0 4h8v2H8v-2zm0 4h5v2H8v-2z"/>
-                                </svg>
-                              </div>
-                              {/* Hover tooltip */}
-                              <div className="absolute left-0 top-full mt-1 hidden group-hover:block bg-gray-900 text-white text-xs px-3 py-2 rounded shadow-lg whitespace-nowrap z-10">
-                                <button
-                                  onClick={() => updateCRM(msg.content)}
-                                  className="hover:text-blue-400 transition-colors"
-                                >
-                                  🎯 Enrich Lead in Salesforce
-                                </button>
+                              <button
+                                onClick={() => updateCRM(msg.content)}
+                                className="w-10 h-10 rounded-full bg-white border-2 border-gray-200 flex items-center justify-center cursor-pointer hover:border-blue-500 hover:shadow-md transition-all p-2"
+                                title="Enrich Lead in Salesforce"
+                              >
+                                <Image
+                                  src="/salesforcelogo.svg"
+                                  alt="Salesforce"
+                                  width={20}
+                                  height={20}
+                                  className="w-full h-full"
+                                />
+                              </button>
+                              {/* Hover tooltip - positioned to not cut off */}
+                              <div className="absolute left-1/2 -translate-x-1/2 bottom-full mb-2 hidden group-hover:block bg-gray-900 text-white text-xs px-3 py-2 rounded shadow-lg whitespace-nowrap z-50 pointer-events-none">
+                                🎯 Enrich Lead in Salesforce
+                                <div className="absolute top-full left-1/2 -translate-x-1/2 -mt-1 border-4 border-transparent border-t-gray-900"></div>
                               </div>
                             </div>
                           </div>

@@ -84,6 +84,12 @@ export default function DashboardPage() {
   const [salesMaterials, setSalesMaterials] = useState<any[]>([]);
   const [uploadingFile, setUploadingFile] = useState(false);
   
+  // Connection modal state
+  const [showConnectionModal, setShowConnectionModal] = useState(false);
+  const [connectionService, setConnectionService] = useState<'outlook' | 'salesforce' | null>(null);
+  const [hasOutlookConnection, setHasOutlookConnection] = useState(false);
+  const [hasSalesforceConnection, setHasSalesforceConnection] = useState(false);
+  
   // Connector card mouse positions
   const [cardMousePositions, setCardMousePositions] = useState<{
     [key: string]: { x: number; y: number };
@@ -106,6 +112,10 @@ export default function DashboardPage() {
   }, [status, session]);
 
   useEffect(() => {
+    if (user) {
+      checkConnections(); // Check connections on mount
+    }
+    
     if (activeTab === 'dashboard' && user) {
       loadCalendarEvents();
       loadChatHistory();
@@ -538,7 +548,52 @@ Include: greeting, meeting confirmation, brief agenda, offer to share materials,
     }
   }
 
+  async function checkConnections() {
+    try {
+      // Check Outlook connection
+      const outlookResponse = await fetch('/api/outlook/auth-user');
+      setHasOutlookConnection(outlookResponse.ok);
+
+      // Check Salesforce connection
+      const sfResponse = await fetch('/api/salesforce/auth-user');
+      setHasSalesforceConnection(sfResponse.ok);
+    } catch (error) {
+      console.error('Error checking connections:', error);
+    }
+  }
+
+  async function connectOutlook() {
+    try {
+      const response = await fetch('/api/outlook/auth-user');
+      if (response.ok) {
+        const data = await response.json();
+        window.location.href = data.authUrl;
+      }
+    } catch (error) {
+      console.error('Error connecting Outlook:', error);
+    }
+  }
+
+  async function connectSalesforce() {
+    try {
+      const response = await fetch('/api/salesforce/auth-user');
+      if (response.ok) {
+        const data = await response.json();
+        window.location.href = data.authUrl;
+      }
+    } catch (error) {
+      console.error('Error connecting Salesforce:', error);
+    }
+  }
+
   async function addToEmailDrafts(content: string, subject?: string) {
+    // Check if Outlook is connected
+    if (!hasOutlookConnection) {
+      setConnectionService('outlook');
+      setShowConnectionModal(true);
+      return;
+    }
+
     try {
       const response = await fetch('/api/email/draft', {
         method: 'POST',
@@ -555,7 +610,7 @@ Include: greeting, meeting confirmation, brief agenda, offer to share materials,
         alert('✅ Draft created in Outlook!');
         await createActivityLog('email_draft_created', subject || 'Email Draft Created', 'Draft added to Outlook');
       } else {
-        alert('❌ Failed to create draft. Please connect your Outlook account.');
+        alert('❌ Failed to create draft. Please try again.');
       }
     } catch (error) {
       console.error('Error creating draft:', error);
@@ -564,13 +619,20 @@ Include: greeting, meeting confirmation, brief agenda, offer to share materials,
   }
 
   async function updateCRM(content: string) {
+    // Check if Salesforce is connected
+    if (!hasSalesforceConnection) {
+      setConnectionService('salesforce');
+      setShowConnectionModal(true);
+      return;
+    }
+
     try {
       // TODO: Implement actual CRM update when CRM is connected
       await createActivityLog('crm_note_added', 'CRM Note Added', content.substring(0, 200));
       alert('✅ Note added to CRM!');
     } catch (error) {
       console.error('Error updating CRM:', error);
-      alert('❌ Error updating CRM. Please connect your CRM first.');
+      alert('❌ Error updating CRM. Please try again.');
     }
   }
 
@@ -1789,6 +1851,75 @@ Include: greeting, meeting confirmation, brief agenda, offer to share materials,
           </div>
         )}
       </div>
+
+      {/* Connection Modal */}
+      {showConnectionModal && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50" onClick={() => setShowConnectionModal(false)}>
+          <div className="bg-white rounded-lg shadow-xl max-w-md w-full mx-4" onClick={(e) => e.stopPropagation()}>
+            <div className="p-6">
+              <div className="flex items-center justify-between mb-4">
+                <h3 className="text-xl font-semibold text-gray-900">
+                  Connect {connectionService === 'outlook' ? 'Outlook' : 'Salesforce'}
+                </h3>
+                <button
+                  onClick={() => setShowConnectionModal(false)}
+                  className="text-gray-400 hover:text-gray-600"
+                >
+                  ✕
+                </button>
+              </div>
+
+              <div className="flex justify-center mb-6">
+                {connectionService === 'outlook' ? (
+                  <Image
+                    src="/outlook.svg"
+                    alt="Outlook"
+                    width={80}
+                    height={80}
+                    className="w-20 h-20"
+                  />
+                ) : (
+                  <Image
+                    src="/salesforcelogo.svg"
+                    alt="Salesforce"
+                    width={80}
+                    height={80}
+                    className="w-20 h-20"
+                  />
+                )}
+              </div>
+
+              <p className="text-gray-600 text-center mb-6">
+                {connectionService === 'outlook' 
+                  ? 'Connect your Outlook account to create email drafts directly from the dashboard.'
+                  : 'Connect your Salesforce account to enrich leads and sync CRM data automatically.'}
+              </p>
+
+              <div className="space-y-3">
+                <button
+                  onClick={() => {
+                    setShowConnectionModal(false);
+                    if (connectionService === 'outlook') {
+                      connectOutlook();
+                    } else {
+                      connectSalesforce();
+                    }
+                  }}
+                  className="w-full bg-[#F95B14] text-white px-6 py-3 rounded-lg font-semibold hover:bg-orange-600 transition-colors"
+                >
+                  Connect {connectionService === 'outlook' ? 'Outlook' : 'Salesforce'}
+                </button>
+                <button
+                  onClick={() => setShowConnectionModal(false)}
+                  className="w-full bg-gray-100 text-gray-700 px-6 py-3 rounded-lg font-semibold hover:bg-gray-200 transition-colors"
+                >
+                  Maybe Later
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

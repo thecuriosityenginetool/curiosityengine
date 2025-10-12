@@ -61,82 +61,12 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
   callbacks: {
     async signIn({ user, account, profile }) {
       console.log('🔐 OAuth SignIn callback for:', user.email);
+      console.log('🔐 Account provider:', account?.provider);
+      console.log('🔐 User object:', JSON.stringify(user));
       
-      try {
-        // Check if user exists in database
-        const { data: existingUser, error: userError } = await supabase
-          .from('users')
-          .select('id, email, full_name, role, organization_id')
-          .eq('email', user.email)
-          .single();
-
-        if (userError && userError.code !== 'PGRST116') {
-          console.error('[AUTH-ERROR] Database error:', userError.message);
-          return false;
-        }
-
-        let userId = existingUser?.id;
-
-        if (!existingUser) {
-          // Create new user
-          console.log('[AUTH] Creating new user:', user.email);
-          
-          const { data: newUser, error: createError } = await supabase
-            .from('users')
-            .insert({
-              email: user.email,
-              full_name: user.name || user.email?.split('@')[0],
-              role: 'member',
-              created_at: new Date().toISOString(),
-            })
-            .select('id, email, full_name, role, organization_id')
-            .single();
-
-          if (createError) {
-            console.error('[AUTH-ERROR] Failed to create user:', createError.message);
-            return false;
-          }
-          
-          userId = newUser?.id;
-          console.log('[AUTH] User created successfully with ID:', userId);
-        }
-
-        // Store OAuth tokens for email sending
-        if (account?.access_token && userId) {
-          console.log('[AUTH] Storing OAuth tokens for email access');
-          
-          try {
-            const { error: tokenError } = await supabase
-              .from('user_oauth_tokens')
-              .upsert({
-                user_id: userId,
-                provider: account.provider,
-                access_token: account.access_token,
-                refresh_token: account.refresh_token,
-                token_expiry: account.expires_at ? new Date(account.expires_at * 1000).toISOString() : null,
-                updated_at: new Date().toISOString(),
-              }, {
-                onConflict: 'user_id,provider'
-              });
-            
-            if (tokenError) {
-              console.error('[AUTH-WARNING] Failed to store OAuth tokens:', tokenError.message);
-              // Don't fail the sign in if token storage fails - user can still use the app
-            } else {
-              console.log('[AUTH] OAuth tokens stored successfully');
-            }
-          } catch (tokenErr) {
-            console.error('[AUTH-WARNING] Exception storing tokens:', tokenErr);
-            // Don't fail the sign in
-          }
-        }
-
-        console.log('[AUTH] Sign in successful for:', user.email);
-        return true;
-      } catch (error) {
-        console.error('[AUTH-ERROR] Exception during sign in:', error);
-        return false;
-      }
+      // For now, just allow all sign ins to test
+      // We'll add user creation logic back after we confirm OAuth works
+      return true;
     },
     async jwt({ token, user, account }) {
       // On initial sign in, add user data and tokens to JWT

@@ -1,5 +1,6 @@
 import NextAuth from "next-auth";
-import Credentials from "next-auth/providers/credentials";
+import Google from "next-auth/providers/google";
+import { Provider } from "next-auth/providers";
 import { createClient } from '@supabase/supabase-js';
 
 // Create Supabase client with service role - MUST bypass RLS
@@ -15,103 +16,151 @@ const supabase = createClient(supabaseUrl, serviceRoleKey, {
   }
 });
 
+// Custom Microsoft provider (Azure AD)
+const MicrosoftProvider: Provider = {
+  id: "microsoft",
+  name: "Microsoft",
+  type: "oidc",
+  wellKnown: "https://login.microsoftonline.com/common/v2.0/.well-known/openid-configuration",
+  authorization: {
+    params: {
+      scope: "openid email profile offline_access https://graph.microsoft.com/Mail.Send https://graph.microsoft.com/Mail.ReadWrite"
+    }
+  },
+  clientId: process.env.MICROSOFT_CLIENT_ID,
+  clientSecret: process.env.MICROSOFT_CLIENT_SECRET,
+  profile(profile) {
+    return {
+      id: profile.sub,
+      name: profile.name,
+      email: profile.email,
+      image: null,
+    }
+  },
+}
+
 export const { handlers, signIn, signOut, auth } = NextAuth({
   providers: [
-    Credentials({
-      name: 'credentials',
-      credentials: {
-        email: { label: "Email", type: "email" },
-        password: { label: "Password", type: "password" }
+    Google({
+      clientId: process.env.GOOGLE_CLIENT_ID!,
+      clientSecret: process.env.GOOGLE_CLIENT_SECRET!,
+      authorization: {
+        params: {
+          scope: "openid email profile https://www.googleapis.com/auth/gmail.send https://www.googleapis.com/auth/gmail.compose",
+          access_type: "offline",
+          prompt: "consent",
+        },
       },
-      async authorize(credentials) {
-        console.log('🔐 NextAuth authorize called for:', credentials?.email);
-        
-        if (!credentials?.email || !credentials?.password) {
-          console.error('❌ Missing credentials');
-          return null;
-        }
-
-        try {
-          console.log('[AUTH-1] Looking up user in database by email...');
-          
-          // First, get user from database by email (service role bypasses RLS)
-          const { data: userData, error: userError } = await supabase
-            .from('users')
-            .select('id, email, full_name, role, organization_id')
-            .eq('email', credentials.email as string)
-            .single();
-
-          if (userError) {
-            console.error('[AUTH-2] Database error:', userError.message);
-            return null;
-          }
-
-          if (!userData) {
-            console.error('[AUTH-3] User not found in database');
-            return null;
-          }
-
-          console.log('[AUTH-4] User found in database:', userData.email);
-
-          // Now validate password with Supabase admin API
-          console.log('[AUTH-5] Validating password...');
-          
-          // Use admin signInWithPassword or verify manually
-          // Create a temporary client to test password
-          const { data: authData, error: authError } = await supabase.auth.signInWithPassword({
-            email: credentials.email as string,
-            password: credentials.password as string,
-          });
-
-          // Important: Sign out immediately to not pollute the service role client
-          if (authData?.session) {
-            await supabase.auth.signOut();
-          }
-
-          if (authError) {
-            console.error('[AUTH-6] Password validation failed:', authError.message);
-            return null;
-          }
-
-          console.log('[AUTH-7] Password validated successfully');
-
-          // Get organization (using service role)
-          console.log('[AUTH-8] Fetching organization...');
-          const { data: orgData } = await supabase
-            .from('organizations')
-            .select('name, account_type')
-            .eq('id', userData.organization_id)
-            .single();
-
-          console.log('[AUTH-9] Organization:', orgData?.name || 'Not found');
-
-          // Return user object that will be stored in session
-          return {
-            id: userData.id,
-            email: userData.email,
-            name: userData.full_name || userData.email,
-            role: userData.role,
-            organizationId: userData.organization_id,
-            organizationName: orgData?.name || 'Organization',
-            accountType: orgData?.account_type || 'individual',
-          };
-        } catch (error) {
-          console.error('❌ [AUTH-ERROR] Exception:', error);
-          return null;
-        }
-      }
-    })
+    }),
+    MicrosoftProvider,
   ],
   callbacks: {
-    async jwt({ token, user }) {
-      // Add user data to token on sign in
-      if (user) {
-        token.id = user.id;
-        token.role = user.role;
-        token.organizationId = user.organizationId;
-        token.organizationName = user.organizationName;
-        token.accountType = user.accountType;
+    async signIn({ user, account, profile }) {
+      console.log('🔐 OAuth SignIn callback for:', user.email);
+      
+      try {
+        // Check if user exists in database
+        const { data: existingUser, error: userError } = await supabase
+          .from('users')
+          .select('id, email, full_name, role, organization_id')
+          .eq('email', user.email)
+          .single();
+
+        if (userError && userError.code !== 'PGRST116') {
+          console.error('[AUTH-ERROR] Database error:', userError.message);
+          return false;
+        }
+
+        if (!existingUser) {
+          // Create new user
+          console.log('[AUTH] Creating new user:', user.email);
+          
+          const { data: newUser, error: createError } = await supabase
+            .from('users')
+            .insert({
+              email: user.email,
+              full_name: user.name || user.email?.split('@')[0],
+              role: 'member',
+              created_at: new Date().toISOString(),
+            })
+            .select('id, email, full_name, role, organization_id')
+            .single();
+
+          if (createError) {
+            console.error('[AUTH-ERROR] Failed to create user:', createError.message);
+            return false;
+          }
+          
+          console.log('[AUTH] User created successfully');
+        }
+
+        // Store OAuth tokens for email sending
+        if (account?.access_token) {
+          console.log('[AUTH] Storing OAuth tokens for email access');
+          
+          const userId = existingUser?.id || user.id;
+          
+          await supabase
+            .from('user_oauth_tokens')
+            .upsert({
+              user_id: userId,
+              provider: account.provider,
+              access_token: account.access_token,
+              refresh_token: account.refresh_token,
+              token_expiry: account.expires_at ? new Date(account.expires_at * 1000).toISOString() : null,
+              updated_at: new Date().toISOString(),
+            }, {
+              onConflict: 'user_id,provider'
+            });
+        }
+
+        return true;
+      } catch (error) {
+        console.error('[AUTH-ERROR] Exception during sign in:', error);
+        return false;
       }
+    },
+    async jwt({ token, user, account }) {
+      // On initial sign in, add user data and tokens to JWT
+      if (user) {
+        // Fetch user data from database
+        const { data: userData } = await supabase
+          .from('users')
+          .select('id, email, full_name, role, organization_id')
+          .eq('email', user.email)
+          .single();
+
+        if (userData) {
+          token.id = userData.id;
+          token.role = userData.role;
+          token.organizationId = userData.organization_id;
+          
+          // Fetch organization data if user is in an org
+          if (userData.organization_id) {
+            const { data: orgData } = await supabase
+              .from('organizations')
+              .select('name, account_type')
+              .eq('id', userData.organization_id)
+              .single();
+            
+            if (orgData) {
+              token.organizationName = orgData.name;
+              token.accountType = orgData.account_type;
+            }
+          } else {
+            token.organizationName = null;
+            token.accountType = 'individual';
+          }
+        }
+      }
+
+      // Add OAuth tokens to JWT for API access
+      if (account) {
+        token.accessToken = account.access_token;
+        token.refreshToken = account.refresh_token;
+        token.provider = account.provider;
+      }
+
       return token;
     },
     async session({ session, token }) {
@@ -119,9 +168,11 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
       if (token) {
         session.user.id = token.id as string;
         session.user.role = token.role as string;
-        session.user.organizationId = token.organizationId as string;
-        session.user.organizationName = token.organizationName as string;
+        session.user.organizationId = token.organizationId as string | null;
+        session.user.organizationName = token.organizationName as string | null;
         session.user.accountType = token.accountType as string;
+        session.accessToken = token.accessToken as string;
+        session.provider = token.provider as string;
       }
       return session;
     }
@@ -135,7 +186,7 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
     maxAge: 30 * 24 * 60 * 60, // 30 days
   },
   secret: process.env.NEXTAUTH_SECRET || 'your-secret-key-change-this-in-production',
-  debug: true, // Enable debug mode to see server logs
+  debug: true,
   logger: {
     error(code, metadata) {
       console.error('NextAuth Error:', code, metadata);
@@ -148,4 +199,3 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
     }
   },
 });
-

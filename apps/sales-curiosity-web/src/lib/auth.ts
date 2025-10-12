@@ -32,10 +32,11 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
     AzureAD({
       clientId: process.env.MICROSOFT_CLIENT_ID!,
       clientSecret: process.env.MICROSOFT_CLIENT_SECRET!,
-      tenantId: "common",
+      tenantId: process.env.AZURE_AD_TENANT_ID || "common",
       authorization: {
         params: {
-          scope: "openid email profile offline_access"
+          scope: "openid email profile offline_access",
+          prompt: "consent",
         }
       },
     }),

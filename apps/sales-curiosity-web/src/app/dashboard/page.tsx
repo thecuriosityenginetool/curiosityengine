@@ -659,7 +659,20 @@ Include: greeting, meeting confirmation, brief agenda, offer to share materials,
       {/* Main Content */}
       <div className="max-w-7xl mx-auto px-6 py-8">
         {activeTab === 'dashboard' && (
-          <div className="grid grid-cols-1 lg:grid-cols-4 gap-6">
+          <div className="grid grid-cols-1 lg:grid-cols-4 gap-6 relative">
+            {/* Floating sidebar toggle when collapsed */}
+            {!showChatSidebar && (
+              <button
+                onClick={() => setShowChatSidebar(true)}
+                className="fixed left-6 top-1/2 -translate-y-1/2 bg-[#F95B14] text-white p-3 rounded-r-lg shadow-lg hover:bg-orange-600 transition-all z-40"
+                title="Show chat history"
+              >
+                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+                </svg>
+              </button>
+            )}
+
             {/* Chat History Sidebar - Collapsible */}
             {showChatSidebar && (
               <div className="lg:col-span-1">
@@ -712,22 +725,9 @@ Include: greeting, meeting confirmation, brief agenda, offer to share materials,
             {/* AI Chat - Expands when sidebar collapsed */}
             <div className={showChatSidebar ? 'lg:col-span-2' : 'lg:col-span-3'}>
               <div className="bg-white rounded-lg border border-gray-200 shadow-sm h-[700px] flex flex-col">
-                <div className="p-4 border-b border-gray-200 flex items-center justify-between">
-                  <div className="flex-1">
-                    <h2 className="text-lg font-semibold text-gray-900">AI Assistant</h2>
-                    <p className="text-sm text-gray-600">Ask me anything about your calendar, leads, or sales tasks</p>
-                  </div>
-                  {!showChatSidebar && (
-                    <button
-                      onClick={() => setShowChatSidebar(true)}
-                      className="text-gray-600 hover:text-gray-900 transition-colors ml-2"
-                      title="Show chat history"
-                    >
-                      <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h7" />
-                      </svg>
-                    </button>
-                  )}
+                <div className="p-4 border-b border-gray-200">
+                  <h2 className="text-lg font-semibold text-gray-900">AI Assistant</h2>
+                  <p className="text-sm text-gray-600">Ask me anything about your calendar, leads, or sales tasks</p>
                 </div>
 
                 {/* Chat Messages */}
@@ -757,13 +757,12 @@ Include: greeting, meeting confirmation, brief agenda, offer to share materials,
                         </div>
                         {/* Action buttons for assistant messages */}
                         {msg.role === 'assistant' && (
-                          <div className="flex gap-3 mt-2">
+                          <div className="flex gap-3 mt-2 mb-4">
                             {/* Email Draft Action */}
                             <div className="group relative">
                               <button
                                 onClick={() => addToEmailDrafts(msg.content, selectedEvent?.title)}
                                 className="w-10 h-10 rounded-full bg-white border-2 border-gray-200 flex items-center justify-center cursor-pointer hover:border-[#F95B14] hover:shadow-md transition-all"
-                                title="Create Draft in Outlook"
                               >
                                 <svg className="w-5 h-5" viewBox="0 0 23 23" xmlns="http://www.w3.org/2000/svg">
                                   <path fill="#f35325" d="M1 1h10v10H1z"/>
@@ -772,10 +771,10 @@ Include: greeting, meeting confirmation, brief agenda, offer to share materials,
                                   <path fill="#ffba08" d="M12 12h10v10H12z"/>
                                 </svg>
                               </button>
-                              {/* Hover tooltip - positioned to not cut off */}
-                              <div className="absolute left-1/2 -translate-x-1/2 bottom-full mb-2 hidden group-hover:block bg-gray-900 text-white text-xs px-3 py-2 rounded shadow-lg whitespace-nowrap z-50 pointer-events-none">
+                              {/* Hover tooltip - positioned to the right */}
+                              <div className="absolute left-full ml-2 top-1/2 -translate-y-1/2 hidden group-hover:block bg-gray-900 text-white text-xs px-3 py-2 rounded shadow-lg whitespace-nowrap z-50">
                                 ✉️ Create Draft in Outlook
-                                <div className="absolute top-full left-1/2 -translate-x-1/2 -mt-1 border-4 border-transparent border-t-gray-900"></div>
+                                <div className="absolute right-full top-1/2 -translate-y-1/2 mr-0 border-4 border-transparent border-r-gray-900"></div>
                               </div>
                             </div>
 
@@ -784,7 +783,6 @@ Include: greeting, meeting confirmation, brief agenda, offer to share materials,
                               <button
                                 onClick={() => updateCRM(msg.content)}
                                 className="w-10 h-10 rounded-full bg-white border-2 border-gray-200 flex items-center justify-center cursor-pointer hover:border-blue-500 hover:shadow-md transition-all p-2"
-                                title="Enrich Lead in Salesforce"
                               >
                                 <Image
                                   src="/salesforcelogo.svg"
@@ -794,10 +792,10 @@ Include: greeting, meeting confirmation, brief agenda, offer to share materials,
                                   className="w-full h-full"
                                 />
                               </button>
-                              {/* Hover tooltip - positioned to not cut off */}
-                              <div className="absolute left-1/2 -translate-x-1/2 bottom-full mb-2 hidden group-hover:block bg-gray-900 text-white text-xs px-3 py-2 rounded shadow-lg whitespace-nowrap z-50 pointer-events-none">
+                              {/* Hover tooltip - positioned to the right */}
+                              <div className="absolute left-full ml-2 top-1/2 -translate-y-1/2 hidden group-hover:block bg-gray-900 text-white text-xs px-3 py-2 rounded shadow-lg whitespace-nowrap z-50">
                                 🎯 Enrich Lead in Salesforce
-                                <div className="absolute top-full left-1/2 -translate-x-1/2 -mt-1 border-4 border-transparent border-t-gray-900"></div>
+                                <div className="absolute right-full top-1/2 -translate-y-1/2 mr-0 border-4 border-transparent border-r-gray-900"></div>
                               </div>
                             </div>
                           </div>
@@ -859,7 +857,7 @@ Include: greeting, meeting confirmation, brief agenda, offer to share materials,
                     </div>
                   )}
 
-                  {calendarEvents.map((event) => (
+                  {calendarEvents.map((event, index) => (
                     <div key={event.id} className="relative">
                       <div 
                         className="border border-gray-200 rounded-lg p-3 hover:border-[#F95B14] hover:bg-orange-50 transition-all cursor-pointer group"
@@ -895,10 +893,12 @@ Include: greeting, meeting confirmation, brief agenda, offer to share materials,
                         </div>
                       </div>
                       
-                      {/* Dropdown Menu */}
+                      {/* Dropdown Menu - appears above if it's one of the last events */}
                       {showEventMenu && selectedEvent?.id === event.id && (
                         <div 
-                          className="absolute left-0 top-full mt-1 w-full bg-white border border-gray-200 rounded-lg shadow-lg z-20"
+                          className={`absolute left-0 w-full bg-white border border-gray-200 rounded-lg shadow-lg z-30 ${
+                            index >= calendarEvents.length - 2 ? 'bottom-full mb-1' : 'top-full mt-1'
+                          }`}
                           onClick={(e) => e.stopPropagation()}
                         >
                           <button
@@ -1005,16 +1005,65 @@ Include: greeting, meeting confirmation, brief agenda, offer to share materials,
         )}
 
         {activeTab === 'context' && (
-          <div className="max-w-2xl mx-auto">
+          <div className="max-w-4xl mx-auto space-y-6">
+            {/* Profile Settings */}
             <div className="bg-white rounded-lg border border-gray-200 shadow-sm p-6">
-              <h2 className="text-xl font-semibold text-gray-900 mb-4">Your Context</h2>
-              <p className="text-gray-600 mb-6">
-                This information helps the AI provide personalized assistance.
-              </p>
+              <h2 className="text-2xl font-semibold text-gray-900 mb-6">⚙️ Settings</h2>
               
-              <ContextForm 
-                context={userData.user_context || { aboutMe: '', objectives: '' }}
-                onSave={async (context) => {
+              {/* User Profile Section */}
+              <div className="mb-8">
+                <h3 className="text-lg font-semibold text-gray-900 mb-4">Profile Information</h3>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                      Full Name
+                    </label>
+                    <input
+                      type="text"
+                      defaultValue={userData.full_name || ''}
+                      className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#F95B14] focus:border-transparent outline-none"
+                      placeholder="John Doe"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                      Job Title
+                    </label>
+                    <input
+                      type="text"
+                      className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#F95B14] focus:border-transparent outline-none"
+                      placeholder="Sales Manager"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                      Company Name
+                    </label>
+                    <input
+                      type="text"
+                      className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#F95B14] focus:border-transparent outline-none"
+                      placeholder="Acme Corp"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                      Company URL
+                    </label>
+                    <input
+                      type="url"
+                      className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#F95B14] focus:border-transparent outline-none"
+                      placeholder="https://acme.com"
+                    />
+                  </div>
+                </div>
+              </div>
+
+              {/* Context Section */}
+              <div className="mb-8">
+                <h3 className="text-lg font-semibold text-gray-900 mb-4">AI Context</h3>
+                <ContextForm 
+                  context={userData.user_context || { aboutMe: '', objectives: '' }}
+                  onSave={async (context) => {
                   const { data: { session } } = await supabase.auth.getSession();
                   if (!session) return;
 
@@ -1035,6 +1084,63 @@ Include: greeting, meeting confirmation, brief agenda, offer to share materials,
                   }
                 }}
               />
+              </div>
+
+              {/* Sales Materials Upload */}
+              <div className="mb-8">
+                <h3 className="text-lg font-semibold text-gray-900 mb-4">Sales Materials & Guides</h3>
+                <p className="text-sm text-gray-600 mb-4">
+                  Upload PDFs, presentations, or documents that contain sales guides, product information, or company materials. 
+                  The AI will use this information to provide better assistance.
+                </p>
+                <div className="border-2 border-dashed border-gray-300 rounded-lg p-8 text-center hover:border-[#F95B14] transition-colors">
+                  <input
+                    type="file"
+                    accept=".pdf,.docx,.txt,.pptx"
+                    className="hidden"
+                    id="sales-materials-upload"
+                  />
+                  <label
+                    htmlFor="sales-materials-upload"
+                    className="cursor-pointer"
+                  >
+                    <div className="text-4xl mb-2">📄</div>
+                    <p className="text-sm font-medium text-gray-900">Click to upload sales materials</p>
+                    <p className="text-xs text-gray-500 mt-1">PDF, DOCX, TXT, PPTX (Max 10MB)</p>
+                  </label>
+                </div>
+                {/* Uploaded files list - placeholder */}
+                <div className="mt-4 space-y-2">
+                  {/* Files will be listed here */}
+                </div>
+              </div>
+
+              {/* Upgrade Section */}
+              <div className="bg-gradient-to-r from-orange-50 to-orange-100 border-2 border-[#F95B14] rounded-lg p-6">
+                <div className="flex items-start justify-between">
+                  <div>
+                    <h3 className="text-lg font-semibold text-gray-900 mb-2">🚀 Upgrade to Company Plan</h3>
+                    <p className="text-sm text-gray-700 mb-4">
+                      Get advanced features including:
+                    </p>
+                    <ul className="text-sm text-gray-700 space-y-1 mb-4">
+                      <li>✓ Team collaboration & shared context</li>
+                      <li>✓ Unlimited sales material storage</li>
+                      <li>✓ Advanced CRM integrations</li>
+                      <li>✓ Custom AI training on your data</li>
+                      <li>✓ Priority support</li>
+                    </ul>
+                  </div>
+                </div>
+                <button
+                  onClick={() => {
+                    window.location.href = `mailto:hello@curiosityengine.io?subject=Upgrade to Company Plan&body=Hi,%0A%0AI would like to upgrade to the Company Plan.%0A%0AName: ${userData.full_name}%0AEmail: ${userData.email}%0A%0APlease send me more information.%0A%0AThanks!`;
+                  }}
+                  className="bg-[#F95B14] text-white px-6 py-3 rounded-lg font-semibold hover:bg-orange-600 transition-colors"
+                >
+                  📧 Request Upgrade
+                </button>
+              </div>
             </div>
           </div>
         )}

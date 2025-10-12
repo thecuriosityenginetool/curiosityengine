@@ -1,207 +1,157 @@
-export default function PrivacyPage() {
+export default function PrivacyPolicy() {
   return (
-    <div style={{
-      maxWidth: '800px',
-      margin: '40px auto',
-      padding: '40px 20px',
-      fontFamily: 'system-ui, sans-serif',
-      lineHeight: '1.7',
-      color: '#2d3748'
-    }}>
-      <h1 style={{ fontSize: '36px', fontWeight: '700', marginBottom: '12px', color: '#1a202c' }}>
-        Privacy Policy
-      </h1>
-      <p style={{ color: '#718096', marginBottom: '32px' }}>
-        <strong>Last Updated: October 4, 2025</strong>
-      </p>
-      
-      <section style={{ marginBottom: '32px' }}>
-        <h2 style={{ fontSize: '24px', fontWeight: '600', marginBottom: '16px', color: '#1a202c' }}>
-          1. Information We Collect
-        </h2>
-        <p style={{ marginBottom: '12px' }}>
-          Sales Curiosity collects the following information when you use our extension:
-        </p>
-        <ul style={{ paddingLeft: '24px', marginBottom: '16px' }}>
-          <li style={{ marginBottom: '8px' }}>
-            <strong>Account Information:</strong> Email address and name when you create an account
-          </li>
-          <li style={{ marginBottom: '8px' }}>
-            <strong>LinkedIn Profile Data:</strong> URLs and public profile information from LinkedIn pages you analyze
-          </li>
-          <li style={{ marginBottom: '8px' }}>
-            <strong>Analysis Results:</strong> AI-generated insights and reports you create
-          </li>
-          <li style={{ marginBottom: '8px' }}>
-            <strong>Usage Data:</strong> Extension usage patterns and preferences
-          </li>
-        </ul>
-      </section>
-
-      <section style={{ marginBottom: '32px' }}>
-        <h2 style={{ fontSize: '24px', fontWeight: '600', marginBottom: '16px', color: '#1a202c' }}>
-          2. How We Use Your Information
-        </h2>
-        <p style={{ marginBottom: '12px' }}>
-          We use the collected information to:
-        </p>
-        <ul style={{ paddingLeft: '24px', marginBottom: '16px' }}>
-          <li style={{ marginBottom: '8px' }}>Provide AI-powered LinkedIn profile analysis</li>
-          <li style={{ marginBottom: '8px' }}>Store your analysis history for future reference</li>
-          <li style={{ marginBottom: '8px' }}>Improve our service and user experience</li>
-          <li style={{ marginBottom: '8px' }}>Send service-related notifications</li>
-          <li style={{ marginBottom: '8px' }}>Prevent fraud and ensure security</li>
-        </ul>
-      </section>
-
-      <section style={{ marginBottom: '32px' }}>
-        <h2 style={{ fontSize: '24px', fontWeight: '600', marginBottom: '16px', color: '#1a202c' }}>
-          3. Data Sharing and Third Parties
-        </h2>
-        <p style={{ marginBottom: '12px' }}>
-          We do <strong>NOT</strong>:
-        </p>
-        <ul style={{ paddingLeft: '24px', marginBottom: '16px' }}>
-          <li style={{ marginBottom: '8px' }}>Sell your personal information to third parties</li>
-          <li style={{ marginBottom: '8px' }}>Share your data for advertising purposes</li>
-          <li style={{ marginBottom: '8px' }}>Disclose your information except as described below</li>
-        </ul>
+    <div className="min-h-screen bg-white px-6 py-12">
+      <div className="max-w-4xl mx-auto">
+        <h1 className="text-4xl font-bold text-gray-900 mb-8">Privacy Policy</h1>
         
-        <p style={{ marginBottom: '12px', marginTop: '16px' }}>
-          We <strong>DO</strong> use these trusted service providers:
-        </p>
-        <ul style={{ paddingLeft: '24px', marginBottom: '16px' }}>
-          <li style={{ marginBottom: '8px' }}>
-            <strong>OpenAI:</strong> For AI-powered analysis (subject to their privacy policy)
-          </li>
-          <li style={{ marginBottom: '8px' }}>
-            <strong>Supabase:</strong> For secure data storage and authentication
-          </li>
-          <li style={{ marginBottom: '8px' }}>
-            <strong>Vercel:</strong> For hosting our application
-          </li>
-        </ul>
-      </section>
+        <div className="prose prose-lg">
+          <p className="text-gray-600 mb-6">
+            <strong>Last Updated:</strong> October 12, 2025
+          </p>
 
-      <section style={{ marginBottom: '32px' }}>
-        <h2 style={{ fontSize: '24px', fontWeight: '600', marginBottom: '16px', color: '#1a202c' }}>
-          4. Data Storage and Security
-        </h2>
-        <p style={{ marginBottom: '12px' }}>
-          We implement industry-standard security measures to protect your data:
-        </p>
-        <ul style={{ paddingLeft: '24px', marginBottom: '16px' }}>
-          <li style={{ marginBottom: '8px' }}>All data is encrypted in transit using HTTPS</li>
-          <li style={{ marginBottom: '8px' }}>Passwords are securely hashed and never stored in plain text</li>
-          <li style={{ marginBottom: '8px' }}>Data is stored in secure, access-controlled databases</li>
-          <li style={{ marginBottom: '8px' }}>Regular security audits and updates</li>
-        </ul>
-      </section>
+          <section className="mb-8">
+            <h2 className="text-2xl font-semibold text-gray-900 mb-4">1. Introduction</h2>
+            <p className="text-gray-700 leading-relaxed">
+              Curiosity Engine ("we," "our," or "us") is committed to protecting your privacy. This Privacy Policy explains how we collect, use, disclose, and safeguard your information when you use our web application and Chrome extension.
+            </p>
+          </section>
 
-      <section style={{ marginBottom: '32px' }}>
-        <h2 style={{ fontSize: '24px', fontWeight: '600', marginBottom: '16px', color: '#1a202c' }}>
-          5. Permissions Required
-        </h2>
-        <p style={{ marginBottom: '12px' }}>
-          Our Chrome extension requests the following permissions:
-        </p>
-        <ul style={{ paddingLeft: '24px', marginBottom: '16px' }}>
-          <li style={{ marginBottom: '8px' }}>
-            <strong>storage:</strong> To save your preferences and API settings locally
-          </li>
-          <li style={{ marginBottom: '8px' }}>
-            <strong>activeTab:</strong> To analyze the current LinkedIn profile you're viewing
-          </li>
-          <li style={{ marginBottom: '8px' }}>
-            <strong>scripting:</strong> To extract public profile information from LinkedIn pages
-          </li>
-          <li style={{ marginBottom: '8px' }}>
-            <strong>tabs:</strong> To get the URL of the current LinkedIn profile
-          </li>
-        </ul>
-        <p>
-          These permissions are only used for the functionality described and never for tracking or data collection beyond what's necessary for the service.
-        </p>
-      </section>
+          <section className="mb-8">
+            <h2 className="text-2xl font-semibold text-gray-900 mb-4">2. Information We Collect</h2>
+            <h3 className="text-xl font-semibold text-gray-800 mb-3">2.1 Information You Provide</h3>
+            <ul className="list-disc pl-6 text-gray-700 space-y-2">
+              <li>Email address and name (via Google or Microsoft OAuth)</li>
+              <li>Profile information and preferences you set in the application</li>
+              <li>LinkedIn profile data you choose to analyze</li>
+              <li>Email drafts and content you create using our AI tools</li>
+            </ul>
 
-      <section style={{ marginBottom: '32px' }}>
-        <h2 style={{ fontSize: '24px', fontWeight: '600', marginBottom: '16px', color: '#1a202c' }}>
-          6. Your Rights and Choices
-        </h2>
-        <p style={{ marginBottom: '12px' }}>
-          You have the right to:
-        </p>
-        <ul style={{ paddingLeft: '24px', marginBottom: '16px' }}>
-          <li style={{ marginBottom: '8px' }}>Access your personal data</li>
-          <li style={{ marginBottom: '8px' }}>Request correction of your data</li>
-          <li style={{ marginBottom: '8px' }}>Request deletion of your account and data</li>
-          <li style={{ marginBottom: '8px' }}>Export your analysis history</li>
-          <li style={{ marginBottom: '8px' }}>Opt-out of non-essential data collection</li>
-        </ul>
-        <p>
-          To exercise these rights, please contact us at the email below.
-        </p>
-      </section>
+            <h3 className="text-xl font-semibold text-gray-800 mb-3 mt-4">2.2 Information Collected Automatically</h3>
+            <ul className="list-disc pl-6 text-gray-700 space-y-2">
+              <li>Usage data and analytics</li>
+              <li>Browser type and version</li>
+              <li>Device information</li>
+              <li>Log data and error reports</li>
+            </ul>
+          </section>
 
-      <section style={{ marginBottom: '32px' }}>
-        <h2 style={{ fontSize: '24px', fontWeight: '600', marginBottom: '16px', color: '#1a202c' }}>
-          7. Data Retention
-        </h2>
-        <p>
-          We retain your data for as long as your account is active or as needed to provide you services. 
-          You can request deletion of your data at any time. After account deletion, your data will be 
-          permanently removed within 30 days, except where we are required to retain it for legal obligations.
-        </p>
-      </section>
+          <section className="mb-8">
+            <h2 className="text-2xl font-semibold text-gray-900 mb-4">3. How We Use Your Information</h2>
+            <p className="text-gray-700 mb-3">We use the information we collect to:</p>
+            <ul className="list-disc pl-6 text-gray-700 space-y-2">
+              <li>Provide and maintain our services</li>
+              <li>Authenticate your identity via OAuth</li>
+              <li>Send emails on your behalf (only when you explicitly request it)</li>
+              <li>Generate AI-powered LinkedIn analysis and email drafts</li>
+              <li>Improve and optimize our services</li>
+              <li>Respond to your requests and provide customer support</li>
+              <li>Send you technical notices and updates</li>
+            </ul>
+          </section>
 
-      <section style={{ marginBottom: '32px' }}>
-        <h2 style={{ fontSize: '24px', fontWeight: '600', marginBottom: '16px', color: '#1a202c' }}>
-          8. Children's Privacy
-        </h2>
-        <p>
-          Our service is not intended for children under 13 years of age. We do not knowingly collect 
-          personal information from children under 13. If you believe we have collected information from 
-          a child under 13, please contact us immediately.
-        </p>
-      </section>
+          <section className="mb-8">
+            <h2 className="text-2xl font-semibold text-gray-900 mb-4">4. OAuth and Email Access</h2>
+            <p className="text-gray-700 leading-relaxed mb-3">
+              When you sign in with Google or Microsoft, we request permission to:
+            </p>
+            <ul className="list-disc pl-6 text-gray-700 space-y-2">
+              <li><strong>Send emails:</strong> We send emails only when you explicitly click "Send" in our application</li>
+              <li><strong>Create drafts:</strong> We create email drafts in your account when you use the draft feature</li>
+              <li><strong>Profile access:</strong> We access your basic profile information (name, email) for authentication</li>
+            </ul>
+            <p className="text-gray-700 leading-relaxed mt-3">
+              We <strong>do not</strong> read your existing emails or access your email inbox without your explicit permission.
+            </p>
+          </section>
 
-      <section style={{ marginBottom: '32px' }}>
-        <h2 style={{ fontSize: '24px', fontWeight: '600', marginBottom: '16px', color: '#1a202c' }}>
-          9. Changes to This Policy
-        </h2>
-        <p>
-          We may update this privacy policy from time to time. We will notify you of any changes by 
-          posting the new policy on this page and updating the "Last Updated" date. You are advised to 
-          review this policy periodically for any changes.
-        </p>
-      </section>
+          <section className="mb-8">
+            <h2 className="text-2xl font-semibold text-gray-900 mb-4">5. Data Storage and Security</h2>
+            <p className="text-gray-700 leading-relaxed">
+              We store your data securely using Supabase and implement industry-standard security measures including encryption at rest and in transit. OAuth tokens are stored securely and are never exposed to the client-side application.
+            </p>
+          </section>
 
-      <section style={{ marginBottom: '32px' }}>
-        <h2 style={{ fontSize: '24px', fontWeight: '600', marginBottom: '16px', color: '#1a202c' }}>
-          10. Contact Us
-        </h2>
-        <p style={{ marginBottom: '8px' }}>
-          If you have any questions about this Privacy Policy or our data practices, please contact us at:
-        </p>
-        <p style={{ marginBottom: '8px' }}>
-          <strong>Email:</strong> privacy@curiosityengine.com
-        </p>
-        <p>
-          <strong>Website:</strong> https://curiosityengine-sales-curiosity-web.vercel.app
-        </p>
-      </section>
+          <section className="mb-8">
+            <h2 className="text-2xl font-semibold text-gray-900 mb-4">6. Third-Party Services</h2>
+            <p className="text-gray-700 mb-3">We use the following third-party services:</p>
+            <ul className="list-disc pl-6 text-gray-700 space-y-2">
+              <li><strong>Google OAuth & Gmail API:</strong> For authentication and email sending</li>
+              <li><strong>Microsoft OAuth & Graph API:</strong> For authentication and email sending</li>
+              <li><strong>OpenAI:</strong> For AI-powered content generation</li>
+              <li><strong>Supabase:</strong> For database and authentication services</li>
+              <li><strong>Vercel:</strong> For hosting and deployment</li>
+            </ul>
+          </section>
 
-      <div style={{
-        marginTop: '48px',
-        paddingTop: '24px',
-        borderTop: '1px solid #e2e8f0',
-        textAlign: 'center',
-        color: '#718096',
-        fontSize: '14px'
-      }}>
-        <p>© 2025 Sales Curiosity. All rights reserved.</p>
+          <section className="mb-8">
+            <h2 className="text-2xl font-semibold text-gray-900 mb-4">7. Your Rights</h2>
+            <p className="text-gray-700 mb-3">You have the right to:</p>
+            <ul className="list-disc pl-6 text-gray-700 space-y-2">
+              <li>Access your personal data</li>
+              <li>Correct inaccurate data</li>
+              <li>Request deletion of your data</li>
+              <li>Revoke OAuth permissions at any time via your Google or Microsoft account settings</li>
+              <li>Export your data</li>
+              <li>Opt-out of marketing communications</li>
+            </ul>
+          </section>
+
+          <section className="mb-8">
+            <h2 className="text-2xl font-semibold text-gray-900 mb-4">8. Data Retention</h2>
+            <p className="text-gray-700 leading-relaxed">
+              We retain your personal information for as long as your account is active or as needed to provide you services. You may request deletion of your account and data at any time by contacting us.
+            </p>
+          </section>
+
+          <section className="mb-8">
+            <h2 className="text-2xl font-semibold text-gray-900 mb-4">9. Children's Privacy</h2>
+            <p className="text-gray-700 leading-relaxed">
+              Our services are not intended for users under the age of 18. We do not knowingly collect personal information from children under 18.
+            </p>
+          </section>
+
+          <section className="mb-8">
+            <h2 className="text-2xl font-semibold text-gray-900 mb-4">10. Changes to This Privacy Policy</h2>
+            <p className="text-gray-700 leading-relaxed">
+              We may update this Privacy Policy from time to time. We will notify you of any changes by posting the new Privacy Policy on this page and updating the "Last Updated" date.
+            </p>
+          </section>
+
+          <section className="mb-8">
+            <h2 className="text-2xl font-semibold text-gray-900 mb-4">11. Contact Us</h2>
+            <p className="text-gray-700 leading-relaxed">
+              If you have any questions about this Privacy Policy, please contact us at:
+            </p>
+            <p className="text-gray-700 mt-3">
+              <strong>Email:</strong> hello@curiosityengine.io<br />
+              <strong>Website:</strong> www.curiosityengine.io
+            </p>
+          </section>
+
+          <section className="mb-8">
+            <h2 className="text-2xl font-semibold text-gray-900 mb-4">12. GDPR Compliance (EU Users)</h2>
+            <p className="text-gray-700 leading-relaxed">
+              If you are located in the European Economic Area (EEA), you have certain rights under the General Data Protection Regulation (GDPR). We process your data lawfully based on your consent and our legitimate business interests.
+            </p>
+          </section>
+
+          <section className="mb-8">
+            <h2 className="text-2xl font-semibold text-gray-900 mb-4">13. California Privacy Rights (CCPA)</h2>
+            <p className="text-gray-700 leading-relaxed">
+              California residents have additional rights under the California Consumer Privacy Act (CCPA), including the right to know what personal information is collected, the right to delete personal information, and the right to opt-out of the sale of personal information. We do not sell your personal information.
+            </p>
+          </section>
+        </div>
+
+        <div className="mt-12 pt-8 border-t border-gray-200">
+          <a 
+            href="/"
+            className="text-blue-600 hover:text-blue-800 font-semibold"
+          >
+            ← Back to Home
+          </a>
+        </div>
       </div>
     </div>
   );
 }
-

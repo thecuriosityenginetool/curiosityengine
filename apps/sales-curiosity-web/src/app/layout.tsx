@@ -4,6 +4,7 @@ import "./globals.css";
 import { SessionProvider } from "next-auth/react";
 import ClientProviders from "@/components/ui/ClientProviders";
 import ConditionalNavigation from "@/components/ui/ConditionalNavigation";
+import Footer from "@/components/ui/Footer";
 
 const manrope = Manrope({
   variable: "--font-manrope",
@@ -23,12 +24,15 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en">
-      <body className={`${manrope.variable} antialiased font-sans`}>
+      <body className={`${manrope.variable} antialiased font-sans flex flex-col min-h-screen`}>
         <SessionProvider>
           <ConditionalNavigation />
           <ClientProviders>
-            {children}
+            <main className="flex-grow">
+              {children}
+            </main>
           </ClientProviders>
+          <Footer />
         </SessionProvider>
       </body>
     </html>

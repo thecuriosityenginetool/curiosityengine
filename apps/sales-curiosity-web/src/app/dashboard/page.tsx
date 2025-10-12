@@ -420,7 +420,9 @@ export default function DashboardPage() {
     try {
       setShowEventMenu(false);
       setIsSendingMessage(true);
-      startNewChat();
+      
+      // Start new chat and clear messages
+      setCurrentChatId(null);
 
       const prompt = `Provide meeting insights and preparation for:
 Title: ${event.title}
@@ -434,6 +436,14 @@ Please provide:
 3. Questions to ask
 4. Follow-up actions to consider`;
 
+      // Show user's prompt in chat
+      const userMessage: ChatMessage = {
+        role: 'user',
+        content: `Meeting Insights for: ${event.title}`,
+        timestamp: new Date().toISOString()
+      };
+      setChatMessages([userMessage]);
+
       const response = await fetch('/api/chat', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -451,7 +461,7 @@ Please provide:
           content: data.response,
           timestamp: new Date().toISOString()
         };
-        setChatMessages([assistantMessage]);
+        setChatMessages([userMessage, assistantMessage]);
         await createActivityLog('meeting_scheduled', `Meeting Insights: ${event.title}`, `Generated insights for meeting with ${event.attendees?.join(', ')}`);
       }
     } catch (error) {
@@ -465,7 +475,9 @@ Please provide:
     try {
       setShowEventMenu(false);
       setIsSendingMessage(true);
-      startNewChat();
+      
+      // Start new chat
+      setCurrentChatId(null);
 
       const prompt = `Generate a professional follow-up email for:
 Title: ${event.title}
@@ -474,6 +486,14 @@ Description: ${event.description || 'No description provided'}
 Attendees: ${event.attendees?.join(', ') || 'No attendees listed'}
 
 Include: greeting, meeting confirmation, brief agenda, offer to share materials, professional closing.`;
+
+      // Show user's prompt in chat
+      const userMessage: ChatMessage = {
+        role: 'user',
+        content: `Generate Email for: ${event.title}`,
+        timestamp: new Date().toISOString()
+      };
+      setChatMessages([userMessage]);
 
       const response = await fetch('/api/chat', {
         method: 'POST',
@@ -492,7 +512,8 @@ Include: greeting, meeting confirmation, brief agenda, offer to share materials,
           content: data.response,
           timestamp: new Date().toISOString()
         };
-        setChatMessages([assistantMessage]);
+        setChatMessages([userMessage, assistantMessage]);
+        await createActivityLog('email_draft_created', `Email Generated: ${event.title}`, `Generated email for meeting with ${event.attendees?.join(', ')}`);
       }
     } catch (error) {
       console.error('Error generating email:', error);
@@ -636,61 +657,49 @@ Include: greeting, meeting confirmation, brief agenda, offer to share materials,
       <div className="max-w-7xl mx-auto px-6 py-8">
         {activeTab === 'dashboard' && (
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-            {/* AI Chat - Takes up 2 columns */}
-            <div className="lg:col-span-2 relative">
-              {/* Chat Sidebar */}
-              {showChatSidebar && (
-                <div className="absolute left-0 top-0 bottom-0 w-64 bg-white border-r border-gray-200 z-10 overflow-y-auto">
-                  <div className="p-4 border-b border-gray-200">
-                    <div className="flex items-center justify-between mb-4">
-                      <h3 className="font-semibold text-gray-900">Chats</h3>
-                      <button
-                        onClick={() => setShowChatSidebar(false)}
-                        className="text-gray-400 hover:text-gray-600"
-                      >
-                        ✕
-                      </button>
-                    </div>
-                    <button
-                      onClick={startNewChat}
-                      className="w-full bg-[#F95B14] text-white px-4 py-2 rounded-lg hover:bg-orange-600 transition-colors flex items-center justify-center gap-2"
-                    >
-                      <span className="text-lg">+</span> New Chat
-                    </button>
-                  </div>
-                  <div className="divide-y divide-gray-200">
-                    {chatHistory.map((chat) => (
-                      <button
-                        key={chat.id}
-                        onClick={() => loadChat(chat.id)}
-                        className={`w-full text-left p-3 hover:bg-gray-50 transition-colors ${
-                          currentChatId === chat.id ? 'bg-orange-50' : ''
-                        }`}
-                      >
-                        <p className="text-sm font-medium text-gray-900 truncate">{chat.title}</p>
-                        <p className="text-xs text-gray-500 mt-1">
-                          {new Date(chat.updated_at).toLocaleDateString()}
-                        </p>
-                      </button>
-                    ))}
-                  </div>
-                </div>
-              )}
-
+            {/* Chat History Sidebar - Left side */}
+            <div className="lg:col-span-1">
               <div className="bg-white rounded-lg border border-gray-200 shadow-sm h-[700px] flex flex-col">
-                <div className="p-4 border-b border-gray-200 flex items-center justify-between">
-                  <div>
-                    <h2 className="text-lg font-semibold text-gray-900">AI Assistant</h2>
-                    <p className="text-sm text-gray-600">Ask me anything about your calendar, leads, or sales tasks</p>
-                  </div>
+                <div className="p-4 border-b border-gray-200">
                   <button
-                    onClick={() => setShowChatSidebar(!showChatSidebar)}
-                    className="text-gray-600 hover:text-gray-900 transition-colors"
+                    onClick={startNewChat}
+                    className="w-full bg-[#F95B14] text-white px-4 py-2 rounded-lg hover:bg-orange-600 transition-colors flex items-center justify-center gap-2 font-semibold"
                   >
-                    <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h16" />
-                    </svg>
+                    <span className="text-xl">+</span> New Chat
                   </button>
+                </div>
+                <div className="flex-1 overflow-y-auto divide-y divide-gray-200">
+                  {chatHistory.length === 0 && (
+                    <div className="p-8 text-center text-gray-500">
+                      <div className="text-3xl mb-2">💬</div>
+                      <p className="text-sm">No chats yet</p>
+                      <p className="text-xs mt-1">Start a conversation</p>
+                    </div>
+                  )}
+                  {chatHistory.map((chat) => (
+                    <button
+                      key={chat.id}
+                      onClick={() => loadChat(chat.id)}
+                      className={`w-full text-left p-3 hover:bg-gray-50 transition-colors ${
+                        currentChatId === chat.id ? 'bg-orange-50 border-l-4 border-[#F95B14]' : ''
+                      }`}
+                    >
+                      <p className="text-sm font-medium text-gray-900 truncate">{chat.title}</p>
+                      <p className="text-xs text-gray-500 mt-1">
+                        {new Date(chat.updated_at).toLocaleDateString()}
+                      </p>
+                    </button>
+                  ))}
+                </div>
+              </div>
+            </div>
+
+            {/* AI Chat - Middle column */}
+            <div className="lg:col-span-1">
+              <div className="bg-white rounded-lg border border-gray-200 shadow-sm h-[700px] flex flex-col">
+                <div className="p-4 border-b border-gray-200">
+                  <h2 className="text-lg font-semibold text-gray-900">AI Assistant</h2>
+                  <p className="text-sm text-gray-600">Ask me anything about your calendar, leads, or sales tasks</p>
                 </div>
 
                 {/* Chat Messages */}
@@ -720,19 +729,46 @@ Include: greeting, meeting confirmation, brief agenda, offer to share materials,
                         </div>
                         {/* Action buttons for assistant messages */}
                         {msg.role === 'assistant' && (
-                          <div className="flex gap-2 mt-2">
-                            <button
-                              onClick={() => addToEmailDrafts(msg.content, selectedEvent?.title)}
-                              className="text-xs bg-white border border-gray-300 text-gray-700 px-3 py-1 rounded hover:bg-gray-50 transition-colors"
-                            >
-                              ✉️ Add to Email Drafts
-                            </button>
-                            <button
-                              onClick={() => updateCRM(msg.content)}
-                              className="text-xs bg-white border border-gray-300 text-gray-700 px-3 py-1 rounded hover:bg-gray-50 transition-colors"
-                            >
-                              📝 Update CRM
-                            </button>
+                          <div className="flex gap-3 mt-2">
+                            {/* Email Draft Action */}
+                            <div className="group relative">
+                              <div className="w-8 h-8 rounded-full bg-white border-2 border-gray-200 flex items-center justify-center cursor-pointer hover:border-[#F95B14] transition-colors">
+                                <svg className="w-4 h-4" viewBox="0 0 23 23" xmlns="http://www.w3.org/2000/svg">
+                                  <path fill="#f35325" d="M1 1h10v10H1z"/>
+                                  <path fill="#81bc06" d="M12 1h10v10H12z"/>
+                                  <path fill="#05a6f0" d="M1 12h10v10H1z"/>
+                                  <path fill="#ffba08" d="M12 12h10v10H12z"/>
+                                </svg>
+                              </div>
+                              {/* Hover tooltip */}
+                              <div className="absolute left-0 top-full mt-1 hidden group-hover:block bg-gray-900 text-white text-xs px-3 py-2 rounded shadow-lg whitespace-nowrap z-10">
+                                <button
+                                  onClick={() => addToEmailDrafts(msg.content, selectedEvent?.title)}
+                                  className="hover:text-[#F95B14] transition-colors"
+                                >
+                                  ✉️ Create Draft in Outlook
+                                </button>
+                              </div>
+                            </div>
+
+                            {/* CRM Action */}
+                            <div className="group relative">
+                              <div className="w-8 h-8 rounded-full bg-white border-2 border-gray-200 flex items-center justify-center cursor-pointer hover:border-blue-500 transition-colors">
+                                <svg className="w-4 h-4" viewBox="0 0 24 24" fill="#00A1E0" xmlns="http://www.w3.org/2000/svg">
+                                  <path d="M12 0C5.373 0 0 5.373 0 12s5.373 12 12 12 12-5.373 12-12S18.627 0 12 0z"/>
+                                  <path fill="white" d="M8 7h8v2H8V7zm0 4h8v2H8v-2zm0 4h5v2H8v-2z"/>
+                                </svg>
+                              </div>
+                              {/* Hover tooltip */}
+                              <div className="absolute left-0 top-full mt-1 hidden group-hover:block bg-gray-900 text-white text-xs px-3 py-2 rounded shadow-lg whitespace-nowrap z-10">
+                                <button
+                                  onClick={() => updateCRM(msg.content)}
+                                  className="hover:text-blue-400 transition-colors"
+                                >
+                                  🎯 Enrich Lead in Salesforce
+                                </button>
+                              </div>
+                            </div>
                           </div>
                         )}
                       </div>
@@ -830,18 +866,29 @@ Include: greeting, meeting confirmation, brief agenda, offer to share materials,
                       
                       {/* Dropdown Menu */}
                       {showEventMenu && selectedEvent?.id === event.id && (
-                        <div className="absolute left-0 top-full mt-1 w-full bg-white border border-gray-200 rounded-lg shadow-lg z-20">
+                        <div 
+                          className="absolute left-0 top-full mt-1 w-full bg-white border border-gray-200 rounded-lg shadow-lg z-20"
+                          onClick={(e) => e.stopPropagation()}
+                        >
                           <button
-                            onClick={() => handleMeetingInsights(event)}
-                            className="w-full text-left px-4 py-2 hover:bg-gray-50 transition-colors text-sm border-b border-gray-100"
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              handleMeetingInsights(event);
+                            }}
+                            className="w-full text-left px-4 py-2 hover:bg-gray-50 transition-colors text-sm border-b border-gray-100 flex items-center gap-2"
                           >
-                            💡 Meeting Insights
+                            <span>💡</span>
+                            <span>Meeting Insights</span>
                           </button>
                           <button
-                            onClick={() => handleGenerateEmail(event)}
-                            className="w-full text-left px-4 py-2 hover:bg-gray-50 transition-colors text-sm"
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              handleGenerateEmail(event);
+                            }}
+                            className="w-full text-left px-4 py-2 hover:bg-gray-50 transition-colors text-sm flex items-center gap-2"
                           >
-                            ✉️ Generate Email
+                            <span>✉️</span>
+                            <span>Generate Email</span>
                           </button>
                         </div>
                       )}

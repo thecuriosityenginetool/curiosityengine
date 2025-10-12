@@ -61,12 +61,45 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
   callbacks: {
     async signIn({ user, account, profile }) {
       console.log('🔐 OAuth SignIn callback for:', user.email);
-      console.log('🔐 Account provider:', account?.provider);
-      console.log('🔐 User object:', JSON.stringify(user));
       
-      // For now, just allow all sign ins to test
-      // We'll add user creation logic back after we confirm OAuth works
-      return true;
+      if (!user.email) {
+        console.error('[AUTH] No email in user object');
+        return false;
+      }
+
+      try {
+        // Check if user exists
+        const { data: existingUser } = await supabase
+          .from('users')
+          .select('id')
+          .eq('email', user.email)
+          .single();
+
+        if (!existingUser) {
+          // Create new user
+          console.log('[AUTH] Creating new user:', user.email);
+          
+          const { error: createError } = await supabase
+            .from('users')
+            .insert({
+              email: user.email,
+              full_name: user.name || user.email?.split('@')[0],
+              role: 'member',
+              email_provider: account?.provider || 'google',
+            });
+
+          if (createError) {
+            console.error('[AUTH] Create user error:', createError.message);
+            // Still allow sign in even if user creation fails
+          }
+        }
+
+        return true;
+      } catch (error) {
+        console.error('[AUTH] Exception in signIn:', error);
+        // Allow sign in even if there's an error - NextAuth will handle it
+        return true;
+      }
     },
     async jwt({ token, user, account }) {
       // On initial sign in, add user data and tokens to JWT

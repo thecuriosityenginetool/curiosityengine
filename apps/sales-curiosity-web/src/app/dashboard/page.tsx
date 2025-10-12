@@ -53,7 +53,7 @@ export default function DashboardPage() {
   const [loading, setLoading] = useState(true);
   const [user, setUser] = useState<any>(null);
   const [userData, setUserData] = useState<User | null>(null);
-  const [activeTab, setActiveTab] = useState<'dashboard' | 'leads' | 'context' | 'integrations'>('dashboard');
+  const [activeTab, setActiveTab] = useState<'dashboard' | 'leads' | 'context' | 'integrations' | 'logs'>('dashboard');
   
   // Dashboard state
   const [calendarEvents, setCalendarEvents] = useState<CalendarEvent[]>([]);
@@ -61,11 +61,18 @@ export default function DashboardPage() {
   const [chatInput, setChatInput] = useState('');
   const [isSendingMessage, setIsSendingMessage] = useState(false);
   const [currentChatId, setCurrentChatId] = useState<string | null>(null);
+  const [chatHistory, setChatHistory] = useState<any[]>([]);
+  const [showChatSidebar, setShowChatSidebar] = useState(false);
+  const [selectedEvent, setSelectedEvent] = useState<CalendarEvent | null>(null);
+  const [showEventMenu, setShowEventMenu] = useState(false);
   const chatEndRef = useRef<HTMLDivElement>(null);
   
   // Leads state
   const [leads, setLeads] = useState<Lead[]>([]);
   const [selectedLead, setSelectedLead] = useState<Lead | null>(null);
+  
+  // Activity logs state
+  const [activityLogs, setActivityLogs] = useState<any[]>([]);
   
   // Connector card mouse positions
   const [cardMousePositions, setCardMousePositions] = useState<{

@@ -123,35 +123,40 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
     },
     async jwt({ token, user, account }) {
       // On initial sign in, add user data and tokens to JWT
-      if (user) {
-        // Fetch user data from database
-        const { data: userData } = await supabase
-          .from('users')
-          .select('id, email, full_name, role, organization_id')
-          .eq('email', user.email)
-          .single();
+      if (user && user.email) {
+        try {
+          // Fetch user data from database
+          const { data: userData, error: userError } = await supabase
+            .from('users')
+            .select('id, email, full_name, role, organization_id')
+            .eq('email', user.email)
+            .single();
 
-        if (userData) {
-          token.id = userData.id;
-          token.role = userData.role;
-          token.organizationId = userData.organization_id;
-          
-          // Fetch organization data if user is in an org
-          if (userData.organization_id) {
-            const { data: orgData } = await supabase
-              .from('organizations')
-              .select('name, account_type')
-              .eq('id', userData.organization_id)
-              .single();
+          if (!userError && userData) {
+            token.id = userData.id;
+            token.role = userData.role;
+            token.organizationId = userData.organization_id;
             
-            if (orgData) {
-              token.organizationName = orgData.name;
-              token.accountType = orgData.account_type;
+            // Fetch organization data if user is in an org
+            if (userData.organization_id) {
+              const { data: orgData } = await supabase
+                .from('organizations')
+                .select('name, account_type')
+                .eq('id', userData.organization_id)
+                .single();
+              
+              if (orgData) {
+                token.organizationName = orgData.name;
+                token.accountType = orgData.account_type;
+              }
+            } else {
+              token.organizationName = null;
+              token.accountType = 'individual';
             }
-          } else {
-            token.organizationName = null;
-            token.accountType = 'individual';
           }
+        } catch (error) {
+          console.error('[AUTH] Error in jwt callback:', error);
+          // Return token as-is if there's an error
         }
       }
 

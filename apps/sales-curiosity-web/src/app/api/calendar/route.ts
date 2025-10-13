@@ -28,13 +28,16 @@ export async function GET(req: NextRequest) {
     }
 
     // Check if Outlook is connected
-    const { data: outlookIntegration } = await supabase
+    console.log('🔍 Checking Outlook integration for org:', userData.organization_id);
+    const { data: outlookIntegration, error: outlookError } = await supabase
       .from('organization_integrations')
-      .select('is_enabled')
+      .select('is_enabled, integration_type')
       .eq('organization_id', userData.organization_id)
       .in('integration_type', ['outlook', 'outlook_user'])
       .eq('is_enabled', true)
       .maybeSingle();
+    
+    console.log('🔍 Outlook integration check result:', { outlookIntegration, outlookError });
 
     let events = [];
 

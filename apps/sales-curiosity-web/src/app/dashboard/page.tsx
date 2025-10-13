@@ -773,13 +773,29 @@ Include: greeting, meeting confirmation, brief agenda, offer to share materials,
 
   async function connectOutlook() {
     try {
+      console.log('🔵 Connecting to Outlook...');
       const response = await fetch('/api/outlook/auth-user');
+      console.log('🔵 Outlook auth response status:', response.status);
+      
       if (response.ok) {
         const data = await response.json();
-        window.location.href = data.authUrl;
+        console.log('🔵 Outlook auth data:', data);
+        
+        if (data.authUrl) {
+          console.log('🔵 Redirecting to:', data.authUrl);
+          window.location.href = data.authUrl;
+        } else {
+          console.error('❌ No authUrl in response');
+          alert('Failed to get Outlook authorization URL');
+        }
+      } else {
+        const error = await response.json();
+        console.error('❌ Outlook auth failed:', error);
+        alert(`Failed to connect Outlook: ${error.error || 'Unknown error'}`);
       }
     } catch (error) {
-      console.error('Error connecting Outlook:', error);
+      console.error('❌ Error connecting Outlook:', error);
+      alert('Error connecting Outlook. Check console for details.');
     }
   }
 

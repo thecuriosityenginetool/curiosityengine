@@ -89,6 +89,7 @@ export default function DashboardPage() {
   const [connectionService, setConnectionService] = useState<'outlook' | 'salesforce' | null>(null);
   const [hasOutlookConnection, setHasOutlookConnection] = useState(false);
   const [hasSalesforceConnection, setHasSalesforceConnection] = useState(false);
+  const [isSyncingCalendar, setIsSyncingCalendar] = useState(false);
   
   // Chrome extension detection
   const [hasChromeExtension, setHasChromeExtension] = useState<boolean | null>(null);
@@ -200,6 +201,20 @@ export default function DashboardPage() {
       }
     } catch (error) {
       console.error('Error loading calendar:', error);
+    }
+  }
+
+  async function syncCalendar() {
+    setIsSyncingCalendar(true);
+    try {
+      await loadCalendarEvents();
+      // Show success message briefly
+      setTimeout(() => {
+        setIsSyncingCalendar(false);
+      }, 1000);
+    } catch (error) {
+      console.error('Error syncing calendar:', error);
+      setIsSyncingCalendar(false);
     }
   }
 
@@ -1202,8 +1217,25 @@ Include: greeting, meeting confirmation, brief agenda, offer to share materials,
             {/* Calendar - Takes up 1 column */}
             <div className="lg:col-span-1">
               <div className="bg-white rounded-lg border border-gray-200 shadow-sm">
-                <div className="p-4 border-b border-gray-200">
+                <div className="p-4 border-b border-gray-200 flex justify-between items-center">
                   <h2 className="text-lg font-semibold text-gray-900">📅 Upcoming Events</h2>
+                  <button
+                    onClick={syncCalendar}
+                    disabled={isSyncingCalendar}
+                    className="px-3 py-1.5 text-sm bg-blue-50 text-blue-600 rounded-md hover:bg-blue-100 disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-1.5"
+                  >
+                    {isSyncingCalendar ? (
+                      <>
+                        <div className="w-3 h-3 border border-blue-600 border-t-transparent rounded-full animate-spin"></div>
+                        Syncing...
+                      </>
+                    ) : (
+                      <>
+                        <span>🔄</span>
+                        Sync
+                      </>
+                    )}
+                  </button>
                 </div>
 
                 <div className="p-4 space-y-3 max-h-[640px] overflow-y-auto">

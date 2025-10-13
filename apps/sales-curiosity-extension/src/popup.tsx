@@ -60,35 +60,31 @@ function Popup() {
         console.log('🔵 Storage check:', { hasToken: !!result.authToken, hasUser: !!result.user });
         
         if (result.authToken && result.user) {
-          console.log('🔵 Token found, validating with API...');
+          console.log('🔵 Token found in storage');
+          console.log('🔵 Token preview:', result.authToken.substring(0, 30) + '...');
+          console.log('🔵 User:', result.user);
           
-          // Verify token is still valid by calling an API
-          const res = await chrome.runtime.sendMessage({
+          // TEMPORARY: Trust the token without API validation
+          // This allows testing while API deployment is pending
+          console.log('✅ Trusting stored token (skip API validation for now)');
+          setIsAuthenticated(true);
+          setUser(result.user);
+          
+          // Still try to load stats in background, but don't fail if it errors
+          chrome.runtime.sendMessage({
             type: "PING_API",
             url: `${apiBase}/api/user/stats`,
             method: "GET",
             authToken: result.authToken,
+          }).then(res => {
+            if (res.ok) {
+              console.log('✅ API validation successful');
+            } else {
+              console.log('⚠️ API validation failed but continuing anyway:', res.status);
+            }
+          }).catch(e => {
+            console.log('⚠️ API call failed but continuing anyway:', e);
           });
-
-          console.log('🔵 API validation response:', res.ok, res.status);
-
-          if (res.ok) {
-            // Token is valid
-            console.log('✅ Token valid, user authenticated');
-            setIsAuthenticated(true);
-            setUser(result.user);
-          } else if (res.status === 401) {
-            // Token is invalid, clear storage
-            console.log("⚠️ Token invalid (401), clearing storage");
-            await chrome.storage.local.clear();
-            setIsAuthenticated(false);
-            setUser(null);
-          } else {
-            // API error but token might be valid - trust the stored token for now
-            console.log("⚠️ API error, but trusting stored token:", res.status);
-            setIsAuthenticated(true);
-            setUser(result.user);
-          }
         } else {
           console.log('⚠️ No token found in storage');
           setIsAuthenticated(false);

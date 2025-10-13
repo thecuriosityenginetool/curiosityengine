@@ -21,6 +21,11 @@ window.addEventListener('message', async (event) => {
     console.log('🔵 Auth bridge: User:', event.data.user);
     
     try {
+      // Check if chrome.storage is available (extension context valid)
+      if (!chrome?.storage?.local) {
+        throw new Error('Extension context invalidated. Please refresh this page.');
+      }
+
       // Store in chrome.storage
       await chrome.storage.local.set({
         authToken: event.data.authToken,
@@ -45,9 +50,14 @@ window.addEventListener('message', async (event) => {
     } catch (error) {
       console.error('❌ Auth bridge: Error storing token:', error);
       
+      // If extension context was invalidated, tell user to refresh
+      const errorMessage = String(error).includes('invalidated') 
+        ? 'Extension was reloaded. Please refresh this page and try again.'
+        : String(error);
+      
       window.postMessage({
         type: 'EXTENSION_AUTH_ERROR',
-        error: String(error),
+        error: errorMessage,
       }, event.origin);
     }
   }

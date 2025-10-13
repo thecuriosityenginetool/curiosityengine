@@ -68,16 +68,28 @@ export async function GET(req: NextRequest) {
 
     // Exchange code for tokens (use user-callback redirect URI)
     const userCallbackUri = `${process.env.NEXT_PUBLIC_APP_URL}/api/salesforce/user-callback`;
+    console.log('💠 Exchanging code for tokens...');
     const tokens = await exchangeCodeForTokens(code, userCallbackUri);
+    console.log('✅ Tokens received from Salesforce');
 
     // Store tokens at user level in organization_integrations
     // Use a composite approach: store with user_id in configuration
-    const { data: existing } = await supabase
+    console.log('💠 Checking for existing connection...');
+    console.log('   Organization ID:', organizationId);
+    console.log('   User ID:', userId);
+    
+    const { data: existing, error: queryError } = await supabase
       .from('organization_integrations')
       .select('id, configuration')
       .eq('organization_id', organizationId)
       .eq('integration_type', 'salesforce_user')
-      .single();
+      .maybeSingle();
+
+    if (queryError) {
+      console.error('❌ Error querying existing connection:', queryError);
+    }
+
+    console.log('💠 Existing connection:', existing ? 'Found' : 'Not found');
 
     // Store user-specific tokens in configuration with user_id key
     const userTokens = {
@@ -86,13 +98,14 @@ export async function GET(req: NextRequest) {
 
     if (existing) {
       // Merge with existing user tokens
+      console.log('💠 Updating existing connection...');
       const existingConfig = existing.configuration as any || {};
       const mergedConfig = {
         ...existingConfig,
         ...userTokens
       };
 
-      await supabase
+      const { error: updateError } = await supabase
         .from('organization_integrations')
         .update({
           is_enabled: true,
@@ -100,9 +113,16 @@ export async function GET(req: NextRequest) {
           updated_at: new Date().toISOString(),
         })
         .eq('id', existing.id);
+
+      if (updateError) {
+        console.error('❌ Error updating connection:', updateError);
+        throw updateError;
+      }
+      console.log('✅ Connection updated successfully');
     } else {
       // Create new user-level integration
-      await supabase
+      console.log('💠 Creating new connection...');
+      const { error: insertError } = await supabase
         .from('organization_integrations')
         .insert({
           organization_id: organizationId,
@@ -112,6 +132,12 @@ export async function GET(req: NextRequest) {
           enabled_at: new Date().toISOString(),
           enabled_by: userId,
         });
+
+      if (insertError) {
+        console.error('❌ Error inserting connection:', insertError);
+        throw insertError;
+      }
+      console.log('✅ Connection created successfully');
     }
 
     // Redirect back to dashboard with success message

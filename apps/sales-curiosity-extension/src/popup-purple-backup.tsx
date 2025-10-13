@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import React from "react";
 import { createRoot } from "react-dom/client";
 import { jsPDF } from "jspdf";
+import { Logo, LogoSmall } from "./components/Logo";
 
 type Page = "home" | "context" | "integrations";
 type ActionType = "analyze" | "email";
@@ -339,9 +340,10 @@ function Popup() {
       <div style={{
         width: 380,
         minHeight: 500,
-        background: "white",
+        background: "linear-gradient(135deg, #667eea 0%, #764ba2 100%)",
         fontFamily: "-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif",
-        color: "#1f2937"
+        color: "white",
+        overflow: "hidden"
       }}>
         <div style={{
           padding: "32px 24px",
@@ -353,14 +355,7 @@ function Popup() {
             justifyContent: "center",
             marginBottom: 24
           }}>
-            <img 
-              src="icons/fulllogo.png" 
-              alt="Sales Curiosity"
-              style={{
-                height: 60,
-                width: "auto"
-              }}
-            />
+            <Logo size={64} />
           </div>
 
           {/* Title */}
@@ -368,25 +363,36 @@ function Popup() {
             fontSize: 24,
             fontWeight: 700,
             marginBottom: 8,
-            color: "#111827"
+            letterSpacing: "-0.5px"
           }}>
-            Welcome Back
+            Sales Curiosity
           </h1>
           <p style={{
             fontSize: 14,
-            color: "#6b7280",
+            opacity: 0.9,
             marginBottom: 32,
-            lineHeight: 1.6
+            fontWeight: 400
           }}>
-            Sign in with your work email to access AI-powered sales intelligence
+            AI-Powered LinkedIn Intelligence
           </p>
 
           {/* OAuth Buttons */}
           <div style={{
-            display: "flex",
-            flexDirection: "column",
-            gap: 12
+            background: "white",
+            borderRadius: 16,
+            padding: 24,
+            boxShadow: "0 8px 32px rgba(0, 0, 0, 0.12)"
           }}>
+            <p style={{
+              fontSize: 13,
+              color: "#64748b",
+              marginBottom: 20,
+              lineHeight: 1.6,
+              textAlign: "center"
+            }}>
+              Sign in with your work email to access AI-powered sales intelligence
+            </p>
+
             {/* Sign in with Google */}
             <button
               type="button"
@@ -398,16 +404,17 @@ function Popup() {
                 padding: "12px 16px",
                 background: "white",
                 border: "2px solid #e5e7eb",
-                borderRadius: 8,
+                borderRadius: 10,
                 fontSize: 14,
                 fontWeight: 600,
                 cursor: "pointer",
+                marginBottom: 12,
                 display: "flex",
                 alignItems: "center",
                 justifyContent: "center",
                 gap: 12,
                 transition: "all 0.2s ease",
-                color: "#374151"
+                color: "#1f2937"
               }}
               onMouseOver={(e) => {
                 e.currentTarget.style.background = "#f9fafb";
@@ -442,7 +449,7 @@ function Popup() {
                 padding: "12px 16px",
                 background: "white",
                 border: "2px solid #e5e7eb",
-                borderRadius: 8,
+                borderRadius: 10,
                 fontSize: 14,
                 fontWeight: 600,
                 cursor: "pointer",
@@ -451,7 +458,7 @@ function Popup() {
                 justifyContent: "center",
                 gap: 12,
                 transition: "all 0.2s ease",
-                color: "#374151"
+                color: "#1f2937"
               }}
               onMouseOver={(e) => {
                 e.currentTarget.style.background = "#f9fafb";
@@ -476,8 +483,8 @@ function Popup() {
             </button>
 
             <div style={{
-              marginTop: 16,
-              padding: 14,
+              marginTop: 20,
+              padding: 16,
               background: "#fef3c7",
               border: "1px solid #fbbf24",
               borderRadius: 8,
@@ -486,6 +493,15 @@ function Popup() {
               lineHeight: 1.5
             }}>
               <strong>👋 Note:</strong> After signing in on the web page, close that tab and return here. The extension will automatically connect.
+            </div>
+
+            <div style={{
+              marginTop: 16,
+              textAlign: "center",
+              fontSize: 11,
+              color: "#9ca3af"
+            }}>
+              By signing in, you agree to our Terms of Service and Privacy Policy
             </div>
           </div>
         </div>
@@ -498,47 +514,41 @@ function Popup() {
     <div style={{
       width: 380,
       minHeight: 500,
-      background: "#f9fafb",
+      background: "linear-gradient(135deg, #667eea 0%, #764ba2 100%)",
       fontFamily: "-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif",
-      color: "#111827"
+      color: "white"
     }}>
       {/* Header */}
       <div style={{
-        padding: "16px 20px",
-        background: "white",
-        borderBottom: "1px solid #e5e7eb"
+        padding: "20px 20px 16px",
+        background: "rgba(255, 255, 255, 0.1)",
+        backdropFilter: "blur(10px)",
+        borderBottom: "1px solid rgba(255, 255, 255, 0.2)"
       }}>
         <div style={{
           display: "flex",
           alignItems: "center",
           justifyContent: "space-between",
-          marginBottom: 12
+          marginBottom: 16
         }}>
           <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
-            <img 
-              src="icons/logo.png" 
-              alt="Sales Curiosity"
-              style={{
-                height: 32,
-                width: 32
-              }}
-            />
+            <LogoSmall size={32} />
             <div>
               <h1 style={{
-                fontSize: 15,
+                fontSize: 16,
                 fontWeight: 700,
                 margin: 0,
-                color: "#111827"
+                letterSpacing: "-0.3px"
               }}>
                 Sales Curiosity
               </h1>
               {user && (
                 <p style={{
                   fontSize: 11,
-                  color: "#6b7280",
+                  opacity: 0.85,
                   margin: "2px 0 0 0"
                 }}>
-                  {user.email || user.fullName || "User"}
+                  {user.email || user.full_name || "User"}
                 </p>
               )}
             </div>
@@ -547,20 +557,20 @@ function Popup() {
             onClick={handleLogout}
             style={{
               padding: "6px 12px",
-              background: "#f3f4f6",
-              border: "none",
+              background: "rgba(255, 255, 255, 0.2)",
+              border: "1px solid rgba(255, 255, 255, 0.3)",
               borderRadius: 6,
-              color: "#374151",
+              color: "white",
               fontSize: 11,
               fontWeight: 600,
               cursor: "pointer",
               transition: "all 0.2s ease"
             }}
             onMouseOver={(e) => {
-              e.currentTarget.style.background = "#e5e7eb";
+              e.currentTarget.style.background = "rgba(255, 255, 255, 0.3)";
             }}
             onMouseOut={(e) => {
-              e.currentTarget.style.background = "#f3f4f6";
+              e.currentTarget.style.background = "rgba(255, 255, 255, 0.2)";
             }}
           >
             Sign Out
@@ -570,17 +580,19 @@ function Popup() {
         {/* Navigation */}
         <div style={{
           display: "flex",
-          gap: 6
+          gap: 8
         }}>
           <button
             onClick={() => setCurrentPage("home")}
             style={{
               flex: 1,
               padding: "8px",
-              background: currentPage === "home" ? "#F95B14" : "white",
-              border: currentPage === "home" ? "none" : "1px solid #e5e7eb",
-              borderRadius: 6,
-              color: currentPage === "home" ? "white" : "#6b7280",
+              background: currentPage === "home" 
+                ? "rgba(255, 255, 255, 0.25)" 
+                : "rgba(255, 255, 255, 0.1)",
+              border: "1px solid rgba(255, 255, 255, 0.2)",
+              borderRadius: 8,
+              color: "white",
               fontSize: 12,
               fontWeight: 600,
               cursor: "pointer",
@@ -594,10 +606,12 @@ function Popup() {
             style={{
               flex: 1,
               padding: "8px",
-              background: currentPage === "context" ? "#F95B14" : "white",
-              border: currentPage === "context" ? "none" : "1px solid #e5e7eb",
-              borderRadius: 6,
-              color: currentPage === "context" ? "white" : "#6b7280",
+              background: currentPage === "context" 
+                ? "rgba(255, 255, 255, 0.25)" 
+                : "rgba(255, 255, 255, 0.1)",
+              border: "1px solid rgba(255, 255, 255, 0.2)",
+              borderRadius: 8,
+              color: "white",
               fontSize: 12,
               fontWeight: 600,
               cursor: "pointer",
@@ -611,10 +625,12 @@ function Popup() {
             style={{
               flex: 1,
               padding: "8px",
-              background: currentPage === "integrations" ? "#F95B14" : "white",
-              border: currentPage === "integrations" ? "none" : "1px solid #e5e7eb",
-              borderRadius: 6,
-              color: currentPage === "integrations" ? "white" : "#6b7280",
+              background: currentPage === "integrations" 
+                ? "rgba(255, 255, 255, 0.25)" 
+                : "rgba(255, 255, 255, 0.1)",
+              border: "1px solid rgba(255, 255, 255, 0.2)",
+              borderRadius: 8,
+              color: "white",
               fontSize: 12,
               fontWeight: 600,
               cursor: "pointer",
@@ -629,7 +645,7 @@ function Popup() {
       {/* Content */}
       <div style={{
         padding: 20,
-        maxHeight: 440,
+        maxHeight: 480,
         overflowY: "auto"
       }}>
         {currentPage === "home" && (
@@ -637,11 +653,12 @@ function Popup() {
             {/* Stats */}
             {userStats && (
               <div style={{
-                background: "white",
-                borderRadius: 10,
+                background: "rgba(255, 255, 255, 0.15)",
+                backdropFilter: "blur(10px)",
+                borderRadius: 12,
                 padding: 16,
                 marginBottom: 16,
-                border: "1px solid #e5e7eb"
+                border: "1px solid rgba(255, 255, 255, 0.2)"
               }}>
                 <div style={{
                   display: "grid",
@@ -650,22 +667,22 @@ function Popup() {
                   textAlign: "center"
                 }}>
                   <div>
-                    <div style={{ fontSize: 22, fontWeight: 700, color: "#F95B14" }}>
+                    <div style={{ fontSize: 24, fontWeight: 700 }}>
                       {userStats.totalAnalyses || 0}
                     </div>
-                    <div style={{ fontSize: 11, color: "#6b7280" }}>Analyses</div>
+                    <div style={{ fontSize: 11, opacity: 0.85 }}>Analyses</div>
                   </div>
                   <div>
-                    <div style={{ fontSize: 22, fontWeight: 700, color: "#F95B14" }}>
+                    <div style={{ fontSize: 24, fontWeight: 700 }}>
                       {userStats.emailsDrafted || 0}
                     </div>
-                    <div style={{ fontSize: 11, color: "#6b7280" }}>Emails</div>
+                    <div style={{ fontSize: 11, opacity: 0.85 }}>Emails</div>
                   </div>
                   <div>
-                    <div style={{ fontSize: 22, fontWeight: 700, color: "#F95B14" }}>
+                    <div style={{ fontSize: 24, fontWeight: 700 }}>
                       {userStats.profilesAnalyzed || 0}
                     </div>
-                    <div style={{ fontSize: 11, color: "#6b7280" }}>Profiles</div>
+                    <div style={{ fontSize: 11, opacity: 0.85 }}>Profiles</div>
                   </div>
                 </div>
               </div>
@@ -674,13 +691,12 @@ function Popup() {
             {/* LinkedIn Check */}
             {!isLinkedIn && (
               <div style={{
-                background: "#fef3c7",
-                border: "1px solid #fbbf24",
-                borderRadius: 10,
-                padding: 14,
+                background: "rgba(251, 191, 36, 0.2)",
+                border: "1px solid rgba(251, 191, 36, 0.5)",
+                borderRadius: 12,
+                padding: 16,
                 marginBottom: 16,
                 fontSize: 13,
-                color: "#92400e",
                 lineHeight: 1.5
               }}>
                 ⚠️ Please navigate to a LinkedIn profile page to use this extension.
@@ -695,30 +711,30 @@ function Popup() {
                   disabled={loading}
                   style={{
                     width: "100%",
-                    padding: 14,
-                    background: loading ? "#d1d5db" : "#F95B14",
+                    padding: 16,
+                    background: loading 
+                      ? "rgba(148, 163, 184, 0.5)" 
+                      : "linear-gradient(135deg, #F95B14 0%, #e04d0a 100%)",
                     border: "none",
-                    borderRadius: 8,
+                    borderRadius: 12,
                     color: "white",
                     fontSize: 15,
                     fontWeight: 700,
                     cursor: loading ? "not-allowed" : "pointer",
-                    marginBottom: 10,
-                    boxShadow: loading ? "none" : "0 2px 8px rgba(249, 91, 20, 0.3)",
+                    marginBottom: 12,
+                    boxShadow: "0 4px 12px rgba(249, 91, 20, 0.4)",
                     transition: "all 0.2s ease"
                   }}
                   onMouseOver={(e) => {
                     if (!loading) {
-                      e.currentTarget.style.background = "#e04d0a";
-                      e.currentTarget.style.transform = "translateY(-1px)";
-                      e.currentTarget.style.boxShadow = "0 4px 12px rgba(249, 91, 20, 0.4)";
+                      e.currentTarget.style.transform = "translateY(-2px)";
+                      e.currentTarget.style.boxShadow = "0 6px 16px rgba(249, 91, 20, 0.5)";
                     }
                   }}
                   onMouseOut={(e) => {
                     if (!loading) {
-                      e.currentTarget.style.background = "#F95B14";
                       e.currentTarget.style.transform = "translateY(0)";
-                      e.currentTarget.style.boxShadow = "0 2px 8px rgba(249, 91, 20, 0.3)";
+                      e.currentTarget.style.boxShadow = "0 4px 12px rgba(249, 91, 20, 0.4)";
                     }
                   }}
                 >
@@ -733,11 +749,13 @@ function Popup() {
                   disabled={loading}
                   style={{
                     width: "100%",
-                    padding: 14,
-                    background: loading ? "#d1d5db" : "white",
-                    border: "2px solid #F95B14",
-                    borderRadius: 8,
-                    color: "#F95B14",
+                    padding: 16,
+                    background: loading 
+                      ? "rgba(148, 163, 184, 0.5)" 
+                      : "rgba(255, 255, 255, 0.2)",
+                    border: "2px solid rgba(255, 255, 255, 0.3)",
+                    borderRadius: 12,
+                    color: "white",
                     fontSize: 15,
                     fontWeight: 700,
                     cursor: loading ? "not-allowed" : "pointer",
@@ -745,13 +763,13 @@ function Popup() {
                   }}
                   onMouseOver={(e) => {
                     if (!loading) {
-                      e.currentTarget.style.background = "#fef3c7";
-                      e.currentTarget.style.transform = "translateY(-1px)";
+                      e.currentTarget.style.background = "rgba(255, 255, 255, 0.3)";
+                      e.currentTarget.style.transform = "translateY(-2px)";
                     }
                   }}
                   onMouseOut={(e) => {
                     if (!loading) {
-                      e.currentTarget.style.background = "white";
+                      e.currentTarget.style.background = "rgba(255, 255, 255, 0.2)";
                       e.currentTarget.style.transform = "translateY(0)";
                     }
                   }}
@@ -766,22 +784,22 @@ function Popup() {
               <div style={{
                 marginTop: 16,
                 background: "white",
-                borderRadius: 10,
+                color: "#1f2937",
+                borderRadius: 12,
                 padding: 16,
                 fontSize: 13,
                 lineHeight: 1.6,
-                maxHeight: 280,
+                maxHeight: 300,
                 overflowY: "auto",
                 whiteSpace: "pre-wrap",
-                border: "1px solid #e5e7eb",
-                color: "#374151"
+                boxShadow: "0 4px 12px rgba(0, 0, 0, 0.1)"
               }}>
                 {response.split('\n').map((line, i) => {
                   if (line.startsWith('**') && line.endsWith('**')) {
-                    return <div key={i} style={{ fontWeight: 700, marginTop: i > 0 ? 8 : 0, color: "#111827" }}>{line.replace(/\*\*/g, '')}</div>;
+                    return <div key={i} style={{ fontWeight: 700, marginTop: i > 0 ? 8 : 0 }}>{line.replace(/\*\*/g, '')}</div>;
                   }
                   if (line.startsWith('🔗') || line.startsWith('➕')) {
-                    return <div key={i} style={{ background: '#fef3c7', padding: 8, borderRadius: 6, marginBottom: 8, color: '#92400e', fontSize: 12 }}>{line}</div>;
+                    return <div key={i} style={{ background: '#fef3c7', padding: 8, borderRadius: 6, marginBottom: 8, color: '#92400e' }}>{line}</div>;
                   }
                   return <div key={i}>{line}</div>;
                 })}
@@ -791,7 +809,7 @@ function Popup() {
             {/* Export Buttons */}
             {response && (
               <div style={{
-                marginTop: 10,
+                marginTop: 12,
                 display: "flex",
                 gap: 8
               }}>
@@ -799,11 +817,11 @@ function Popup() {
                   onClick={copyToClipboard}
                   style={{
                     flex: 1,
-                    padding: 8,
-                    background: "white",
-                    border: "1px solid #e5e7eb",
-                    borderRadius: 6,
-                    color: "#374151",
+                    padding: 10,
+                    background: "rgba(255, 255, 255, 0.2)",
+                    border: "1px solid rgba(255, 255, 255, 0.3)",
+                    borderRadius: 8,
+                    color: "white",
                     fontSize: 12,
                     fontWeight: 600,
                     cursor: "pointer"
@@ -815,11 +833,11 @@ function Popup() {
                   onClick={exportAsText}
                   style={{
                     flex: 1,
-                    padding: 8,
-                    background: "white",
-                    border: "1px solid #e5e7eb",
-                    borderRadius: 6,
-                    color: "#374151",
+                    padding: 10,
+                    background: "rgba(255, 255, 255, 0.2)",
+                    border: "1px solid rgba(255, 255, 255, 0.3)",
+                    borderRadius: 8,
+                    color: "white",
                     fontSize: 12,
                     fontWeight: 600,
                     cursor: "pointer"
@@ -831,11 +849,11 @@ function Popup() {
                   onClick={exportAsPDF}
                   style={{
                     flex: 1,
-                    padding: 8,
-                    background: "white",
-                    border: "1px solid #e5e7eb",
-                    borderRadius: 6,
-                    color: "#374151",
+                    padding: 10,
+                    background: "rgba(255, 255, 255, 0.2)",
+                    border: "1px solid rgba(255, 255, 255, 0.3)",
+                    borderRadius: 8,
+                    color: "white",
                     fontSize: 12,
                     fontWeight: 600,
                     cursor: "pointer"
@@ -851,20 +869,21 @@ function Popup() {
         {currentPage === "context" && (
           <div style={{
             background: "white",
-            borderRadius: 10,
-            padding: 18,
-            border: "1px solid #e5e7eb"
+            color: "#1f2937",
+            borderRadius: 12,
+            padding: 20,
+            boxShadow: "0 4px 12px rgba(0, 0, 0, 0.1)"
           }}>
             <h3 style={{
               fontSize: 16,
               fontWeight: 700,
-              marginBottom: 14,
-              color: "#111827"
+              marginBottom: 16,
+              color: "#1f2937"
             }}>
               Your Context
             </h3>
             
-            <div style={{ marginBottom: 14 }}>
+            <div style={{ marginBottom: 16 }}>
               <label style={{
                 display: "block",
                 fontSize: 13,
@@ -880,22 +899,19 @@ function Popup() {
                 placeholder="Tell us about yourself, your role, and your company..."
                 style={{
                   width: "100%",
-                  minHeight: 90,
-                  padding: 10,
+                  minHeight: 100,
+                  padding: 12,
                   border: "2px solid #e5e7eb",
-                  borderRadius: 6,
+                  borderRadius: 8,
                   fontSize: 13,
                   fontFamily: "inherit",
                   resize: "vertical",
-                  boxSizing: "border-box",
-                  outline: "none"
+                  boxSizing: "border-box"
                 }}
-                onFocus={(e) => e.currentTarget.style.borderColor = "#F95B14"}
-                onBlur={(e) => e.currentTarget.style.borderColor = "#e5e7eb"}
               />
             </div>
 
-            <div style={{ marginBottom: 14 }}>
+            <div style={{ marginBottom: 16 }}>
               <label style={{
                 display: "block",
                 fontSize: 13,
@@ -911,18 +927,15 @@ function Popup() {
                 placeholder="What are your sales goals and target prospects?"
                 style={{
                   width: "100%",
-                  minHeight: 90,
-                  padding: 10,
+                  minHeight: 100,
+                  padding: 12,
                   border: "2px solid #e5e7eb",
-                  borderRadius: 6,
+                  borderRadius: 8,
                   fontSize: 13,
                   fontFamily: "inherit",
                   resize: "vertical",
-                  boxSizing: "border-box",
-                  outline: "none"
+                  boxSizing: "border-box"
                 }}
-                onFocus={(e) => e.currentTarget.style.borderColor = "#F95B14"}
-                onBlur={(e) => e.currentTarget.style.borderColor = "#e5e7eb"}
               />
             </div>
 
@@ -937,15 +950,15 @@ function Popup() {
               disabled={saving}
               style={{
                 width: "100%",
-                padding: 11,
-                background: saving ? "#d1d5db" : "#F95B14",
+                padding: 12,
+                background: "linear-gradient(135deg, #F95B14 0%, #e04d0a 100%)",
                 border: "none",
-                borderRadius: 6,
+                borderRadius: 8,
                 color: "white",
                 fontSize: 14,
                 fontWeight: 700,
                 cursor: saving ? "not-allowed" : "pointer",
-                transition: "all 0.2s ease"
+                opacity: saving ? 0.7 : 1
               }}
             >
               {saving ? "Saving..." : saveMessage || "Save Context"}
@@ -956,25 +969,26 @@ function Popup() {
         {currentPage === "integrations" && (
           <div style={{
             background: "white",
-            borderRadius: 10,
-            padding: 18,
-            border: "1px solid #e5e7eb"
+            color: "#1f2937",
+            borderRadius: 12,
+            padding: 20,
+            boxShadow: "0 4px 12px rgba(0, 0, 0, 0.1)"
           }}>
             <h3 style={{
               fontSize: 16,
               fontWeight: 700,
-              marginBottom: 14,
-              color: "#111827"
+              marginBottom: 16,
+              color: "#1f2937"
             }}>
               Integrations
             </h3>
 
             {/* Salesforce Integration */}
             <div style={{
-              padding: 14,
+              padding: 16,
               border: "2px solid #e5e7eb",
-              borderRadius: 8,
-              marginBottom: 10
+              borderRadius: 10,
+              marginBottom: 12
             }}>
               <div style={{
                 display: "flex",
@@ -987,14 +1001,14 @@ function Popup() {
                   alignItems: "center",
                   gap: 10
                 }}>
-                  <div style={{ fontSize: 22 }}>☁️</div>
-                  <span style={{ fontSize: 14, fontWeight: 700, color: "#111827" }}>Salesforce</span>
+                  <div style={{ fontSize: 24 }}>☁️</div>
+                  <span style={{ fontSize: 14, fontWeight: 700 }}>Salesforce</span>
                 </div>
                 <span style={{
                   padding: "4px 10px",
                   background: enabledIntegrations.includes('salesforce_user') ? "#d1fae5" : "#f3f4f6",
                   color: enabledIntegrations.includes('salesforce_user') ? "#059669" : "#6b7280",
-                  borderRadius: 5,
+                  borderRadius: 6,
                   fontSize: 11,
                   fontWeight: 600
                 }}>
@@ -1003,9 +1017,9 @@ function Popup() {
               </div>
               <p style={{
                 fontSize: 12,
-                color: "#6b7280",
-                marginBottom: 10,
-                lineHeight: 1.4
+                color: "#64748b",
+                marginBottom: 12,
+                lineHeight: 1.5
               }}>
                 {enabledIntegrations.includes('salesforce_user') 
                   ? "Your Salesforce is connected. Emails are automatically tailored based on CRM data."
@@ -1052,25 +1066,14 @@ function Popup() {
                   padding: "10px 16px",
                   background: enabledIntegrations.includes('salesforce_user') 
                     ? "#e5e7eb" 
-                    : "#00A1E0",
+                    : "linear-gradient(135deg, #00A1E0 0%, #0089c2 100%)",
                   border: "none",
-                  borderRadius: 6,
+                  borderRadius: 8,
                   color: "white",
                   fontSize: 13,
                   fontWeight: 600,
                   cursor: enabledIntegrations.includes('salesforce_user') ? "not-allowed" : "pointer",
-                  opacity: enabledIntegrations.includes('salesforce_user') ? 0.6 : 1,
-                  transition: "all 0.2s ease"
-                }}
-                onMouseOver={(e) => {
-                  if (!enabledIntegrations.includes('salesforce_user')) {
-                    e.currentTarget.style.background = "#0089c2";
-                  }
-                }}
-                onMouseOut={(e) => {
-                  if (!enabledIntegrations.includes('salesforce_user')) {
-                    e.currentTarget.style.background = "#00A1E0";
-                  }
+                  opacity: enabledIntegrations.includes('salesforce_user') ? 0.6 : 1
                 }}
               >
                 {enabledIntegrations.includes('salesforce_user') ? "✓ Connected" : "Connect Salesforce"}
@@ -1085,7 +1088,7 @@ function Popup() {
               borderRadius: 8,
               fontSize: 12,
               color: "#1e40af",
-              lineHeight: 1.4
+              lineHeight: 1.5
             }}>
               <strong>💡 Tip:</strong> Connect Salesforce to automatically check if LinkedIn prospects are in your CRM and get smarter email drafts.
             </div>

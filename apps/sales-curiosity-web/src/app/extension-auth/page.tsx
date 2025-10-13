@@ -10,6 +10,22 @@ export default function ExtensionAuthPage() {
   const [authStatus, setAuthStatus] = useState<'loading' | 'success' | 'error'>('loading');
   const [errorMessage, setErrorMessage] = useState('');
 
+  // Listen for confirmation from auth bridge
+  useEffect(() => {
+    const handleMessage = (event: MessageEvent) => {
+      if (event.data.type === 'EXTENSION_AUTH_SUCCESS') {
+        console.log('✅ Received confirmation from extension bridge');
+        // Auto-close tab after a short delay
+        setTimeout(() => {
+          window.close();
+        }, 2000);
+      }
+    };
+
+    window.addEventListener('message', handleMessage);
+    return () => window.removeEventListener('message', handleMessage);
+  }, []);
+
   useEffect(() => {
     async function handleExtensionAuth() {
       try {
@@ -98,11 +114,25 @@ export default function ExtensionAuthPage() {
               </p>
             </div>
             <button
-              onClick={() => window.close()}
+              onClick={() => {
+                // Try window.close() first, if it fails, show manual instruction
+                try {
+                  window.close();
+                  // If window.close() didn't work, try alternative
+                  setTimeout(() => {
+                    window.location.href = 'about:blank';
+                  }, 100);
+                } catch (e) {
+                  alert('Please manually close this tab (Ctrl+W or Cmd+W)');
+                }
+              }}
               className="w-full px-6 py-3 bg-indigo-600 text-white rounded-lg font-semibold hover:bg-indigo-700 transition-colors"
             >
               Close This Tab
             </button>
+            <p className="text-xs text-gray-500 mt-2">
+              Or press Ctrl+W (Windows) / Cmd+W (Mac) to close
+            </p>
           </>
         )}
 

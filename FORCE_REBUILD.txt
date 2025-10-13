@@ -1,0 +1,3 @@
+Force rebuild timestamp: 2025-10-13T23:05:00Z
+This file is used to force Vercel to do a fresh build instead of using cached assets.
+

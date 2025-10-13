@@ -81,12 +81,12 @@ export function getSalesforceAuthUrl(state: string, isUserLevel: boolean = false
 /**
  * Exchange authorization code for tokens
  */
-export async function exchangeCodeForTokens(code: string): Promise<SalesforceTokens> {
+export async function exchangeCodeForTokens(code: string, redirectUri?: string): Promise<SalesforceTokens> {
   const params = new URLSearchParams({
     grant_type: 'authorization_code',
     client_id: SALESFORCE_CLIENT_ID,
     client_secret: SALESFORCE_CLIENT_SECRET,
-    redirect_uri: SALESFORCE_REDIRECT_URI,
+    redirect_uri: redirectUri || SALESFORCE_REDIRECT_URI,
     code,
   });
 

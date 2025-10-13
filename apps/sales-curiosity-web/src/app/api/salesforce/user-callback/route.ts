@@ -66,8 +66,9 @@ export async function GET(req: NextRequest) {
       );
     }
 
-    // Exchange code for tokens
-    const tokens = await exchangeCodeForTokens(code);
+    // Exchange code for tokens (use user-callback redirect URI)
+    const userCallbackUri = `${process.env.NEXT_PUBLIC_APP_URL}/api/salesforce/user-callback`;
+    const tokens = await exchangeCodeForTokens(code, userCallbackUri);
 
     // Store tokens at user level in organization_integrations
     // Use a composite approach: store with user_id in configuration
@@ -113,10 +114,10 @@ export async function GET(req: NextRequest) {
         });
     }
 
-    // Redirect to extension success page (like OAuth flow)
+    // Redirect back to dashboard with success message
     return NextResponse.redirect(
       new URL(
-        '/salesforce-connected',
+        '/dashboard?success=Salesforce connected successfully&tab=integrations',
         process.env.NEXT_PUBLIC_APP_URL
       )
     );

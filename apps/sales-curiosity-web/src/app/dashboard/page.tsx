@@ -92,6 +92,9 @@ export default function DashboardPage() {
   
   // Chrome extension detection
   const [hasChromeExtension, setHasChromeExtension] = useState<boolean | null>(null);
+  
+  // Card mouse positions for animations
+  const [cardMousePositions, setCardMousePositions] = useState<{[key: string]: {x: number, y: number}}>({});
 
   useEffect(() => {
     if (status === 'loading') return;
@@ -307,6 +310,14 @@ export default function DashboardPage() {
     setChatInput('');
     setIsSendingMessage(true);
 
+    // Create a placeholder for the assistant's response
+    const assistantMessage: ChatMessage = {
+      role: 'assistant',
+      content: '',
+      timestamp: new Date().toISOString()
+    };
+    setChatMessages([...chatMessages, userMessage, assistantMessage]);
+
     try {
       // Create chat if this is the first message
       if (!currentChatId) {
@@ -355,29 +366,114 @@ export default function DashboardPage() {
         }),
       });
 
-      if (response.ok) {
-        const data = await response.json();
-        const assistantMessage: ChatMessage = {
-          role: 'assistant',
-          content: data.response,
-          timestamp: new Date().toISOString()
-        };
-        setChatMessages([...chatMessages, userMessage, assistantMessage]);
-        
-        // Save assistant message
-        if (currentChatId) {
-          await fetch(`/api/chats/${currentChatId}/messages`, {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({
-              role: 'assistant',
-              content: data.response
-            }),
-          });
+      if (!response.ok) {
+        throw new Error('Failed to send message');
+      }
+
+      // Handle streaming response
+      const reader = response.body?.getReader();
+      const decoder = new TextDecoder();
+      let accumulatedContent = '';
+
+      if (reader) {
+        while (true) {
+          const { done, value } = await reader.read();
+          if (done) break;
+
+          const chunk = decoder.decode(value);
+          const lines = chunk.split('\n');
+
+          for (const line of lines) {
+            if (line.startsWith('data: ')) {
+              const data = line.slice(6);
+              try {
+                const parsed = JSON.parse(data);
+
+                if (parsed.type === 'content') {
+                  accumulatedContent += parsed.content;
+                  // Update the assistant message in real-time
+                  setChatMessages(prev => {
+                    const newMessages = [...prev];
+                    newMessages[newMessages.length - 1] = {
+                      ...newMessages[newMessages.length - 1],
+                      content: accumulatedContent
+                    };
+                    return newMessages;
+                  });
+                } else if (parsed.type === 'tool_start') {
+                  // Show tool indicator
+                  const toolIcon = parsed.tool === 'search_salesforce' ? '🔍' :
+                    parsed.tool === 'create_lead' || parsed.tool === 'create_contact' ? '✏️' :
+                    parsed.tool === 'update_record' ? '📝' :
+                    parsed.tool === 'create_task' ? '✅' :
+                    parsed.tool === 'get_activity' ? '📊' :
+                    parsed.tool === 'add_note' ? '📌' : '⚙️';
+                  
+                  accumulatedContent += `\n\n${toolIcon} Executing ${parsed.tool.replace(/_/g, ' ')}...`;
+                  setChatMessages(prev => {
+                    const newMessages = [...prev];
+                    newMessages[newMessages.length - 1] = {
+                      ...newMessages[newMessages.length - 1],
+                      content: accumulatedContent
+                    };
+                    return newMessages;
+                  });
+                } else if (parsed.type === 'tool_result') {
+                  // Remove the "Executing..." text and let AI respond naturally
+                  const lines = accumulatedContent.split('\n');
+                  const filtered = lines.filter(l => !l.includes('Executing'));
+                  accumulatedContent = filtered.join('\n');
+                  setChatMessages(prev => {
+                    const newMessages = [...prev];
+                    newMessages[newMessages.length - 1] = {
+                      ...newMessages[newMessages.length - 1],
+                      content: accumulatedContent
+                    };
+                    return newMessages;
+                  });
+                } else if (parsed.type === 'done') {
+                  // Save final assistant message
+                  if (currentChatId && accumulatedContent) {
+                    await fetch(`/api/chats/${currentChatId}/messages`, {
+                      method: 'POST',
+                      headers: { 'Content-Type': 'application/json' },
+                      body: JSON.stringify({
+                        role: 'assistant',
+                        content: accumulatedContent
+                      }),
+                    });
+                  }
+                } else if (parsed.type === 'error') {
+                  accumulatedContent += `\n\n❌ Error: ${parsed.error}`;
+                  setChatMessages(prev => {
+                    const newMessages = [...prev];
+                    newMessages[newMessages.length - 1] = {
+                      ...newMessages[newMessages.length - 1],
+                      content: accumulatedContent
+                    };
+                    return newMessages;
+                  });
+                }
+              } catch (e) {
+                console.error('Error parsing SSE data:', e);
+              }
+            }
+          }
         }
       }
     } catch (error) {
       console.error('Error sending message:', error);
+      // Update the assistant message with error
+      setChatMessages(prev => {
+        const newMessages = [...prev];
+        if (newMessages[newMessages.length - 1]?.role === 'assistant') {
+          newMessages[newMessages.length - 1] = {
+            ...newMessages[newMessages.length - 1],
+            content: `❌ Sorry, there was an error processing your message. Please try again.`
+          };
+        }
+        return newMessages;
+      });
     } finally {
       setIsSendingMessage(false);
     }

@@ -469,3 +469,174 @@ export async function addSalesforceNote(
     throw error;
   }
 }
+
+/**
+ * Update an existing Salesforce Contact
+ */
+export async function updateSalesforceContact(
+  organizationId: string,
+  contactId: string,
+  updates: {
+    FirstName?: string;
+    LastName?: string;
+    Email?: string;
+    Title?: string;
+    Phone?: string;
+    MobilePhone?: string;
+    Description?: string;
+  },
+  userId?: string
+): Promise<{ id: string; success: boolean }> {
+  try {
+    const endpoint = `/services/data/${SF_API_VERSION}/sobjects/Contact/${contactId}`;
+    
+    const result = await salesforceApiRequest(organizationId, endpoint, {
+      method: 'PATCH',
+      body: JSON.stringify(updates),
+    }, userId);
+
+    return {
+      id: contactId,
+      success: result === null || result.success !== false, // PATCH returns 204 No Content on success
+    };
+  } catch (error) {
+    console.error('Error updating Salesforce contact:', error);
+    throw error;
+  }
+}
+
+/**
+ * Update an existing Salesforce Lead
+ */
+export async function updateSalesforceLead(
+  organizationId: string,
+  leadId: string,
+  updates: {
+    FirstName?: string;
+    LastName?: string;
+    Email?: string;
+    Title?: string;
+    Company?: string;
+    Phone?: string;
+    MobilePhone?: string;
+    Description?: string;
+    Status?: string;
+  },
+  userId?: string
+): Promise<{ id: string; success: boolean }> {
+  try {
+    const endpoint = `/services/data/${SF_API_VERSION}/sobjects/Lead/${leadId}`;
+    
+    const result = await salesforceApiRequest(organizationId, endpoint, {
+      method: 'PATCH',
+      body: JSON.stringify(updates),
+    }, userId);
+
+    return {
+      id: leadId,
+      success: result === null || result.success !== false,
+    };
+  } catch (error) {
+    console.error('Error updating Salesforce lead:', error);
+    throw error;
+  }
+}
+
+/**
+ * Create a task in Salesforce
+ */
+export async function createSalesforceTask(
+  organizationId: string,
+  data: {
+    WhoId: string; // Contact or Lead ID
+    Subject: string;
+    Description?: string;
+    Status?: string;
+    Priority?: string;
+    ActivityDate?: string; // YYYY-MM-DD format
+  },
+  userId?: string
+): Promise<{ id: string; success: boolean }> {
+  try {
+    const payload = {
+      Subject: data.Subject,
+      Description: data.Description || '',
+      WhoId: data.WhoId,
+      Status: data.Status || 'Not Started',
+      Priority: data.Priority || 'Normal',
+      ActivityDate: data.ActivityDate,
+    };
+
+    const endpoint = `/services/data/${SF_API_VERSION}/sobjects/Task`;
+    
+    const result = await salesforceApiRequest(organizationId, endpoint, {
+      method: 'POST',
+      body: JSON.stringify(payload),
+    }, userId);
+
+    return {
+      id: result.id,
+      success: result.success,
+    };
+  } catch (error) {
+    console.error('Error creating Salesforce task:', error);
+    throw error;
+  }
+}
+
+/**
+ * Get recent activity for a Contact or Lead
+ */
+export async function getRecentActivity(
+  organizationId: string,
+  recordId: string,
+  userId?: string
+): Promise<{
+  tasks: any[];
+  events: any[];
+  notes: any[];
+}> {
+  try {
+    // Get recent tasks
+    const tasksQuery = `SELECT Id, Subject, Status, Priority, ActivityDate, CreatedDate FROM Task WHERE WhoId = '${recordId}' ORDER BY CreatedDate DESC LIMIT 10`;
+    const tasksEndpoint = `/services/data/${SF_API_VERSION}/query?q=${encodeURIComponent(tasksQuery)}`;
+    const tasksResult = await salesforceApiRequest(organizationId, tasksEndpoint, {}, userId);
+
+    // Get recent events
+    const eventsQuery = `SELECT Id, Subject, StartDateTime, EndDateTime, Description, CreatedDate FROM Event WHERE WhoId = '${recordId}' ORDER BY CreatedDate DESC LIMIT 10`;
+    const eventsEndpoint = `/services/data/${SF_API_VERSION}/query?q=${encodeURIComponent(eventsQuery)}`;
+    const eventsResult = await salesforceApiRequest(organizationId, eventsEndpoint, {}, userId);
+
+    // Get recent notes
+    const notesQuery = `SELECT Id, Title, Body, CreatedDate FROM Note WHERE ParentId = '${recordId}' ORDER BY CreatedDate DESC LIMIT 10`;
+    const notesEndpoint = `/services/data/${SF_API_VERSION}/query?q=${encodeURIComponent(notesQuery)}`;
+    const notesResult = await salesforceApiRequest(organizationId, notesEndpoint, {}, userId);
+
+    return {
+      tasks: tasksResult.records || [],
+      events: eventsResult.records || [],
+      notes: notesResult.records || [],
+    };
+  } catch (error) {
+    console.error('Error getting recent activity:', error);
+    throw error;
+  }
+}
+
+/**
+ * Execute a flexible SOQL query
+ */
+export async function querySalesforce(
+  organizationId: string,
+  query: string,
+  userId?: string
+): Promise<any> {
+  try {
+    const endpoint = `/services/data/${SF_API_VERSION}/query?q=${encodeURIComponent(query)}`;
+    const result = await salesforceApiRequest(organizationId, endpoint, {}, userId);
+    return result;
+  } catch (error) {
+    console.error('Error executing Salesforce query:', error);
+    throw error;
+  }
+}

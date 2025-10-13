@@ -1902,7 +1902,12 @@ Include: greeting, meeting confirmation, brief agenda, offer to share materials,
                       </button>
                     ) : (
                       <button
-                        onClick={connectToOutlook}
+                        onClick={(e) => {
+                          e.preventDefault();
+                          e.stopPropagation();
+                          console.log('🔴🔴🔴 BUTTON CLICKED!');
+                          connectToOutlook().catch(err => console.error('🔴 Button click error:', err));
+                        }}
                         className="px-4 py-2 text-sm font-medium text-white bg-[#F95B14] rounded-lg hover:bg-orange-600 transition-colors"
                       >
                         Connect

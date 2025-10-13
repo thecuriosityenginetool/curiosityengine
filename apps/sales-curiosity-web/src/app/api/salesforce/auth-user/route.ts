@@ -67,6 +67,33 @@ export async function GET(req: NextRequest) {
     // Use user ID for individual connections, create dummy org if needed
     const organizationId = userData.organization_id || userData.id;
 
+    // Check if Salesforce is already connected for this user/organization
+    const { data: existingConnection } = await supabase
+      .from('organization_integrations')
+      .select('id, is_enabled, configuration')
+      .eq('organization_id', organizationId)
+      .eq('integration_type', 'salesforce_user')
+      .eq('is_enabled', true)
+      .maybeSingle();
+
+    // If already connected, return connected status
+    if (existingConnection?.configuration) {
+      const config = existingConnection.configuration as any;
+      const hasValidTokens = config && (
+        (typeof config === 'object' && config[userId] && config[userId].access_token) ||
+        (config.access_token)
+      );
+      
+      if (hasValidTokens) {
+        return NextResponse.json({
+          ok: true,
+          connected: true,
+          message: 'Salesforce already connected'
+        });
+      }
+    }
+
+    // Not connected, generate OAuth URL
     // Create state token with user_id and organization_id
     const state = Buffer.from(
       JSON.stringify({
@@ -82,6 +109,7 @@ export async function GET(req: NextRequest) {
 
     return NextResponse.json({
       ok: true,
+      connected: false,
       authUrl,
     });
   } catch (error) {

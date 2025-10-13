@@ -703,11 +703,20 @@ Include: greeting, meeting confirmation, brief agenda, offer to share materials,
       const outlookResponse = await fetch('/api/outlook/auth-user');
       setHasOutlookConnection(outlookResponse.ok);
 
-      // Check Salesforce connection
+      // Check Salesforce connection - need to verify actual tokens exist
       const sfResponse = await fetch('/api/salesforce/auth-user');
-      setHasSalesforceConnection(sfResponse.ok);
+      if (sfResponse.ok) {
+        const sfData = await sfResponse.json();
+        // Only set as connected if we have an authUrl (meaning not connected)
+        // If already connected, the API returns the connection status
+        setHasSalesforceConnection(sfData.connected === true);
+      } else {
+        setHasSalesforceConnection(false);
+      }
     } catch (error) {
       console.error('Error checking connections:', error);
+      setHasSalesforceConnection(false);
+      setHasOutlookConnection(false);
     }
   }
 

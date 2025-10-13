@@ -1658,31 +1658,21 @@ Include: greeting, meeting confirmation, brief agenda, offer to share materials,
                         Ready to Connect
                       </span>
                     )}
-                    <div className="flex gap-2">
-                      {hasSalesforceConnection ? (
-                        <>
-                          <button
-                            onClick={disconnectSalesforce}
-                            className="px-4 py-2 text-sm font-medium text-red-600 bg-red-50 rounded-lg hover:bg-red-100 transition-colors"
-                          >
-                            Disconnect
-                          </button>
-                          <button
-                            onClick={connectToSalesforce}
-                            className="px-4 py-2 text-sm font-medium text-white bg-[#F95B14] rounded-lg hover:bg-orange-600 transition-colors"
-                          >
-                            Reconnect
-                          </button>
-                        </>
-                      ) : (
-                        <button
-                          onClick={connectToSalesforce}
-                          className="px-4 py-2 text-sm font-medium text-white bg-[#F95B14] rounded-lg hover:bg-orange-600 transition-colors"
-                        >
-                          Connect
-                        </button>
-                      )}
-                    </div>
+                    {hasSalesforceConnection ? (
+                      <button
+                        onClick={disconnectSalesforce}
+                        className="px-4 py-2 text-sm font-medium text-red-600 bg-red-50 rounded-lg hover:bg-red-100 transition-colors"
+                      >
+                        Disconnect
+                      </button>
+                    ) : (
+                      <button
+                        onClick={connectToSalesforce}
+                        className="px-4 py-2 text-sm font-medium text-white bg-[#F95B14] rounded-lg hover:bg-orange-600 transition-colors"
+                      >
+                        Connect
+                      </button>
+                    )}
                   </div>
                 </div>
               </div>
@@ -1876,31 +1866,21 @@ Include: greeting, meeting confirmation, brief agenda, offer to share materials,
                         Ready to Connect
                       </span>
                     )}
-                    <div className="flex gap-2">
-                      {hasOutlookConnection ? (
-                        <>
-                          <button
-                            onClick={disconnectOutlook}
-                            className="px-4 py-2 text-sm font-medium text-red-600 bg-red-50 rounded-lg hover:bg-red-100 transition-colors"
-                          >
-                            Disconnect
-                          </button>
-                          <button
-                            onClick={connectToOutlook}
-                            className="px-4 py-2 text-sm font-medium text-white bg-[#F95B14] rounded-lg hover:bg-orange-600 transition-colors"
-                          >
-                            Reconnect
-                          </button>
-                        </>
-                      ) : (
-                        <button
-                          onClick={connectToOutlook}
-                          className="px-4 py-2 text-sm font-medium text-white bg-[#F95B14] rounded-lg hover:bg-orange-600 transition-colors"
-                        >
-                          Connect
-                        </button>
-                      )}
-                    </div>
+                    {hasOutlookConnection ? (
+                      <button
+                        onClick={disconnectOutlook}
+                        className="px-4 py-2 text-sm font-medium text-red-600 bg-red-50 rounded-lg hover:bg-red-100 transition-colors"
+                      >
+                        Disconnect
+                      </button>
+                    ) : (
+                      <button
+                        onClick={connectToOutlook}
+                        className="px-4 py-2 text-sm font-medium text-white bg-[#F95B14] rounded-lg hover:bg-orange-600 transition-colors"
+                      >
+                        Connect
+                      </button>
+                    )}
                   </div>
                 </div>
               </div>

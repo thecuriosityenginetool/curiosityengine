@@ -186,18 +186,14 @@ export default function DashboardPage() {
 
   async function loadCalendarEvents() {
     try {
-      const { data: { session } } = await supabase.auth.getSession();
-      if (!session) return;
-
-      const response = await fetch('/api/calendar', {
-        headers: {
-          'Authorization': `Bearer ${session.access_token}`,
-        },
-      });
+      const response = await fetch('/api/calendar');
 
       if (response.ok) {
         const data = await response.json();
         setCalendarEvents(data.events || []);
+        console.log('📅 Calendar events loaded:', data.events?.length || 0);
+      } else {
+        console.error('❌ Calendar API error:', response.status, await response.text());
       }
     } catch (error) {
       console.error('Error loading calendar:', error);

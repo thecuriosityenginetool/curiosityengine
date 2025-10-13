@@ -175,16 +175,22 @@ export async function POST(req: NextRequest) {
       );
     }
 
-    // Check if Salesforce is enabled
+    // Check if Salesforce is enabled (check both 'salesforce' and 'salesforce_user')
     const { data: salesforceIntegration } = await supabase
       .from('organization_integrations')
       .select('is_enabled')
       .eq('organization_id', user.organization_id)
-      .eq('integration_type', 'salesforce')
+      .in('integration_type', ['salesforce', 'salesforce_user'])
       .eq('is_enabled', true)
       .maybeSingle();
 
     const hasSalesforce = !!salesforceIntegration;
+    
+    console.log('🔍 Salesforce integration check:', {
+      organizationId: user.organization_id,
+      hasSalesforce,
+      integration: salesforceIntegration
+    });
 
     // Get sales materials for context
     let salesMaterials = '';

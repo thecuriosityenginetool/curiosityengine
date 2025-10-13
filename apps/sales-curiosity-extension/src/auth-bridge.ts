@@ -32,11 +32,14 @@ window.addEventListener('message', async (event) => {
       // Verify it was stored
       const stored = await chrome.storage.local.get(['authToken', 'user']);
       console.log('✅ Auth bridge: Verified storage:', !!stored.authToken, !!stored.user);
+      console.log('✅ Auth bridge: Token preview:', stored.authToken?.substring(0, 30) + '...');
+      console.log('✅ Auth bridge: User data:', JSON.stringify(stored.user));
 
       // Send confirmation back to web page
       window.postMessage({
         type: 'EXTENSION_AUTH_SUCCESS',
         success: true,
+        stored: { hasToken: !!stored.authToken, hasUser: !!stored.user }
       }, event.origin);
 
     } catch (error) {

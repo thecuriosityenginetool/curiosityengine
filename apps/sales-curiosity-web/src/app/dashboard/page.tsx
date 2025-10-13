@@ -707,10 +707,14 @@ Include: greeting, meeting confirmation, brief agenda, offer to share materials,
       const sfResponse = await fetch('/api/salesforce/auth-user');
       if (sfResponse.ok) {
         const sfData = await sfResponse.json();
+        console.log('🔍 Salesforce connection check:', sfData);
         // Only set as connected if we have an authUrl (meaning not connected)
         // If already connected, the API returns the connection status
-        setHasSalesforceConnection(sfData.connected === true);
+        const isConnected = sfData.connected === true;
+        console.log('✅ Salesforce connected:', isConnected);
+        setHasSalesforceConnection(isConnected);
       } else {
+        console.log('❌ Salesforce API failed:', sfResponse.status);
         setHasSalesforceConnection(false);
       }
     } catch (error) {

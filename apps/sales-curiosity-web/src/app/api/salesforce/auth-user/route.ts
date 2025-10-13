@@ -76,6 +76,10 @@ export async function GET(req: NextRequest) {
       .eq('is_enabled', true)
       .maybeSingle();
 
+    console.log('🔍 Checking Salesforce connection for user:', userId);
+    console.log('🔍 Organization ID:', organizationId);
+    console.log('🔍 Existing connection:', existingConnection ? 'Found' : 'Not found');
+
     // If already connected, return connected status
     if (existingConnection?.configuration) {
       const config = existingConnection.configuration as any;
@@ -84,12 +88,18 @@ export async function GET(req: NextRequest) {
         (config.access_token)
       );
       
+      console.log('🔍 Has valid tokens:', hasValidTokens);
+      console.log('🔍 Config structure:', typeof config);
+      
       if (hasValidTokens) {
+        console.log('✅ Salesforce is connected!');
         return NextResponse.json({
           ok: true,
           connected: true,
           message: 'Salesforce already connected'
         });
+      } else {
+        console.log('⚠️ Connection exists but no valid tokens found');
       }
     }
 

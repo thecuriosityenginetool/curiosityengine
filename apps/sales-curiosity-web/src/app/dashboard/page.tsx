@@ -746,9 +746,18 @@ Include: greeting, meeting confirmation, brief agenda, offer to share materials,
 
   async function checkConnections() {
     try {
-      // Check Outlook connection
-      const outlookResponse = await fetch('/api/outlook/auth-user');
-      setHasOutlookConnection(outlookResponse.ok);
+      // Check Outlook connection - use status endpoint to verify actual tokens
+      const outlookResponse = await fetch('/api/outlook/status');
+      if (outlookResponse.ok) {
+        const outlookData = await outlookResponse.json();
+        console.log('🔍 Outlook connection check:', outlookData);
+        const isConnected = outlookData.connected === true;
+        console.log('✅ Outlook connected:', isConnected);
+        setHasOutlookConnection(isConnected);
+      } else {
+        console.log('❌ Outlook status check failed:', outlookResponse.status);
+        setHasOutlookConnection(false);
+      }
 
       // Check Salesforce connection - need to verify actual tokens exist
       const sfResponse = await fetch('/api/salesforce/auth-user');

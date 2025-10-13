@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { createClient } from '@supabase/supabase-js';
+import { getUserFromExtensionToken } from '@/lib/extension-auth';
 
 const supabase = createClient(
   process.env.NEXT_PUBLIC_SUPABASE_URL!,
@@ -54,9 +55,25 @@ export async function GET(req: NextRequest) {
     }
 
     const token = authHeader.substring(7);
-    const { data: { user }, error: authError } = await supabase.auth.getUser(token);
     
-    if (authError || !user) {
+    // Try extension token first (base64 encoded user info)
+    let user = await getUserFromExtensionToken(token);
+    let userId = user?.id;
+    
+    // If not extension token, try Supabase auth token
+    if (!userId) {
+      const { data: authData, error: authError } = await supabase.auth.getUser(token);
+      if (authError || !authData.user) {
+        return NextResponse.json(
+          { error: 'Unauthorized - Invalid token' },
+          { status: 401, headers: corsHeaders(origin) }
+        );
+      }
+      user = authData.user;
+      userId = user.id;
+    }
+    
+    if (!userId) {
       return NextResponse.json(
         { error: 'Unauthorized - Invalid token' },
         { status: 401, headers: corsHeaders(origin) }
@@ -67,7 +84,7 @@ export async function GET(req: NextRequest) {
     const { data: userData } = await supabase
       .from('users')
       .select('organization_id, role, organizations(name, account_type)')
-      .eq('id', user.id)
+      .eq('id', userId)
       .single();
 
     if (!userData) {
@@ -79,25 +96,25 @@ export async function GET(req: NextRequest) {
 
     const organizationId = userData.organization_id;
     const isOrgAdmin = userData.role === 'org_admin' || userData.role === 'super_admin';
-    const isOrgMember = userData.organizations.account_type === 'organization';
+    const isOrgMember = userData.organizations?.account_type === 'organization';
 
     // Get user's analyses count
     const { count: analysesCount } = await supabase
       .from('linkedin_analyses')
       .select('*', { count: 'exact', head: true })
-      .eq('user_id', user.id);
+      .eq('user_id', userId);
 
     // Get user's emails count
     const { count: emailsCount } = await supabase
       .from('email_generations')
       .select('*', { count: 'exact', head: true })
-      .eq('user_id', user.id);
+      .eq('user_id', userId);
 
     // Get recent analyses (last 3)
     const { data: recentAnalyses } = await supabase
       .from('linkedin_analyses')
       .select('profile_name, created_at')
-      .eq('user_id', user.id)
+      .eq('user_id', userId)
       .order('created_at', { ascending: false })
       .limit(3);
 
@@ -130,6 +147,9 @@ export async function GET(req: NextRequest) {
     return NextResponse.json(
       {
         ok: true,
+        totalAnalyses: analysesCount || 0,
+        emailsDrafted: emailsCount || 0,
+        profilesAnalyzed: recentAnalyses?.length || 0,
         userStats: {
           analysesCount: analysesCount || 0,
           emailsCount: emailsCount || 0,

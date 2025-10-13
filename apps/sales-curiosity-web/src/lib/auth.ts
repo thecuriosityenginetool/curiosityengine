@@ -39,7 +39,7 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
       authorization: {
         params: {
           scope: "openid email profile offline_access",
-          // Remove prompt: "consent" to not ask every time
+          prompt: "consent",
           response_type: "code",
         }
       },

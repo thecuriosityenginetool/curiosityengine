@@ -71,6 +71,17 @@ function LoginForm() {
             <p className="font-semibold">Authentication failed</p>
             <p className="text-sm mt-1">Error: {error}</p>
             <p className="text-xs mt-2">Check the browser console for more details.</p>
+            <button
+              onClick={async () => {
+                const logs = await fetch('https://vercel.com/curiosityengine-sales-curiosity-web-imnx/logs');
+                console.log('📋 Click here to view Vercel logs for detailed error information');
+                console.log('🔍 The Vercel function logs will show the exact OAuth error from Microsoft');
+                alert('Check browser console - click the link to view Vercel logs for detailed error information');
+              }}
+              className="mt-2 text-xs underline hover:text-red-900"
+            >
+              View debugging information
+            </button>
           </div>
         )}
 

@@ -233,7 +233,11 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
   debug: true,
   logger: {
     error(code, metadata) {
-      console.error('NextAuth Error:', code, metadata);
+      console.error('NextAuth Error:', code);
+      console.error('NextAuth Error Details:', JSON.stringify(metadata, null, 2));
+      if (metadata && typeof metadata === 'object' && 'cause' in metadata) {
+        console.error('NextAuth Error Cause:', metadata.cause);
+      }
     },
     warn(code) {
       console.warn('NextAuth Warning:', code);

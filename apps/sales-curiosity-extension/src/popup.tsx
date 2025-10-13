@@ -126,12 +126,14 @@ function Popup() {
   }, [isAuthenticated]);
 
   // Load organization info when authenticated
+  // Also reload when currentPage changes (user switches tabs)
   useEffect(() => {
     async function loadOrgInfo() {
       try {
         const { authToken } = await chrome.storage.local.get(['authToken']);
         if (!authToken) return;
 
+        console.log('🔄 Reloading organization integrations...');
         const res = await chrome.runtime.sendMessage({
           type: "PING_API",
           url: `${apiBase}/api/organization/integrations`,
@@ -140,6 +142,7 @@ function Popup() {
         });
 
         if (res.ok && res.data) {
+          console.log('✅ Integrations loaded:', res.data.enabledIntegrations);
           setOrganization(res.data.organization);
           setUserRole(res.data.userRole || 'member');
           setEnabledIntegrations(res.data.enabledIntegrations || []);
@@ -151,7 +154,7 @@ function Popup() {
     if (isAuthenticated) {
       loadOrgInfo();
     }
-  }, [isAuthenticated, apiBase]);
+  }, [isAuthenticated, apiBase, currentPage]);
 
   // Load user stats when authenticated
   useEffect(() => {

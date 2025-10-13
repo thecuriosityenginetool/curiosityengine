@@ -113,10 +113,10 @@ export async function GET(req: NextRequest) {
         });
     }
 
-    // Redirect to dashboard with success message
+    // Redirect to extension success page (like OAuth flow)
     return NextResponse.redirect(
       new URL(
-        '/dashboard?success=Salesforce connected successfully',
+        '/salesforce-connected',
         process.env.NEXT_PUBLIC_APP_URL
       )
     );

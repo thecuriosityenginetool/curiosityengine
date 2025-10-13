@@ -39,9 +39,6 @@ window.addEventListener('message', async (event) => {
         success: true,
       }, event.origin);
 
-      // Show visual confirmation
-      alert('✅ Extension authenticated! You can now close this tab and return to LinkedIn.');
-
     } catch (error) {
       console.error('❌ Auth bridge: Error storing token:', error);
       
@@ -49,8 +46,6 @@ window.addEventListener('message', async (event) => {
         type: 'EXTENSION_AUTH_ERROR',
         error: String(error),
       }, event.origin);
-
-      alert('❌ Error: ' + String(error));
     }
   }
 });

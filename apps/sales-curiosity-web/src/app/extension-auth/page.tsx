@@ -9,16 +9,14 @@ export default function ExtensionAuthPage() {
   const router = useRouter();
   const [authStatus, setAuthStatus] = useState<'loading' | 'success' | 'error'>('loading');
   const [errorMessage, setErrorMessage] = useState('');
+  const [extensionConfirmed, setExtensionConfirmed] = useState(false);
 
   // Listen for confirmation from auth bridge
   useEffect(() => {
     const handleMessage = (event: MessageEvent) => {
       if (event.data.type === 'EXTENSION_AUTH_SUCCESS') {
-        console.log('✅ Received confirmation from extension bridge');
-        // Auto-close tab after a short delay
-        setTimeout(() => {
-          window.close();
-        }, 2000);
+        console.log('✅ Received confirmation from extension bridge - token stored!');
+        setExtensionConfirmed(true);
       }
     };
 
@@ -108,30 +106,43 @@ export default function ExtensionAuthPage() {
             <p className="text-gray-600 mb-6">
               Your Chrome extension has been successfully authenticated.
             </p>
+            
+            {extensionConfirmed && (
+              <div className="bg-green-50 border border-green-300 rounded-lg p-4 mb-4 animate-pulse">
+                <p className="text-sm text-green-800 font-semibold">
+                  ✅ Token saved to extension successfully!
+                </p>
+              </div>
+            )}
+
             <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 mb-6">
-              <p className="text-sm text-blue-800">
-                <strong>You can now close this tab</strong> and return to the extension.
+              <p className="text-sm text-blue-800 mb-2">
+                <strong>Next steps:</strong>
+              </p>
+              <ol className="text-sm text-blue-800 space-y-1 list-decimal list-inside">
+                <li>Close this tab (press <kbd className="px-2 py-1 bg-white border border-blue-300 rounded text-xs">Cmd+W</kbd>)</li>
+                <li>Go back to LinkedIn</li>
+                <li>Click the extension icon</li>
+                <li>You should now see the dashboard!</li>
+              </ol>
+            </div>
+            
+            <div className="bg-yellow-50 border border-yellow-300 rounded-lg p-3 mb-4">
+              <p className="text-xs text-yellow-800">
+                <strong>💡 Tip:</strong> The extension popup closes when you click outside - this is normal! Click the icon again and it will remember you're logged in.
               </p>
             </div>
+
             <button
               onClick={() => {
-                // Try window.close() first, if it fails, show manual instruction
-                try {
-                  window.close();
-                  // If window.close() didn't work, try alternative
-                  setTimeout(() => {
-                    window.location.href = 'about:blank';
-                  }, 100);
-                } catch (e) {
-                  alert('Please manually close this tab (Ctrl+W or Cmd+W)');
-                }
+                window.close();
               }}
-              className="w-full px-6 py-3 bg-indigo-600 text-white rounded-lg font-semibold hover:bg-indigo-700 transition-colors"
+              className="w-full px-6 py-3 bg-indigo-600 text-white rounded-lg font-semibold hover:bg-indigo-700 transition-colors mb-2"
             >
               Close This Tab
             </button>
-            <p className="text-xs text-gray-500 mt-2">
-              Or press Ctrl+W (Windows) / Cmd+W (Mac) to close
+            <p className="text-xs text-gray-500 text-center">
+              Keyboard shortcut: <kbd className="px-2 py-1 bg-gray-200 border border-gray-300 rounded">Cmd+W</kbd> or <kbd className="px-2 py-1 bg-gray-200 border border-gray-300 rounded">Ctrl+W</kbd>
             </p>
           </>
         )}

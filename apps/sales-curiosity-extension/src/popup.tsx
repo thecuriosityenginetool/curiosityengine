@@ -56,8 +56,13 @@ function Popup() {
   useEffect(() => {
     async function checkAuth() {
       try {
+        console.log('🔵 Checking authentication...');
         const result = await chrome.storage.local.get(['authToken', 'user']);
+        console.log('🔵 Storage check:', { hasToken: !!result.authToken, hasUser: !!result.user });
+        
         if (result.authToken && result.user) {
+          console.log('🔵 Token found, validating with API...');
+          
           // Verify token is still valid by calling an API
           const res = await chrome.runtime.sendMessage({
             type: "PING_API",
@@ -66,22 +71,38 @@ function Popup() {
             authToken: result.authToken,
           });
 
+          console.log('🔵 API validation response:', res.ok, res.status);
+
           if (res.ok) {
             // Token is valid
+            console.log('✅ Token valid, user authenticated');
             setIsAuthenticated(true);
             setUser(result.user);
-          } else {
+          } else if (res.status === 401) {
             // Token is invalid, clear storage
-            console.log("Cached token is invalid, clearing storage");
+            console.log("⚠️ Token invalid (401), clearing storage");
             await chrome.storage.local.clear();
             setIsAuthenticated(false);
             setUser(null);
+          } else {
+            // API error but token might be valid - trust the stored token for now
+            console.log("⚠️ API error, but trusting stored token:", res.status);
+            setIsAuthenticated(true);
+            setUser(result.user);
           }
+        } else {
+          console.log('⚠️ No token found in storage');
+          setIsAuthenticated(false);
         }
       } catch (e) {
-        console.error("Error checking auth:", e);
-        // On error, clear storage to be safe
-        await chrome.storage.local.clear();
+        console.error("❌ Error checking auth:", e);
+        // Don't clear storage on error - might just be network issue
+        const result = await chrome.storage.local.get(['authToken', 'user']);
+        if (result.authToken && result.user) {
+          console.log("⚠️ Error checking API, but token exists - trusting it");
+          setIsAuthenticated(true);
+          setUser(result.user);
+        }
       }
     }
     checkAuth();

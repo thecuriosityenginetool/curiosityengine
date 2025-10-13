@@ -3,6 +3,7 @@ import { openai } from '@/lib/openai';
 import { auth } from '@/lib/auth';
 import { createClient } from '@supabase/supabase-js';
 import { salesforceTools } from '@/lib/salesforce-tools';
+import { outlookTools } from '@/lib/outlook-tools';
 import { 
   searchPersonInSalesforce, 
   createSalesforceLead, 
@@ -14,6 +15,11 @@ import {
   getRecentActivity,
   querySalesforce
 } from '@/lib/salesforce';
+import {
+  createOutlookDraft,
+  sendOutlookEmail,
+  createOutlookCalendarEvent
+} from '@/lib/outlook';
 import { matchCalendarEventsToSalesforce, buildCalendarContext } from '@/lib/calendar-matcher';
 
 const supabase = createClient(
@@ -22,15 +28,16 @@ const supabase = createClient(
 );
 
 /**
- * Execute Salesforce tool calls
+ * Execute CRM and Email tool calls
  */
-async function executeSalesforceTool(
+async function executeTool(
   toolName: string,
   args: any,
   organizationId: string,
   userId: string
 ): Promise<string> {
   try {
+    // Salesforce tools
     switch (toolName) {
       case 'search_salesforce': {
         const result = await searchPersonInSalesforce(organizationId, args, userId);
@@ -130,6 +137,51 @@ Task ID: ${result.id}`;
         return 'No records found matching the query.';
       }
 
+      // Outlook tools
+      case 'create_email_draft': {
+        const result = await createOutlookDraft(organizationId, {
+          to: args.to,
+          subject: args.subject,
+          body: args.body
+        }, userId);
+        return `✅ Email draft created successfully in Outlook!
+To: ${args.to}
+Subject: ${args.subject}
+Draft ID: ${result.id}
+
+The draft is now in your Outlook Drafts folder and ready to send.`;
+      }
+
+      case 'send_email': {
+        await sendOutlookEmail(organizationId, {
+          to: args.to,
+          subject: args.subject,
+          body: args.body
+        }, userId);
+        return `✅ Email sent successfully via Outlook!
+To: ${args.to}
+Subject: ${args.subject}
+
+The email has been sent and saved to your Sent Items.`;
+      }
+
+      case 'create_calendar_event': {
+        const result = await createOutlookCalendarEvent(organizationId, {
+          subject: args.title,
+          start: args.start,
+          end: args.end,
+          body: args.description,
+          attendees: args.attendees,
+          location: args.location
+        }, userId);
+        return `✅ Calendar event created successfully in Outlook!
+Title: ${args.title}
+Start: ${new Date(args.start).toLocaleString()}
+End: ${new Date(args.end).toLocaleString()}
+${args.attendees ? `Attendees: ${args.attendees.join(', ')}` : ''}
+Event ID: ${result.id}`;
+      }
+
       default:
         return `Unknown tool: ${toolName}`;
     }
@@ -191,6 +243,29 @@ export async function POST(req: NextRequest) {
       hasSalesforce,
       integration: salesforceIntegration
     });
+
+    // Check if Outlook is enabled
+    const { data: outlookIntegration } = await supabase
+      .from('organization_integrations')
+      .select('is_enabled')
+      .eq('organization_id', user.organization_id)
+      .in('integration_type', ['outlook', 'outlook_user'])
+      .eq('is_enabled', true)
+      .maybeSingle();
+
+    const hasOutlook = !!outlookIntegration;
+    
+    console.log('📧 Outlook integration check:', {
+      organizationId: user.organization_id,
+      hasOutlook,
+      integration: outlookIntegration
+    });
+
+    // Combine available tools
+    const availableTools = [
+      ...(hasSalesforce ? salesforceTools : []),
+      ...(hasOutlook ? outlookTools : [])
+    ];
 
     // Get sales materials for context
     let salesMaterials = '';

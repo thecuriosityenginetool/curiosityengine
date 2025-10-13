@@ -32,7 +32,7 @@ export function getOutlookAuthUrl(state: string): string {
     response_type: 'code',
     redirect_uri: MICROSOFT_REDIRECT_URI,
     response_mode: 'query',
-    scope: 'openid offline_access Mail.Send Mail.ReadWrite User.Read',
+    scope: 'openid offline_access Mail.Send Mail.ReadWrite User.Read Calendars.Read Calendars.ReadWrite',
     state,
   });
 
@@ -308,6 +308,103 @@ export async function getOutlookProfile(
     };
   } catch (error) {
     console.error('Error getting Outlook profile:', error);
+    throw error;
+  }
+}
+
+/**
+ * Get calendar events from Outlook
+ */
+export async function getOutlookCalendarEvents(
+  organizationId: string,
+  userId: string,
+  options?: {
+    startDate?: string; // ISO 8601 format
+    endDate?: string;   // ISO 8601 format
+    top?: number;       // Max number of events
+  }
+): Promise<any[]> {
+  try {
+    const startDate = options?.startDate || new Date().toISOString();
+    const endDate = options?.endDate || new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString(); // 30 days from now
+    const top = options?.top || 50;
+
+    // Build query parameters for calendar view
+    const params = new URLSearchParams({
+      startDateTime: startDate,
+      endDateTime: endDate,
+      $top: top.toString(),
+      $orderby: 'start/dateTime'
+    });
+
+    const result = await graphApiRequest(
+      organizationId,
+      `/me/calendarview?${params.toString()}`,
+      {},
+      userId
+    );
+
+    return result.value || [];
+  } catch (error) {
+    console.error('Error fetching Outlook calendar events:', error);
+    throw error;
+  }
+}
+
+/**
+ * Create a calendar event in Outlook
+ */
+export async function createOutlookCalendarEvent(
+  organizationId: string,
+  eventData: {
+    subject: string;
+    start: string; // ISO 8601
+    end: string;   // ISO 8601
+    body?: string;
+    attendees?: string[]; // Email addresses
+    location?: string;
+  },
+  userId: string
+): Promise<{ id: string; success: boolean }> {
+  try {
+    const eventPayload = {
+      subject: eventData.subject,
+      start: {
+        dateTime: eventData.start,
+        timeZone: 'UTC'
+      },
+      end: {
+        dateTime: eventData.end,
+        timeZone: 'UTC'
+      },
+      body: eventData.body ? {
+        contentType: 'HTML',
+        content: eventData.body
+      } : undefined,
+      attendees: eventData.attendees?.map(email => ({
+        emailAddress: {
+          address: email
+        },
+        type: 'required'
+      })),
+      location: eventData.location ? {
+        displayName: eventData.location
+      } : undefined
+    };
+
+    const result = await graphApiRequest(
+      organizationId,
+      '/me/events',
+      {
+        method: 'POST',
+        body: JSON.stringify(eventPayload),
+      },
+      userId
+    );
+
+    return { id: result.id, success: true };
+  } catch (error) {
+    console.error('Error creating Outlook calendar event:', error);
     throw error;
   }
 }

@@ -1,31 +1,64 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { getSalesforceAuthUrl } from '@/lib/salesforce';
-import { createClient } from '@supabase/supabase-js';
+import { getSupabaseAdmin } from '@/lib/supabase-server';
+import { getUserFromExtensionToken } from '@/lib/extension-auth';
 import { auth } from '@/lib/auth';
-
-const supabase = createClient(
-  process.env.NEXT_PUBLIC_SUPABASE_URL!,
-  process.env.SUPABASE_SERVICE_ROLE_KEY!
-);
 
 /**
  * Initiate Salesforce OAuth flow for individual user
  * GET /api/salesforce/auth-user
  */
 export async function GET(req: NextRequest) {
+  const supabase = getSupabaseAdmin();
+  
   try {
-    const session = await auth();
+    let userEmail: string | undefined;
+    let userId: string | undefined;
     
-    if (!session?.user?.email) {
+    // Try extension token first (from Bearer header)
+    const authHeader = req.headers.get('authorization');
+    if (authHeader?.startsWith('Bearer ')) {
+      const token = authHeader.substring(7);
+      const user = await getUserFromExtensionToken(token);
+      if (user) {
+        userEmail = user.email;
+        userId = user.id;
+      }
+    }
+    
+    // Fall back to NextAuth session (for web app)
+    if (!userEmail) {
+      const session = await auth();
+      if (session?.user?.email) {
+        userEmail = session.user.email;
+      }
+    }
+    
+    if (!userEmail) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
-    // Get user data
+    // Get user data if we don't have it yet
+    if (!userId) {
+      const { data: userData } = await supabase
+        .from('users')
+        .select('id, organization_id')
+        .eq('email', userEmail)
+        .maybeSingle();
+
+      if (!userData) {
+        return NextResponse.json({ error: 'User not found' }, { status: 404 });
+      }
+      
+      userId = userData.id;
+    }
+    
+    // Get full user data for organizationId
     const { data: userData } = await supabase
       .from('users')
       .select('id, organization_id')
-      .eq('email', session.user.email)
-      .maybeSingle();
+      .eq('id', userId)
+      .single();
 
     if (!userData) {
       return NextResponse.json({ error: 'User not found' }, { status: 404 });

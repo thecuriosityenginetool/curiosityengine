@@ -772,23 +772,22 @@ Include: greeting, meeting confirmation, brief agenda, offer to share materials,
     }
 
     try {
-      const response = await fetch('/api/email/draft', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          to: [],
-          subject: subject || 'Draft from Curiosity Engine',
-          body: content,
-          provider: 'microsoft'
-        }),
-      });
-
-      if (response.ok) {
-        alert('✅ Draft created in Outlook!');
-        await createActivityLog('email_draft_created', subject || 'Email Draft Created', 'Draft added to Outlook');
-      } else {
-        alert('❌ Failed to create draft. Please try again.');
-      }
+      // Use the new Outlook integration via AI chat instead of old endpoint
+      const chatMessage = `Create an email draft with subject "${subject || 'Draft from Curiosity Engine'}" and content: ${content}`;
+      
+      // Add to chat messages to trigger AI tool calling
+      const newMessage: ChatMessage = {
+        role: 'user',
+        content: chatMessage,
+        timestamp: new Date().toISOString()
+      };
+      
+      setChatMessages(prev => [...prev, newMessage]);
+      setChatInput('');
+      
+      // The AI will handle the email draft creation via the new Outlook tools
+      alert('✅ Email draft request sent to AI! Check the chat for the draft creation.');
+      await createActivityLog('email_draft_requested', subject || 'Email Draft Requested', 'Draft request sent to AI');
     } catch (error) {
       console.error('Error creating draft:', error);
       alert('❌ Error creating draft. Please try again.');

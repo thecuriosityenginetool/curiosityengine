@@ -234,9 +234,22 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
   logger: {
     error(code, metadata) {
       console.error('NextAuth Error:', code);
-      console.error('NextAuth Error Details:', JSON.stringify(metadata, null, 2));
-      if (metadata && typeof metadata === 'object' && 'cause' in metadata) {
-        console.error('NextAuth Error Cause:', metadata.cause);
+      console.error('NextAuth Error Metadata:', metadata);
+      try {
+        console.error('NextAuth Error Details (stringified):', JSON.stringify(metadata, Object.getOwnPropertyNames(metadata), 2));
+      } catch (e) {
+        console.error('Could not stringify metadata');
+      }
+      if (metadata && typeof metadata === 'object') {
+        if ('cause' in metadata) {
+          console.error('NextAuth Error Cause:', metadata.cause);
+          if (metadata.cause && typeof metadata.cause === 'object') {
+            console.error('NextAuth Error Cause Details:', JSON.stringify(metadata.cause, Object.getOwnPropertyNames(metadata.cause), 2));
+          }
+        }
+        if ('message' in metadata) {
+          console.error('NextAuth Error Message:', metadata.message);
+        }
       }
     },
     warn(code) {

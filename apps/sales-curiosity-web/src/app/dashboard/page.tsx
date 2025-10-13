@@ -514,7 +514,13 @@ export default function DashboardPage() {
   }
 
   async function connectToOutlook() {
-    connectOutlook(); // Use the function we created
+    console.log('🔴 connectToOutlook called!');
+    try {
+      await connectOutlook(); // Use the function we created
+    } catch (error) {
+      console.error('🔴 Error in connectToOutlook:', error);
+      alert('Error connecting to Outlook. Check console for details.');
+    }
   }
 
   async function disconnectSalesforce() {

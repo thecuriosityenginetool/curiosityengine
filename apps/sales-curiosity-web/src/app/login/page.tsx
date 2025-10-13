@@ -10,6 +10,7 @@ function LoginForm() {
   const router = useRouter();
   const { data: session, status } = useSession();
   const error = searchParams.get('error');
+  const isExtension = searchParams.get('extension') === 'true';
 
   // Log error for debugging
   useEffect(() => {
@@ -23,17 +24,20 @@ function LoginForm() {
   // Redirect if already logged in
   useEffect(() => {
     if (status === 'authenticated' && session?.user) {
-      console.log('✅ User authenticated, redirecting to dashboard');
-      router.push('/dashboard');
+      const redirectUrl = isExtension ? '/extension-auth' : '/dashboard';
+      console.log('✅ User authenticated, redirecting to', redirectUrl);
+      router.push(redirectUrl);
     }
-  }, [status, session, router]);
+  }, [status, session, router, isExtension]);
 
   const handleGoogleSignIn = async () => {
-    await signIn('google', { callbackUrl: '/dashboard' });
+    const callbackUrl = isExtension ? '/extension-auth' : '/dashboard';
+    await signIn('google', { callbackUrl });
   };
 
   const handleMicrosoftSignIn = async () => {
-    await signIn('azure-ad', { callbackUrl: '/dashboard' });
+    const callbackUrl = isExtension ? '/extension-auth' : '/dashboard';
+    await signIn('azure-ad', { callbackUrl });
   };
 
   return (

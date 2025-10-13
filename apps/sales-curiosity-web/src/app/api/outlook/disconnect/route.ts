@@ -1,86 +1,50 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { createClient } from '@supabase/supabase-js';
+import { auth } from '@/lib/auth';
 
 const supabase = createClient(
   process.env.NEXT_PUBLIC_SUPABASE_URL!,
   process.env.SUPABASE_SERVICE_ROLE_KEY!
 );
 
-export async function OPTIONS(req: NextRequest) {
-  return new NextResponse(null, { 
-    status: 200, 
-    headers: { 
-      'Access-Control-Allow-Origin': '*', 
-      'Access-Control-Allow-Methods': 'POST, OPTIONS', 
-      'Access-Control-Allow-Headers': 'Authorization, Content-Type' 
-    } 
-  });
-}
-
 export async function POST(req: NextRequest) {
   try {
-    const authHeader = req.headers.get('authorization');
-    if (!authHeader?.startsWith('Bearer ')) {
+    const session = await auth();
+    
+    if (!session?.user?.email) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
-    const token = authHeader.substring(7);
-    const { data: { user }, error: authError } = await supabase.auth.getUser(token);
-
-    if (authError || !user) {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
-    }
-
-    // Get user's organization
+    // Get user data
     const { data: userData } = await supabase
       .from('users')
-      .select('organization_id')
-      .eq('id', user.id)
-      .single();
+      .select('id, organization_id')
+      .eq('email', session.user.email)
+      .maybeSingle();
 
-    if (!userData?.organization_id) {
-      return NextResponse.json({ error: 'No organization found' }, { status: 400 });
+    if (!userData) {
+      return NextResponse.json({ error: 'User not found' }, { status: 404 });
     }
 
-    // Remove user's tokens from configuration
-    const { data: existing } = await supabase
+    // Delete Outlook connection
+    const { error } = await supabase
       .from('organization_integrations')
-      .select('id, configuration')
+      .delete()
       .eq('organization_id', userData.organization_id)
-      .eq('integration_type', 'outlook_user')
-      .single();
+      .eq('integration_type', 'outlook_user');
 
-    if (existing) {
-      const existingConfig = existing.configuration as any || {};
-      delete existingConfig[user.id];
-
-      // If no more users have tokens, disable the integration
-      const hasOtherUsers = Object.keys(existingConfig).length > 0;
-
-      if (hasOtherUsers) {
-        await supabase
-          .from('organization_integrations')
-          .update({
-            configuration: existingConfig,
-            updated_at: new Date().toISOString(),
-          })
-          .eq('id', existing.id);
-      } else {
-        await supabase
-          .from('organization_integrations')
-          .update({
-            is_enabled: false,
-            configuration: {},
-            updated_at: new Date().toISOString(),
-          })
-          .eq('id', existing.id);
-      }
+    if (error) {
+      console.error('Error disconnecting Outlook:', error);
+      return NextResponse.json({ error: 'Failed to disconnect Outlook' }, { status: 500 });
     }
 
-    return NextResponse.json({ ok: true, message: 'Outlook disconnected successfully' });
+    return NextResponse.json({ 
+      success: true, 
+      message: 'Outlook disconnected successfully' 
+    });
+
   } catch (error) {
-    console.error('Error disconnecting Outlook:', error);
-    return NextResponse.json({ error: String(error) }, { status: 500 });
+    console.error('Error in Outlook disconnect:', error);
+    return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
   }
 }
-

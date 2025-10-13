@@ -521,6 +521,42 @@ export default function DashboardPage() {
     connectOutlook(); // Use the function we created
   }
 
+  async function disconnectSalesforce() {
+    try {
+      const response = await fetch('/api/salesforce/disconnect', {
+        method: 'POST',
+      });
+      if (response.ok) {
+        setHasSalesforceConnection(false);
+        alert('✅ Salesforce disconnected successfully');
+        await createActivityLog('salesforce_disconnected', 'Salesforce Disconnected', 'Salesforce integration disconnected');
+      } else {
+        alert('❌ Failed to disconnect Salesforce');
+      }
+    } catch (error) {
+      console.error('Error disconnecting Salesforce:', error);
+      alert('❌ Error disconnecting Salesforce');
+    }
+  }
+
+  async function disconnectOutlook() {
+    try {
+      const response = await fetch('/api/outlook/disconnect', {
+        method: 'POST',
+      });
+      if (response.ok) {
+        setHasOutlookConnection(false);
+        alert('✅ Outlook disconnected successfully');
+        await createActivityLog('outlook_disconnected', 'Outlook Disconnected', 'Outlook integration disconnected');
+      } else {
+        alert('❌ Failed to disconnect Outlook');
+      }
+    } catch (error) {
+      console.error('Error disconnecting Outlook:', error);
+      alert('❌ Error disconnecting Outlook');
+    }
+  }
+
   async function connectToHubSpot() {
     try {
       const response = await fetch('/api/hubspot/auth-user');
@@ -1616,23 +1652,37 @@ Include: greeting, meeting confirmation, brief agenda, offer to share materials,
                     {hasSalesforceConnection ? (
                       <span className="px-3 py-1 text-xs rounded-full bg-green-100 text-green-800 font-medium">
                         ✓ Connected
-                    </span>
+                      </span>
                     ) : (
                       <span className="px-3 py-1 text-xs rounded-full bg-blue-100 text-blue-800 font-medium">
                         Ready to Connect
                       </span>
                     )}
-                    <button
-                      onClick={connectToSalesforce}
-                      disabled={hasSalesforceConnection}
-                      className={`px-4 py-2 text-sm font-medium rounded-lg transition-colors ${
-                        hasSalesforceConnection
-                          ? 'text-gray-400 bg-gray-100 cursor-not-allowed'
-                          : 'text-white bg-[#F95B14] hover:bg-orange-600'
-                      }`}
-                    >
-                      {hasSalesforceConnection ? 'Connected' : 'Connect'}
-                    </button>
+                    <div className="flex gap-2">
+                      {hasSalesforceConnection ? (
+                        <>
+                          <button
+                            onClick={disconnectSalesforce}
+                            className="px-4 py-2 text-sm font-medium text-red-600 bg-red-50 rounded-lg hover:bg-red-100 transition-colors"
+                          >
+                            Disconnect
+                          </button>
+                          <button
+                            onClick={connectToSalesforce}
+                            className="px-4 py-2 text-sm font-medium text-white bg-[#F95B14] rounded-lg hover:bg-orange-600 transition-colors"
+                          >
+                            Reconnect
+                          </button>
+                        </>
+                      ) : (
+                        <button
+                          onClick={connectToSalesforce}
+                          className="px-4 py-2 text-sm font-medium text-white bg-[#F95B14] rounded-lg hover:bg-orange-600 transition-colors"
+                        >
+                          Connect
+                        </button>
+                      )}
+                    </div>
                   </div>
                 </div>
               </div>
@@ -1820,23 +1870,37 @@ Include: greeting, meeting confirmation, brief agenda, offer to share materials,
                     {hasOutlookConnection ? (
                       <span className="px-3 py-1 text-xs rounded-full bg-green-100 text-green-800 font-medium">
                         ✓ Connected
-                    </span>
+                      </span>
                     ) : (
                       <span className="px-3 py-1 text-xs rounded-full bg-blue-100 text-blue-800 font-medium">
                         Ready to Connect
                       </span>
                     )}
-                    <button
-                      onClick={connectToOutlook}
-                      disabled={hasOutlookConnection}
-                      className={`px-4 py-2 text-sm font-medium rounded-lg transition-colors ${
-                        hasOutlookConnection
-                          ? 'text-gray-400 bg-gray-100 cursor-not-allowed'
-                          : 'text-white bg-[#F95B14] hover:bg-orange-600'
-                      }`}
-                    >
-                      {hasOutlookConnection ? 'Connected' : 'Connect'}
-                    </button>
+                    <div className="flex gap-2">
+                      {hasOutlookConnection ? (
+                        <>
+                          <button
+                            onClick={disconnectOutlook}
+                            className="px-4 py-2 text-sm font-medium text-red-600 bg-red-50 rounded-lg hover:bg-red-100 transition-colors"
+                          >
+                            Disconnect
+                          </button>
+                          <button
+                            onClick={connectToOutlook}
+                            className="px-4 py-2 text-sm font-medium text-white bg-[#F95B14] rounded-lg hover:bg-orange-600 transition-colors"
+                          >
+                            Reconnect
+                          </button>
+                        </>
+                      ) : (
+                        <button
+                          onClick={connectToOutlook}
+                          className="px-4 py-2 text-sm font-medium text-white bg-[#F95B14] rounded-lg hover:bg-orange-600 transition-colors"
+                        >
+                          Connect
+                        </button>
+                      )}
+                    </div>
                   </div>
                 </div>
               </div>

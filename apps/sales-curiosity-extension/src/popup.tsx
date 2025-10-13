@@ -254,7 +254,7 @@ function Popup() {
       const tabId = tabs[0]?.id;
       if (!tabId) throw new Error("No active tab found");
 
-      const extractResponse = await chrome.tabs.sendMessage(tabId, { type: "EXTRACT_PROFILE" });
+      const extractResponse = await chrome.tabs.sendMessage(tabId, { type: "EXTRACT_LINKEDIN_PROFILE" });
       if (!extractResponse?.success) {
         throw new Error(extractResponse?.error || "Failed to extract profile data");
       }

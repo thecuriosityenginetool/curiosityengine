@@ -44,19 +44,16 @@ export default function ExtensionAuthPage() {
         const data = await response.json();
         console.log('🔵 Extension auth token received');
 
-        // Store auth token and user data in chrome.storage.local
-        if (typeof chrome !== 'undefined' && chrome.storage) {
-          await chrome.storage.local.set({
-            authToken: data.authToken,
-            user: data.user,
-          });
+        // Send auth data to extension via postMessage
+        // The auth-bridge content script will receive this and store in chrome.storage
+        window.postMessage({
+          type: 'EXTENSION_AUTH',
+          authToken: data.authToken,
+          user: data.user,
+        }, window.location.origin);
 
-          console.log('✅ Extension auth complete - token stored in chrome.storage');
-          setAuthStatus('success');
-        } else {
-          console.log('⚠️ Chrome extension API not available - user can manually close tab');
-          setAuthStatus('success');
-        }
+        console.log('✅ Extension auth complete - token sent to extension bridge');
+        setAuthStatus('success');
       } catch (error) {
         console.error('❌ Extension auth error:', error);
         setErrorMessage(String(error));

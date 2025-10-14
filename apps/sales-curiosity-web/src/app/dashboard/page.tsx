@@ -1326,8 +1326,28 @@ The draft is now in your Outlook Drafts folder and ready to send.`);
                           ? 'bg-[#F95B14] text-white' 
                           : 'bg-gray-100 text-gray-900'
                       }`}>
-                        <div className="text-sm prose prose-sm max-w-none prose-headings:mt-2 prose-headings:mb-1 prose-p:my-1 prose-ul:my-1 prose-li:my-0">
-                          <ReactMarkdown remarkPlugins={[remarkGfm]}>
+                        <div className="text-sm prose prose-sm max-w-none prose-headings:font-bold prose-headings:text-gray-900 prose-h1:text-base prose-h2:text-base prose-h3:text-sm prose-headings:mt-3 prose-headings:mb-2 prose-p:my-2 prose-p:leading-relaxed prose-ul:my-2 prose-ul:space-y-1 prose-li:my-0.5 prose-strong:text-gray-900 prose-strong:font-semibold">
+                          <ReactMarkdown 
+                            remarkPlugins={[remarkGfm]}
+                            components={{
+                              h1: ({node, ...props}) => <h1 className="text-base font-bold text-gray-900 mt-3 mb-2" {...props} />,
+                              h2: ({node, ...props}) => <h2 className="text-base font-bold text-gray-900 mt-3 mb-2" {...props} />,
+                              h3: ({node, ...props}) => <h3 className="text-sm font-bold text-gray-900 mt-3 mb-2" {...props} />,
+                              p: ({node, ...props}) => <p className="my-2 leading-relaxed" {...props} />,
+                              ul: ({node, ...props}) => <ul className="my-2 space-y-1 list-none pl-0" {...props} />,
+                              ol: ({node, ...props}) => <ol className="my-2 space-y-1 pl-6" {...props} />,
+                              li: ({node, children, ...props}) => {
+                                const isOrdered = props.className?.includes('task-list-item') === false;
+                                return (
+                                  <li className="my-0.5 flex items-start" {...props}>
+                                    {!isOrdered && <span className="mr-2 text-orange-500 flex-shrink-0">•</span>}
+                                    <span className="flex-1">{children}</span>
+                                  </li>
+                                );
+                              },
+                              strong: ({node, ...props}) => <strong className="font-semibold text-gray-900" {...props} />,
+                            }}
+                          >
                             {msg.content}
                           </ReactMarkdown>
                         </div>

@@ -338,7 +338,16 @@ export async function POST(req: NextRequest) {
 
     systemPrompt += `
 
-Be concise, professional, and action-oriented. When creating email drafts, ALWAYS use the create_email_draft tool to save them to Outlook.`;
+## Response Formatting Guidelines:
+- Use **bold** for emphasis and important points
+- Structure responses with clear headings (### for main sections, #### for subsections)
+- Use bullet points (•) for lists to improve readability
+- Add relevant emojis to make content engaging (e.g., 💡 for ideas, 🎯 for goals, 📧 for emails, 📅 for calendar)
+- Add spacing between sections for better readability
+- Keep paragraphs concise and scannable
+- Use numbered lists for sequential steps
+- Be concise, professional, and action-oriented
+- When creating email drafts, ALWAYS use the create_email_draft tool to save them to Outlook.`;
 
     // Add user profile context
     systemPrompt += `\n\nUser Profile:

@@ -722,7 +722,7 @@ Please provide:
       setIsSendingMessage(true);
       
       const userMessageContent = `Generate Email for: ${event.title}`;
-      const prompt = `Generate a professional, well-formatted follow-up email for this meeting:
+      const prompt = `You are writing a follow-up email for a meeting. Write ONLY the email body - no instructions, no meta-text, no suggestions to customize.
 
 **Meeting Details:**
 - Title: ${event.title}
@@ -730,20 +730,21 @@ Please provide:
 - Description: ${event.description || 'No description provided'}
 - Attendees: ${event.attendees?.join(', ') || 'No attendees listed'}
 
-**Email Requirements:**
-1. Use a warm, professional greeting with the recipient's name (if available)
-2. Confirm the meeting details (date, time)
-3. Include a brief agenda with 3-4 bullet points
-4. Offer to share any relevant materials or information
-5. Professional closing with clear next steps
-6. Keep it concise (under 200 words)
+Write a complete, professional follow-up email that includes:
+1. Warm greeting (use first name from attendees if available)
+2. Meeting confirmation (date, time)
+3. Brief agenda with 3-4 bullet points
+4. Offer to share materials
+5. Professional closing with next steps
+6. Keep it under 200 words
 
-**Formatting:**
+Format with markdown:
 - Use ### for section headings
-- Use bullet points (•) for lists
-- Use **bold** for emphasis on key points
-- Add relevant emojis (📅 for calendar, 🎯 for objectives, etc.)
-- Keep paragraphs short and scannable`;
+- Use bullet points (•) for lists  
+- Use **bold** for emphasis
+- Add relevant emojis (📅, 🎯, etc.)
+
+IMPORTANT: Write ONLY the email body. Do NOT include phrases like "Feel free to customize" or "Here's the email" or any instructions. Start directly with the greeting and end with the signature.`;
 
       // Create new chat
       const chatResponse = await fetch('/api/chats', {
@@ -974,17 +975,39 @@ Please provide:
     try {
       console.log('📧 Creating Outlook draft:', { subject, contentLength: content.length, recipients });
       
+      // Clean up any meta-text or instructions from AI response
+      let cleanedContent = content;
+      
+      // Remove common AI meta-phrases
+      const metaPhrases = [
+        /Feel free to customize.*?(\n|$)/gi,
+        /Here'?s (a|the) (email|draft|message).*?(\n|$)/gi,
+        /\*\*Follow-up Email (Draft Created|Overview).*?\*\*/gi,
+        /I'?ve prepared.*?(\n|$)/gi,
+        /You can find the draft.*?(\n|$)/gi,
+        /Please review.*?(\n|$)/gi,
+        /Let me know if.*?(\n|$)/gi,
+        /^---\s*$/gm, // Remove standalone dividers
+      ];
+      
+      metaPhrases.forEach(phrase => {
+        cleanedContent = cleanedContent.replace(phrase, '');
+      });
+      
+      // Trim extra whitespace
+      cleanedContent = cleanedContent.trim();
+      
       // Use provided recipients or try to extract from content
       let recipientEmail = 'recipient@example.com';
       if (recipients && recipients.length > 0) {
         recipientEmail = recipients[0]; // Use first attendee
       } else {
-        const emailMatch = content.match(/([a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,})/i);
+        const emailMatch = cleanedContent.match(/([a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,})/i);
         if (emailMatch) recipientEmail = emailMatch[1];
       }
       
       // Convert markdown to HTML for Outlook
-      const htmlContent = await marked(content, {
+      const htmlContent = await marked(cleanedContent, {
         breaks: true,
         gfm: true,
       });
@@ -1539,7 +1562,7 @@ The draft is now in your Outlook Drafts folder and ready to send.`);
                             })}
                           </p>
                           {event.description && (
-                            <p className="text-xs text-gray-500 mt-1">{event.description}</p>
+                            <p className="text-xs text-gray-500 mt-1 line-clamp-2">{event.description}</p>
                           )}
                         </div>
                         <span className={`text-xs px-2 py-1 rounded-full ${

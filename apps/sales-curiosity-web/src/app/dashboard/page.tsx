@@ -759,7 +759,8 @@ Include: greeting, meeting confirmation, brief agenda, offer to share materials,
       if (outlookResponse.ok) {
         const outlookData = await outlookResponse.json();
         console.log('🔍 Outlook connection check:', outlookData);
-        const isConnected = outlookData.connected === true;
+        // More robust boolean check - handle string/boolean conversion
+        const isConnected = Boolean(outlookData.connected) && outlookData.connected !== 'false' && outlookData.connected !== false;
         console.log('✅ Outlook connected:', isConnected);
         setHasOutlookConnection(isConnected);
       } else {

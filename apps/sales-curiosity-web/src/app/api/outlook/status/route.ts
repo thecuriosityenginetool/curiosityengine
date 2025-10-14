@@ -67,12 +67,14 @@ export async function GET(req: NextRequest) {
 
     // Check if user has tokens in configuration
     const config = outlookIntegration.configuration as any;
-    const hasTokens = config && config[userData.id] && config[userData.id].access_token;
+    const userTokens = config && config[userData.id];
+    const hasTokens = userTokens && userTokens.access_token;
 
     console.log('🔵 Token check:', { 
       hasConfig: !!config, 
       hasUserInConfig: !!(config && config[userData.id]),
-      hasTokens 
+      hasAccessToken: !!(userTokens && userTokens.access_token),
+      tokenType: typeof userTokens
     });
 
     if (hasTokens) {
@@ -82,13 +84,14 @@ export async function GET(req: NextRequest) {
     }
 
     return NextResponse.json({ 
-      connected: hasTokens,
+      connected: !!hasTokens, // Force boolean conversion
       message: hasTokens ? 'Outlook connected' : 'Outlook integration exists but no tokens found',
       debug: {
         userId: userData.id,
         organizationId,
         hasIntegration: true,
-        configKeys: config ? Object.keys(config) : []
+        configKeys: config ? Object.keys(config) : [],
+        tokenPresent: !!hasTokens
       }
     });
   } catch (error) {

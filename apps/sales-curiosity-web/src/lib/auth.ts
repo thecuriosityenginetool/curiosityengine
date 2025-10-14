@@ -183,27 +183,32 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
         
         // Store OAuth tokens in database for email sending
         if (token.id && account.access_token && supabaseUrl && serviceRoleKey) {
-          const provider = account.provider === 'azure-ad' ? 'microsoft' : account.provider;
-          
-          // Calculate token expiry (default 1 hour if not provided)
-          const expiresIn = account.expires_in || 3600;
-          const tokenExpiry = new Date(Date.now() + expiresIn * 1000);
-          
-          // Upsert tokens to database
-          await supabase
-            .from('user_oauth_tokens')
-            .upsert({
-              user_id: token.id as string,
-              provider: provider,
-              access_token: account.access_token,
-              refresh_token: account.refresh_token,
-              token_expiry: tokenExpiry.toISOString(),
-              updated_at: new Date().toISOString(),
-            }, {
-              onConflict: 'user_id,provider'
-            });
-          
-          console.log('[AUTH] ✅ OAuth tokens stored for:', user.email);
+          try {
+            const provider = account.provider === 'azure-ad' ? 'microsoft' : account.provider;
+            
+            // Calculate token expiry (default 1 hour if not provided)
+            const expiresIn = account.expires_in || 3600;
+            const tokenExpiry = new Date(Date.now() + expiresIn * 1000);
+            
+            // Upsert tokens to database
+            await supabase
+              .from('user_oauth_tokens')
+              .upsert({
+                user_id: token.id as string,
+                provider: provider,
+                access_token: account.access_token,
+                refresh_token: account.refresh_token,
+                token_expiry: tokenExpiry.toISOString(),
+                updated_at: new Date().toISOString(),
+              }, {
+                onConflict: 'user_id,provider'
+              });
+            
+            console.log('[AUTH] ✅ OAuth tokens stored for:', user.email);
+          } catch (dbError) {
+            console.error('[AUTH] ❌ Failed to store OAuth tokens:', dbError);
+            // Don't throw - let OAuth flow continue even if token storage fails
+          }
         }
       }
 

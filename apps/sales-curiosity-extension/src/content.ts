@@ -1,9 +1,17 @@
-console.debug("Sales Curiosity content script loaded");
+console.log("✅ Sales Curiosity content script loaded on:", window.location.href);
+
+// Add a visual indicator that the script is loaded
+const scriptLoadedIndicator = document.createElement('div');
+scriptLoadedIndicator.id = 'sales-curiosity-loaded';
+scriptLoadedIndicator.style.display = 'none';
+document.body.appendChild(scriptLoadedIndicator);
 
 // Extract LinkedIn profile data from the page
 function extractLinkedInProfile() {
   console.log('🔍 Starting LinkedIn profile extraction...');
   console.log('📍 Current URL:', window.location.href);
+  console.log('📍 Page title:', document.title);
+  console.log('📍 Body classes:', document.body.className);
   
   const profileData: any = {
     url: window.location.href,
@@ -24,6 +32,15 @@ function extractLinkedInProfile() {
       profileData.name = text;
       console.log('✅ Found name:', profileData.name);
       break;
+    }
+  }
+  
+  // Alternative: Try to get name from meta tags or page title
+  if (!profileData.name) {
+    const titleMatch = document.title.match(/^([^|]+)/);
+    if (titleMatch) {
+      profileData.name = titleMatch[1].trim();
+      console.log('✅ Found name from title:', profileData.name);
     }
   }
 

@@ -1,0 +1,57 @@
+===========================================
+CHROME EXTENSION - SIMPLE RELOAD STEPS
+===========================================
+
+Your extension is showing the OLD ICON which means it wasn't reloaded properly.
+
+FOLLOW THESE EXACT STEPS:
+
+1. Go to: chrome://extensions/
+
+2. Find "Sales Curiosity" and click REMOVE (red button)
+
+3. Close Chrome COMPLETELY (Cmd+Q on Mac, not just the window)
+
+4. Wait 10 seconds
+
+5. Open Chrome again
+
+6. Go to: chrome://extensions/
+
+7. Turn ON "Developer mode" (top right toggle)
+
+8. Click "Load unpacked"
+
+9. Navigate to and SELECT this EXACT folder:
+   /Users/matthewbravo/Downloads/curiosityengine-2/apps/sales-curiosity-extension/dist
+
+10. You should now see:
+    - Orange flame icon 🔥 (NOT black icon)
+    - Version 1.0.0
+    - ID: will be different (that's normal)
+
+11. Close ALL LinkedIn tabs
+
+12. Open a NEW LinkedIn profile page
+
+13. Let it fully load, scroll down
+
+14. Click extension icon
+
+15. Click "Analyze Profile"
+
+16. Open browser console (F12) and look for:
+    "✅ Sales Curiosity content script loaded"
+
+If you see the OLD BLACK ICON still, you didn't reload correctly.
+Repeat steps 1-9.
+
+The extension IS built correctly.
+The icons ARE updated.
+You just need to reload it properly!
+
+Current build location:
+/Users/matthewbravo/Downloads/curiosityengine-2/apps/sales-curiosity-extension/dist
+
+Built on: Oct 14, 2025 at 11:53 AM
+

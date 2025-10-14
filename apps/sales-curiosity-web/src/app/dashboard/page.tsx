@@ -1274,46 +1274,50 @@ The draft is now in your Outlook Drafts folder and ready to send.`);
                         {/* Action buttons for assistant messages */}
                         {msg.role === 'assistant' && (
                           <div className="flex gap-3 mt-2 mb-4">
-                            {/* Email Draft Action */}
-                            <div className="group relative">
-                              <button
-                                onClick={() => addToEmailDrafts(msg.content, selectedEvent?.title)}
-                                className="w-10 h-10 rounded-full bg-white border-2 border-gray-200 flex items-center justify-center cursor-pointer hover:border-[#F95B14] hover:shadow-md transition-all"
-                              >
-                                <svg className="w-5 h-5" viewBox="0 0 23 23" xmlns="http://www.w3.org/2000/svg">
-                                  <path fill="#f35325" d="M1 1h10v10H1z"/>
-                                  <path fill="#81bc06" d="M12 1h10v10H12z"/>
-                                  <path fill="#05a6f0" d="M1 12h10v10H1z"/>
-                                  <path fill="#ffba08" d="M12 12h10v10H12z"/>
-                                </svg>
-                              </button>
-                              {/* Hover tooltip - positioned to the right */}
-                              <div className="absolute left-full ml-2 top-1/2 -translate-y-1/2 hidden group-hover:block bg-gray-900 text-white text-xs px-3 py-2 rounded shadow-lg whitespace-nowrap z-50">
-                                ✉️ Create Draft in Outlook
-                                <div className="absolute right-full top-1/2 -translate-y-1/2 mr-0 border-4 border-transparent border-r-gray-900"></div>
+                            {/* Email Draft Action - Only show if Outlook is connected */}
+                            {hasOutlookConnection && (
+                              <div className="group relative">
+                                <button
+                                  onClick={() => addToEmailDrafts(msg.content, selectedEvent?.title)}
+                                  className="w-10 h-10 rounded-full bg-white border-2 border-gray-200 flex items-center justify-center cursor-pointer hover:border-[#F95B14] hover:shadow-md transition-all"
+                                >
+                                  <svg className="w-5 h-5" viewBox="0 0 23 23" xmlns="http://www.w3.org/2000/svg">
+                                    <path fill="#f35325" d="M1 1h10v10H1z"/>
+                                    <path fill="#81bc06" d="M12 1h10v10H12z"/>
+                                    <path fill="#05a6f0" d="M1 12h10v10H1z"/>
+                                    <path fill="#ffba08" d="M12 12h10v10H12z"/>
+                                  </svg>
+                                </button>
+                                {/* Hover tooltip - positioned to the right */}
+                                <div className="absolute left-full ml-2 top-1/2 -translate-y-1/2 hidden group-hover:block bg-gray-900 text-white text-xs px-3 py-2 rounded shadow-lg whitespace-nowrap z-50">
+                                  ✉️ Create Draft in Outlook
+                                  <div className="absolute right-full top-1/2 -translate-y-1/2 mr-0 border-4 border-transparent border-r-gray-900"></div>
+                                </div>
                               </div>
-                            </div>
+                            )}
 
-                            {/* CRM Action */}
-                            <div className="group relative">
-                              <button
-                                onClick={() => updateCRM(msg.content)}
-                                className="w-10 h-10 rounded-full bg-white border-2 border-gray-200 flex items-center justify-center cursor-pointer hover:border-blue-500 hover:shadow-md transition-all p-2"
-                              >
-                                <Image
-                                  src="/salesforcelogo.svg"
-                                  alt="Salesforce"
-                                  width={20}
-                                  height={20}
-                                  className="w-full h-full"
-                                />
-                              </button>
-                              {/* Hover tooltip - positioned to the right */}
-                              <div className="absolute left-full ml-2 top-1/2 -translate-y-1/2 hidden group-hover:block bg-gray-900 text-white text-xs px-3 py-2 rounded shadow-lg whitespace-nowrap z-50">
-                                🎯 Enrich Lead in Salesforce
-                                <div className="absolute right-full top-1/2 -translate-y-1/2 mr-0 border-4 border-transparent border-r-gray-900"></div>
+                            {/* CRM Action - Only show if Salesforce is connected */}
+                            {hasSalesforceConnection && (
+                              <div className="group relative">
+                                <button
+                                  onClick={() => updateCRM(msg.content)}
+                                  className="w-10 h-10 rounded-full bg-white border-2 border-gray-200 flex items-center justify-center cursor-pointer hover:border-blue-500 hover:shadow-md transition-all p-2"
+                                >
+                                  <Image
+                                    src="/salesforcelogo.svg"
+                                    alt="Salesforce"
+                                    width={20}
+                                    height={20}
+                                    className="w-full h-full"
+                                  />
+                                </button>
+                                {/* Hover tooltip - positioned to the right */}
+                                <div className="absolute left-full ml-2 top-1/2 -translate-y-1/2 hidden group-hover:block bg-gray-900 text-white text-xs px-3 py-2 rounded shadow-lg whitespace-nowrap z-50">
+                                  🎯 Enrich Lead in Salesforce
+                                  <div className="absolute right-full top-1/2 -translate-y-1/2 mr-0 border-4 border-transparent border-r-gray-900"></div>
+                                </div>
                               </div>
-                            </div>
+                            )}
                           </div>
                         )}
                       </div>

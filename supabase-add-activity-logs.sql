@@ -6,6 +6,7 @@ CREATE TABLE IF NOT EXISTS public.activity_logs (
   user_id UUID NOT NULL REFERENCES public.users(id) ON DELETE CASCADE,
   action_type TEXT NOT NULL CHECK (action_type IN (
     'email_draft_created',
+    'email_draft_requested',
     'email_sent',
     'crm_lead_enriched',
     'crm_note_added',
@@ -13,7 +14,9 @@ CREATE TABLE IF NOT EXISTS public.activity_logs (
     'linkedin_analysis',
     'chat_created',
     'integration_connected',
-    'integration_disconnected'
+    'integration_disconnected',
+    'salesforce_disconnected',
+    'outlook_disconnected'
   )),
   action_title TEXT NOT NULL,
   action_description TEXT,

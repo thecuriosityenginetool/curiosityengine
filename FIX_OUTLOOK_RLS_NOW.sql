@@ -142,6 +142,9 @@ ORDER BY created_at DESC;
 --    ✅ Integration updated successfully
 -- 4. Should work now! 🎉
 
-RAISE NOTICE '✅ RLS policies fixed for organization_integrations';
-RAISE NOTICE '🔄 Now try connecting Outlook again in your web app';
+DO $$
+BEGIN
+  RAISE NOTICE '✅ RLS policies fixed for organization_integrations';
+  RAISE NOTICE '🔄 Now try connecting Outlook again in your web app';
+END $$;
 

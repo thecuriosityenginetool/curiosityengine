@@ -109,13 +109,24 @@ export async function GET(req: NextRequest) {
     // If already connected, return connected status
     if (existingConnection?.configuration) {
       const config = existingConnection.configuration as any;
-      const hasValidTokens = config && (
-        (typeof config === 'object' && config[userId] && config[userId].access_token) ||
-        (config.access_token)
-      );
       
-      console.log('🟪 [Salesforce Auth-User] Has valid tokens:', hasValidTokens);
       console.log('🟪 [Salesforce Auth-User] Config structure:', typeof config);
+      console.log('🟪 [Salesforce Auth-User] Config keys:', config ? Object.keys(config) : 'null');
+      console.log('🟪 [Salesforce Auth-User] User ID:', userId);
+      console.log('🟪 [Salesforce Auth-User] User tokens:', config && config[userId] ? 'Found' : 'Not found');
+      
+      // Check for user-specific tokens first (new format)
+      const userTokens = config && config[userId];
+      const hasUserTokens = userTokens && userTokens.access_token;
+      
+      // Fallback to direct config tokens (old format)
+      const hasDirectTokens = config && config.access_token;
+      
+      const hasValidTokens = hasUserTokens || hasDirectTokens;
+      
+      console.log('🟪 [Salesforce Auth-User] Has user tokens:', hasUserTokens);
+      console.log('🟪 [Salesforce Auth-User] Has direct tokens:', hasDirectTokens);
+      console.log('🟪 [Salesforce Auth-User] Has valid tokens:', hasValidTokens);
       
       if (hasValidTokens) {
         console.log('✅ [Salesforce Auth-User] Salesforce already connected!');
@@ -126,6 +137,7 @@ export async function GET(req: NextRequest) {
         });
       } else {
         console.log('⚠️ [Salesforce Auth-User] Connection exists but no valid tokens');
+        console.log('🟪 [Salesforce Auth-User] Debug config:', JSON.stringify(config, null, 2));
       }
     }
 

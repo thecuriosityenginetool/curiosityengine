@@ -48,7 +48,7 @@ export async function GET(req: NextRequest) {
       .from('organization_integrations')
       .select('id, configuration')
       .eq('organization_id', organizationId)
-      .eq('integration_type', 'outlook_user')
+      .eq('integration_type', 'outlook') // Use 'outlook' instead of 'outlook_user'
       .maybeSingle();
 
     if (fetchError) {
@@ -92,7 +92,7 @@ export async function GET(req: NextRequest) {
         .from('organization_integrations')
         .insert({
           organization_id: organizationId,
-          integration_type: 'outlook_user',
+          integration_type: 'outlook', // Use 'outlook' instead of 'outlook_user'
           is_enabled: true,
           configuration: userTokens,
           enabled_at: new Date().toISOString(),

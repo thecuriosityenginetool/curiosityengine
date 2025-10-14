@@ -102,7 +102,7 @@ export async function getUserOutlookTokens(userId: string, organizationId: strin
     .from('organization_integrations')
     .select('configuration')
     .eq('organization_id', organizationId)
-    .eq('integration_type', 'outlook_user')
+    .eq('integration_type', 'outlook') // Use 'outlook' instead of 'outlook_user'
     .eq('is_enabled', true)
     .single();
 
@@ -157,7 +157,7 @@ async function graphApiRequest(
         .from('organization_integrations')
         .select('id, configuration')
         .eq('organization_id', organizationId)
-        .eq('integration_type', 'outlook_user')
+        .eq('integration_type', 'outlook') // Use 'outlook' instead of 'outlook_user'
         .single();
 
       if (existing) {

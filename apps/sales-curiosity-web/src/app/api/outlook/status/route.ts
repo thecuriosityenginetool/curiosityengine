@@ -43,7 +43,7 @@ export async function GET(req: NextRequest) {
       .from('organization_integrations')
       .select('is_enabled, configuration')
       .eq('organization_id', organizationId)
-      .eq('integration_type', 'outlook_user')
+      .eq('integration_type', 'outlook')
       .eq('is_enabled', true)
       .maybeSingle();
 

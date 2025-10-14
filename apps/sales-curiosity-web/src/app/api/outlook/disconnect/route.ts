@@ -31,7 +31,7 @@ export async function POST(req: NextRequest) {
       .from('organization_integrations')
       .delete()
       .eq('organization_id', userData.organization_id)
-      .eq('integration_type', 'outlook_user');
+      .eq('integration_type', 'outlook');
 
     if (error) {
       console.error('Error disconnecting Outlook:', error);

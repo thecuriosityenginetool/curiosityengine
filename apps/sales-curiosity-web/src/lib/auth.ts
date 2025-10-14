@@ -35,6 +35,7 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
     AzureAD({
       clientId: process.env.MICROSOFT_CLIENT_ID!,
       clientSecret: process.env.MICROSOFT_CLIENT_SECRET!,
+      tenantId: process.env.AZURE_AD_TENANT_ID || "common",
       authorization: {
         params: {
           scope: "openid email profile offline_access",
@@ -180,6 +181,12 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
         token.refreshToken = account.refresh_token;
         token.provider = account.provider;
         
+        console.log('[AUTH] 🔑 OAuth tokens received for:', user?.email, 'provider:', account.provider);
+        console.log('[AUTH] 🔑 Token expiry in:', account.expires_in, 'seconds');
+        
+        // TEMPORARILY DISABLE DATABASE TOKEN STORAGE TO FIX CALLBACK ERROR
+        // TODO: Re-enable after confirming OAuth flow works
+        /*
         // Store OAuth tokens in database for email sending
         if (token.id && account.access_token && supabaseUrl && serviceRoleKey) {
           try {
@@ -209,6 +216,7 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
             // Don't throw - let OAuth flow continue even if token storage fails
           }
         }
+        */
       }
 
       return token;
@@ -245,6 +253,19 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
     error(error: Error) {
       console.error('NextAuth Error:', error.message);
       console.error('NextAuth Error Details:', error);
+      if (error.stack) {
+        console.error('NextAuth Error Stack:', error.stack);
+      }
+      // Log additional properties that might be helpful
+      if ('cause' in error && error.cause) {
+        console.error('NextAuth Error Cause:', JSON.stringify(error.cause, null, 2));
+      }
+      if ('type' in error) {
+        console.error('NextAuth Error Type:', (error as any).type);
+      }
+      if ('kind' in error) {
+        console.error('NextAuth Error Kind:', (error as any).kind);
+      }
     },
     warn(message: string) {
       console.warn('NextAuth Warning:', message);

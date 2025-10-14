@@ -267,6 +267,13 @@ export async function POST(req: NextRequest) {
       ...(hasOutlook ? outlookTools : [])
     ];
 
+    console.log('🤖 Chat API - Available tools:', {
+      hasSalesforce,
+      hasOutlook,
+      toolsCount: availableTools.length,
+      toolNames: availableTools.map(t => t.function?.name)
+    });
+
     // Get sales materials for context
     let salesMaterials = '';
     const { data: materials } = await supabase
@@ -361,6 +368,14 @@ Be concise, professional, and action-oriented. When creating email drafts, ALWAY
       })),
       { role: 'user', content: message }
     ];
+
+    console.log('🤖 Chat API - Making OpenAI request:', {
+      message: message.substring(0, 100) + '...',
+      toolsAvailable: availableTools.length > 0,
+      toolNames: availableTools.map(t => t.function?.name),
+      hasOutlook,
+      hasSalesforce
+    });
 
     // Create streaming response
     const stream = new ReadableStream({

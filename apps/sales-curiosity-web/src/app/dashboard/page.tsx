@@ -896,25 +896,45 @@ Include: greeting, meeting confirmation, brief agenda, offer to share materials,
     }
 
     try {
-      // Use the new Outlook integration via AI chat instead of old endpoint
-      const chatMessage = `Create an email draft with subject "${subject || 'Draft from Curiosity Engine'}" and content: ${content}`;
+      console.log('📧 Creating Outlook draft directly:', { subject, contentLength: content.length });
       
-      // Add to chat messages to trigger AI tool calling
-      const newMessage: ChatMessage = {
-        role: 'user',
-        content: chatMessage,
-        timestamp: new Date().toISOString()
-      };
+      // Extract recipient email from content if possible
+      const emailMatch = content.match(/to\s+([a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,})/i);
+      const recipientEmail = emailMatch ? emailMatch[1] : 'recipient@example.com';
       
-      setChatMessages(prev => [...prev, newMessage]);
-      setChatInput('');
+      // Call the Outlook draft creation API directly
+      const response = await fetch('/api/outlook/create-draft', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          to: recipientEmail,
+          subject: subject || 'Draft from Curiosity Engine',
+          body: content
+        }),
+      });
+
+      if (!response.ok) {
+        const errorData = await response.json();
+        console.error('❌ Draft creation failed:', errorData);
+        alert(`❌ Failed to create draft: ${errorData.error || response.statusText}`);
+        return;
+      }
+
+      const result = await response.json();
+      console.log('✅ Draft created successfully:', result);
       
-      // The AI will handle the email draft creation via the new Outlook tools
-      alert('✅ Email draft request sent to AI! Check the chat for the draft creation.');
-      await createActivityLog('email_draft_requested', subject || 'Email Draft Requested', 'Draft request sent to AI');
+      alert(`✅ Email draft created successfully in Outlook!
+Recipient: ${recipientEmail}
+Subject: ${subject || 'Draft from Curiosity Engine'}
+
+The draft is now in your Outlook Drafts folder and ready to send.`);
+      
+      await createActivityLog('email_draft_created', `Email Draft: ${subject || 'Draft from Curiosity Engine'}`, 'Draft created in Outlook');
     } catch (error) {
-      console.error('Error creating draft:', error);
-      alert('❌ Error creating draft. Please try again.');
+      console.error('❌ Error creating draft:', error);
+      alert(`❌ Error creating draft: ${error instanceof Error ? error.message : String(error)}`);
     }
   }
 

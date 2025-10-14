@@ -385,10 +385,15 @@ Be concise, professional, and action-oriented. When creating email drafts, ALWAY
           const completion = await openai.chat.completions.create({
             model: 'gpt-4o',
             messages,
-            tools: hasSalesforce ? salesforceTools : undefined,
-            tool_choice: hasSalesforce ? 'auto' : undefined,
+            tools: availableTools.length > 0 ? availableTools : undefined,
+            tool_choice: availableTools.length > 0 ? 'auto' : undefined,
             stream: true,
             max_tokens: 2000,
+          });
+
+          console.log('🤖 [Chat] OpenAI request made with tools:', {
+            toolsCount: availableTools.length,
+            toolNames: availableTools.map(t => t.function?.name)
           });
 
           let toolCalls: any[] = [];
@@ -454,12 +459,21 @@ Be concise, professional, and action-oriented. When creating email drafts, ALWAY
                   })}\n\n`)
                 );
 
-                const result = await executeSalesforceTool(
-                  toolName,
-                  toolArgs,
-                  user.organization_id,
-                  user.id
-                );
+                console.log('🔧 [Chat] Executing tool:', { toolName, toolArgs });
+                
+                let result: string;
+                try {
+                  result = await executeTool(
+                    toolName,
+                    toolArgs,
+                    user.organization_id,
+                    user.id
+                  );
+                  console.log('✅ [Chat] Tool execution completed:', { toolName, resultLength: result.length });
+                } catch (error) {
+                  console.error('❌ [Chat] Tool execution failed:', { toolName, error });
+                  result = `❌ Error executing ${toolName}: ${error instanceof Error ? error.message : String(error)}`;
+                }
 
                 // Add tool result to messages and continue
                 messages.push({

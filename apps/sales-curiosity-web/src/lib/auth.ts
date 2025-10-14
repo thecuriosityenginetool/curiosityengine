@@ -78,6 +78,7 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
 
         if (selectError) {
           console.error('[AUTH] Error checking user:', selectError);
+          // Continue even if select fails
         }
 
         if (!existingUser) {
@@ -112,6 +113,7 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
         return true;
       } catch (error) {
         console.error('[AUTH] Exception in signIn:', error);
+        console.error('[AUTH] Exception stack:', error instanceof Error ? error.stack : 'No stack');
         // Allow sign in even if there's an error - NextAuth will handle it
         return true;
       }
@@ -161,17 +163,21 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
               // Set defaults if user data not found
               token.role = 'member';
               token.accountType = 'individual';
+              token.id = crypto.randomUUID(); // Generate temporary ID
             }
           } else {
             console.log('[AUTH] Supabase not configured, using basic OAuth data');
             token.role = 'member';
             token.accountType = 'individual';
+            token.id = crypto.randomUUID(); // Generate temporary ID
           }
         } catch (error) {
           console.error('[AUTH] Exception in jwt callback:', error);
+          console.error('[AUTH] JWT Exception stack:', error instanceof Error ? error.stack : 'No stack');
           // Set safe defaults
           token.role = 'member';
           token.accountType = 'individual';
+          token.id = crypto.randomUUID(); // Generate temporary ID
         }
       }
 
@@ -184,9 +190,6 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
         console.log('[AUTH] 🔑 OAuth tokens received for:', user?.email, 'provider:', account.provider);
         console.log('[AUTH] 🔑 Token expiry in:', account.expires_in, 'seconds');
         
-        // TEMPORARILY DISABLE DATABASE TOKEN STORAGE TO FIX CALLBACK ERROR
-        // TODO: Re-enable after confirming OAuth flow works
-        /*
         // Store OAuth tokens in database for email sending
         if (token.id && account.access_token && supabaseUrl && serviceRoleKey) {
           try {
@@ -213,10 +216,10 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
             console.log('[AUTH] ✅ OAuth tokens stored for:', user.email);
           } catch (dbError) {
             console.error('[AUTH] ❌ Failed to store OAuth tokens:', dbError);
+            console.error('[AUTH] DB Error stack:', dbError instanceof Error ? dbError.stack : 'No stack');
             // Don't throw - let OAuth flow continue even if token storage fails
           }
         }
-        */
       }
 
       return token;

@@ -40,13 +40,8 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
         params: {
           scope: "openid email profile offline_access",
           prompt: "consent",
-          response_type: "code",
         }
       },
-      // Add checks parameter to validate issuer
-      checks: ["state"],
-      // Explicitly set the wellKnown endpoint
-      wellKnown: `https://login.microsoftonline.com/${process.env.AZURE_AD_TENANT_ID || "common"}/v2.0/.well-known/openid-configuration`,
       profile: async (profile, tokens) => {
         console.log('🔐 Azure AD profile callback:', { profile, tokens: !!tokens });
         return {

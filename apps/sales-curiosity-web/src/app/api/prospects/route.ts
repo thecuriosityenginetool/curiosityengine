@@ -139,12 +139,12 @@ export async function POST(req: NextRequest) {
           if (userData) {
             organizationId = userData.organization_id;
             
-            // Check if Salesforce integration is enabled
+            // Check if Salesforce integration is enabled (both org-level and user-level)
             const { data: integration } = await supabase
               .from('organization_integrations')
-              .select('is_enabled')
+              .select('is_enabled, integration_type')
               .eq('organization_id', organizationId)
-              .eq('integration_type', 'salesforce')
+              .in('integration_type', ['salesforce', 'salesforce_user'])
               .eq('is_enabled', true)
               .single();
             
@@ -456,9 +456,9 @@ ${profileData.name || 'This professional'} is ${profileData.headline || 'a profe
               try {
                 const { data: integration } = await supabase
                   .from('organization_integrations')
-                  .select('is_enabled')
+                  .select('is_enabled, integration_type')
                   .eq('organization_id', organizationId)
-                  .eq('integration_type', 'salesforce')
+                  .in('integration_type', ['salesforce', 'salesforce_user'])
                   .eq('is_enabled', true)
                   .single();
 

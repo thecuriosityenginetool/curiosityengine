@@ -425,7 +425,7 @@ export default function Home() {
               
               <h1 className="text-4xl font-bold tracking-tight text-black sm:text-5xl lg:text-6xl mb-6 leading-tight animate-fade-in-up" style={{animationDelay: '0.3s'}}>
                 The AI Sales Assistant for{' '}
-                <span className="text-[#F95B14] inline-block min-w-[280px] sm:min-w-[400px] text-center">
+                <span className="text-[#F95B14] inline-block whitespace-nowrap">
                   {currentRole}
                   <span className="animate-pulse">|</span>
                 </span>
@@ -976,129 +976,125 @@ export default function Home() {
           </div>
         </section>
 
-        {/* Features: Agentic Automation */}
-        <section className="relative mx-auto max-w-7xl px-6 py-24">
+        {/* Features: Why Curiosity Engine Wins */}
+        <section className="relative mx-auto max-w-7xl px-6 py-24 bg-white">
           <div className="text-center mb-16">
-            <div className="inline-flex items-center rounded-full bg-white px-4 py-1.5 text-sm font-medium text-[#F95B14] ring-1 ring-inset ring-[#F95B14]/20 mb-6 relative z-10">
-              ⚡ Modern Agentic Automation
+            <div className="inline-flex items-center rounded-full bg-[#F95B14]/10 px-4 py-1.5 text-sm font-medium text-[#F95B14] ring-1 ring-inset ring-[#F95B14]/20 mb-6 relative z-10">
+              ⚡ Intelligent Automation
             </div>
-            <h2 className="text-4xl sm:text-5xl font-bold text-white mb-6">
-              AI agents that know your business
+            <h2 className="text-4xl sm:text-5xl font-bold text-black mb-6">
+              Why top performers choose Curiosity Engine
             </h2>
-            <p className="text-xl text-gray-300 max-w-2xl mx-auto">
-              Not just another AI tool. Our agents understand your pipeline, company positioning, and sales methodology to work autonomously.
+            <p className="text-xl text-gray-700 max-w-2xl mx-auto">
+              Built for sales professionals who need more than templates. Get AI that truly understands your deals, your process, and your prospects.
             </p>
           </div>
 
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-            <div className="rounded-2xl border border-gray-800 bg-gray-900/50 p-8 backdrop-blur-sm">
-              <div className="text-4xl mb-4">🧠</div>
-              <h3 className="text-2xl font-bold text-white mb-4">Pipeline Intelligence</h3>
-              <p className="text-gray-300 mb-4">
-                Your AI knows where every deal stands, what stage prospects are in, and the best next actions to move them forward.
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <div className="rounded-2xl border border-gray-200 bg-white p-8 shadow-sm hover:shadow-md transition-shadow">
+              <h3 className="text-2xl font-bold text-black mb-4">Pipeline Intelligence</h3>
+              <p className="text-gray-700 mb-6 leading-relaxed">
+                Know exactly where every deal stands and what to do next. Our AI tracks deal stages, identifies at-risk opportunities, and suggests the perfect timing for follow-ups.
               </p>
-              <ul className="space-y-2 text-sm text-gray-400">
-                <li className="flex items-center gap-2">
-                  <svg className="w-4 h-4 text-[#F95B14]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <ul className="space-y-3 text-sm text-gray-600">
+                <li className="flex items-start gap-3">
+                  <svg className="w-5 h-5 text-[#F95B14] flex-shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
                   </svg>
-                  Automatic deal stage detection
+                  <span>Automatic deal stage detection and progression tracking</span>
                 </li>
-                <li className="flex items-center gap-2">
-                  <svg className="w-4 h-4 text-[#F95B14]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <li className="flex items-start gap-3">
+                  <svg className="w-5 h-5 text-[#F95B14] flex-shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
                   </svg>
-                  Smart follow-up timing
+                  <span>Smart follow-up timing based on prospect engagement</span>
                 </li>
-                <li className="flex items-center gap-2">
-                  <svg className="w-4 h-4 text-[#F95B14]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <li className="flex items-start gap-3">
+                  <svg className="w-5 h-5 text-[#F95B14] flex-shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
                   </svg>
-                  Priority prospect identification
+                  <span>Priority prospect identification for maximum ROI</span>
                 </li>
               </ul>
             </div>
 
-            <div className="rounded-2xl border border-gray-800 bg-gray-900/50 p-8 backdrop-blur-sm">
-              <div className="text-4xl mb-4">🎯</div>
-              <h3 className="text-2xl font-bold text-white mb-4">Company Context</h3>
-              <p className="text-gray-300 mb-4">
-                Every message includes your company's value props, case studies, and positioning—automatically personalized for each prospect.
+            <div className="rounded-2xl border border-gray-200 bg-white p-8 shadow-sm hover:shadow-md transition-shadow">
+              <h3 className="text-2xl font-bold text-black mb-4">Deep Personalization</h3>
+              <p className="text-gray-700 mb-6 leading-relaxed">
+                Every message matches your company's positioning and the prospect's needs. No more generic templates—get emails that sound like you wrote them yourself.
               </p>
-              <ul className="space-y-2 text-sm text-gray-400">
-                <li className="flex items-center gap-2">
-                  <svg className="w-4 h-4 text-[#F95B14]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <ul className="space-y-3 text-sm text-gray-600">
+                <li className="flex items-start gap-3">
+                  <svg className="w-5 h-5 text-[#F95B14] flex-shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
                   </svg>
-                  Industry-specific positioning
+                  <span>Industry-specific positioning and value props</span>
                 </li>
-                <li className="flex items-center gap-2">
-                  <svg className="w-4 h-4 text-[#F95B14]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <li className="flex items-start gap-3">
+                  <svg className="w-5 h-5 text-[#F95B14] flex-shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
                   </svg>
-                  Relevant case study matching
+                  <span>Automatic case study and social proof matching</span>
                 </li>
-                <li className="flex items-center gap-2">
-                  <svg className="w-4 h-4 text-[#F95B14]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <li className="flex items-start gap-3">
+                  <svg className="w-5 h-5 text-[#F95B14] flex-shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
                   </svg>
-                  Pain point identification
+                  <span>Pain point identification from prospect research</span>
                 </li>
               </ul>
             </div>
 
-            <div className="rounded-2xl border border-gray-800 bg-gray-900/50 p-8 backdrop-blur-sm">
-              <div className="text-4xl mb-4">🤝</div>
-              <h3 className="text-2xl font-bold text-white mb-4">Sales Methodology</h3>
-              <p className="text-gray-300 mb-4">
-                Whether you use MEDDIC, Challenger, or your own framework—our AI adapts to your proven sales process.
+            <div className="rounded-2xl border border-gray-200 bg-white p-8 shadow-sm hover:shadow-md transition-shadow">
+              <h3 className="text-2xl font-bold text-black mb-4">Your Sales Process, Amplified</h3>
+              <p className="text-gray-700 mb-6 leading-relaxed">
+                Use MEDDIC, Challenger, SPIN, or your own framework. Our AI adapts to your proven methodology and helps you execute it flawlessly every time.
               </p>
-              <ul className="space-y-2 text-sm text-gray-400">
-                <li className="flex items-center gap-2">
-                  <svg className="w-4 h-4 text-[#F95B14]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <ul className="space-y-3 text-sm text-gray-600">
+                <li className="flex items-start gap-3">
+                  <svg className="w-5 h-5 text-[#F95B14] flex-shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
                   </svg>
-                  Methodology-aligned questioning
+                  <span>Framework-aligned discovery questions</span>
                 </li>
-                <li className="flex items-center gap-2">
-                  <svg className="w-4 h-4 text-[#F95B14]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <li className="flex items-start gap-3">
+                  <svg className="w-5 h-5 text-[#F95B14] flex-shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
                   </svg>
-                  Qualification criteria checking
+                  <span>Automatic qualification criteria checking</span>
                 </li>
-                <li className="flex items-center gap-2">
-                  <svg className="w-4 h-4 text-[#F95B14]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <li className="flex items-start gap-3">
+                  <svg className="w-5 h-5 text-[#F95B14] flex-shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
                   </svg>
-                  Best practice recommendations
+                  <span>Best practice recommendations for each deal stage</span>
                 </li>
               </ul>
             </div>
 
-            <div className="rounded-2xl border border-gray-800 bg-gray-900/50 p-8 backdrop-blur-sm">
-              <div className="text-4xl mb-4">🚀</div>
-              <h3 className="text-2xl font-bold text-white mb-4">Autonomous Actions</h3>
-              <p className="text-gray-300 mb-4">
-                From drafting emails to updating CRMs to scheduling meetings—your AI works 24/7 so you can focus on closing deals.
+            <div className="rounded-2xl border border-gray-200 bg-white p-8 shadow-sm hover:shadow-md transition-shadow">
+              <h3 className="text-2xl font-bold text-black mb-4">Works While You Sleep</h3>
+              <p className="text-gray-700 mb-6 leading-relaxed">
+                From drafting personalized emails to updating your CRM to scheduling the perfect meeting time—your AI assistant handles the busywork 24/7.
               </p>
-              <ul className="space-y-2 text-sm text-gray-400">
-                <li className="flex items-center gap-2">
-                  <svg className="w-4 h-4 text-[#F95B14]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <ul className="space-y-3 text-sm text-gray-600">
+                <li className="flex items-start gap-3">
+                  <svg className="w-5 h-5 text-[#F95B14] flex-shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
                   </svg>
-                  Automatic CRM updates
+                  <span>Seamless CRM updates and activity logging</span>
                 </li>
-                <li className="flex items-center gap-2">
-                  <svg className="w-4 h-4 text-[#F95B14]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <li className="flex items-start gap-3">
+                  <svg className="w-5 h-5 text-[#F95B14] flex-shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
                   </svg>
-                  Smart meeting scheduling
+                  <span>Intelligent meeting scheduling across time zones</span>
                 </li>
-                <li className="flex items-center gap-2">
-                  <svg className="w-4 h-4 text-[#F95B14]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <li className="flex items-start gap-3">
+                  <svg className="w-5 h-5 text-[#F95B14] flex-shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
                   </svg>
-                  Proactive follow-up reminders
+                  <span>Proactive reminders when deals need attention</span>
                 </li>
               </ul>
             </div>

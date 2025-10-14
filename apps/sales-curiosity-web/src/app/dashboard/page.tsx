@@ -264,7 +264,8 @@ export default function DashboardPage() {
 
   async function createActivityLog(actionType: string, title: string, description?: string, metadata?: any) {
     try {
-      await fetch('/api/activity-logs', {
+      console.log('📝 Creating activity log:', { actionType, title, description });
+      const response = await fetch('/api/activity-logs', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
@@ -274,11 +275,22 @@ export default function DashboardPage() {
           metadata: metadata || {}
         }),
       });
+      
+      if (!response.ok) {
+        const errorData = await response.json();
+        console.error('❌ Activity log creation failed:', {
+          status: response.status,
+          error: errorData
+        });
+        throw new Error(`Activity log failed: ${errorData.error || response.statusText}`);
+      }
+      
+      console.log('✅ Activity log created successfully');
       if (activeTab === 'logs') {
         loadActivityLogs();
       }
     } catch (error) {
-      console.error('Error creating activity log:', error);
+      console.error('❌ Error creating activity log:', error);
     }
   }
 

@@ -92,14 +92,31 @@ export async function POST(req: NextRequest) {
       .single();
 
     if (error) {
-      console.error('Error creating activity log:', error);
-      return NextResponse.json({ error: error.message }, { status: 500 });
+      console.error('❌ Error creating activity log:', {
+        error: error,
+        message: error.message,
+        details: error.details,
+        hint: error.hint,
+        code: error.code
+      });
+      return NextResponse.json({ 
+        error: error.message,
+        details: error.details,
+        hint: error.hint 
+      }, { status: 500 });
     }
 
     return NextResponse.json({ log });
   } catch (error) {
-    console.error('Error in POST /api/activity-logs:', error);
-    return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
+    console.error('❌ Error in POST /api/activity-logs:', {
+      error: error,
+      message: error instanceof Error ? error.message : String(error),
+      stack: error instanceof Error ? error.stack : undefined
+    });
+    return NextResponse.json({ 
+      error: error instanceof Error ? error.message : 'Internal server error',
+      stack: error instanceof Error ? error.stack : undefined
+    }, { status: 500 });
   }
 }
 

@@ -5,6 +5,8 @@ import { useRouter } from 'next/navigation';
 import { useSession, signOut } from 'next-auth/react';
 import { supabase } from '@/lib/supabase';
 import Image from 'next/image';
+import ReactMarkdown from 'react-markdown';
+import remarkGfm from 'remark-gfm';
 
 interface User {
   id: string;
@@ -1324,7 +1326,11 @@ The draft is now in your Outlook Drafts folder and ready to send.`);
                           ? 'bg-[#F95B14] text-white' 
                           : 'bg-gray-100 text-gray-900'
                       }`}>
-                        <div className="text-sm whitespace-pre-wrap">{msg.content}</div>
+                        <div className="text-sm prose prose-sm max-w-none prose-headings:mt-2 prose-headings:mb-1 prose-p:my-1 prose-ul:my-1 prose-li:my-0">
+                          <ReactMarkdown remarkPlugins={[remarkGfm]}>
+                            {msg.content}
+                          </ReactMarkdown>
+                        </div>
                         <div className="text-xs opacity-70 mt-1">
                           {new Date(msg.timestamp).toLocaleTimeString()}
                         </div>

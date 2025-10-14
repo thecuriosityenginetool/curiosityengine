@@ -42,6 +42,8 @@ DROP POLICY IF EXISTS "service_role_all_access" ON organization_integrations;
 DROP POLICY IF EXISTS "service_role_full_access" ON organization_integrations;
 DROP POLICY IF EXISTS "users_read_org_integrations" ON organization_integrations;
 DROP POLICY IF EXISTS "users_manage_org_integrations" ON organization_integrations;
+DROP POLICY IF EXISTS "users_write_org_integrations" ON organization_integrations;
+DROP POLICY IF EXISTS "users_update_org_integrations" ON organization_integrations;
 
 -- ========================================
 -- STEP 4: Create NEW policies (FIXED)

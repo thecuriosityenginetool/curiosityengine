@@ -15,6 +15,9 @@ const manrope = Manrope({
 export const metadata: Metadata = {
   title: "Sales Curiosity - AI-Powered Sales Intelligence",
   description: "Transform LinkedIn profiles into actionable insights and personalized outreach emails",
+  icons: {
+    icon: '/icononly_transparent_nobuffer.png',
+  },
 };
 
 export default function RootLayout({

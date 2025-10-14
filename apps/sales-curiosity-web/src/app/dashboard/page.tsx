@@ -653,23 +653,52 @@ Please provide:
         }),
       });
 
-      if (response.ok) {
-        const data = await response.json();
-        const assistantMessage: ChatMessage = {
-          role: 'assistant',
-          content: data.response,
-          timestamp: new Date().toISOString()
-        };
-        setChatMessages([userMessage, assistantMessage]);
-        
-        // Save assistant message to chat
-        if (newChatId) {
+      if (!response.ok) {
+        throw new Error('Failed to send message');
+      }
+
+      // Handle streaming response
+      const reader = response.body?.getReader();
+      const decoder = new TextDecoder();
+      let accumulatedContent = '';
+
+      if (reader) {
+        while (true) {
+          const { done, value } = await reader.read();
+          if (done) break;
+
+          const chunk = decoder.decode(value);
+          const lines = chunk.split('\n');
+
+          for (const line of lines) {
+            if (line.startsWith('data: ')) {
+              try {
+                const jsonData = JSON.parse(line.substring(6));
+                if (jsonData.content) {
+                  accumulatedContent += jsonData.content;
+                  // Update chat in real-time
+                  const assistantMessage: ChatMessage = {
+                    role: 'assistant',
+                    content: accumulatedContent,
+                    timestamp: new Date().toISOString()
+                  };
+                  setChatMessages([userMessage, assistantMessage]);
+                }
+              } catch (e) {
+                // Skip invalid JSON
+              }
+            }
+          }
+        }
+
+        // Save final assistant message to chat
+        if (newChatId && accumulatedContent) {
           await fetch(`/api/chats/${newChatId}/messages`, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({
               role: 'assistant',
-              content: data.response
+              content: accumulatedContent
             }),
           });
         }
@@ -733,23 +762,52 @@ Include: greeting, meeting confirmation, brief agenda, offer to share materials,
         }),
       });
 
-      if (response.ok) {
-        const data = await response.json();
-        const assistantMessage: ChatMessage = {
-          role: 'assistant',
-          content: data.response,
-          timestamp: new Date().toISOString()
-        };
-        setChatMessages([userMessage, assistantMessage]);
-        
-        // Save assistant message to chat
-        if (newChatId) {
+      if (!response.ok) {
+        throw new Error('Failed to send message');
+      }
+
+      // Handle streaming response
+      const reader = response.body?.getReader();
+      const decoder = new TextDecoder();
+      let accumulatedContent = '';
+
+      if (reader) {
+        while (true) {
+          const { done, value } = await reader.read();
+          if (done) break;
+
+          const chunk = decoder.decode(value);
+          const lines = chunk.split('\n');
+
+          for (const line of lines) {
+            if (line.startsWith('data: ')) {
+              try {
+                const jsonData = JSON.parse(line.substring(6));
+                if (jsonData.content) {
+                  accumulatedContent += jsonData.content;
+                  // Update chat in real-time
+                  const assistantMessage: ChatMessage = {
+                    role: 'assistant',
+                    content: accumulatedContent,
+                    timestamp: new Date().toISOString()
+                  };
+                  setChatMessages([userMessage, assistantMessage]);
+                }
+              } catch (e) {
+                // Skip invalid JSON
+              }
+            }
+          }
+        }
+
+        // Save final assistant message to chat
+        if (newChatId && accumulatedContent) {
           await fetch(`/api/chats/${newChatId}/messages`, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({
               role: 'assistant',
-              content: data.response
+              content: accumulatedContent
             }),
           });
         }
@@ -1385,7 +1443,7 @@ The draft is now in your Outlook Drafts folder and ready to send.`);
                   </button>
                 </div>
 
-                <div className="p-4 space-y-3 max-h-[640px] overflow-y-auto">
+                <div className="p-4 space-y-3 max-h-[640px] overflow-y-auto overflow-x-visible">
                   {calendarEvents.length === 0 && (
                     <div className="text-center text-gray-500 py-8">
                       <div className="text-3xl mb-2">📅</div>
@@ -1395,7 +1453,7 @@ The draft is now in your Outlook Drafts folder and ready to send.`);
                   )}
 
                   {calendarEvents.map((event, index) => (
-                    <div key={event.id} className="relative">
+                    <div key={event.id} className="relative" style={{ zIndex: calendarEvents.length - index }}>
                       <div 
                         className="border border-gray-200 rounded-lg p-3 hover:border-[#F95B14] hover:bg-orange-50 transition-all cursor-pointer group"
                         onClick={(e) => handleCalendarEventClick(event, e)}
@@ -1430,11 +1488,11 @@ The draft is now in your Outlook Drafts folder and ready to send.`);
                       </div>
                       </div>
                       
-                      {/* Dropdown Menu - appears above if it's one of the last events */}
+                      {/* Dropdown Menu - appears below for first 2 items, above for last items */}
                       {showEventMenu && selectedEvent?.id === event.id && (
                         <div 
-                          className={`absolute left-0 w-full bg-white border border-gray-200 rounded-lg shadow-lg z-30 ${
-                            index >= calendarEvents.length - 2 ? 'bottom-full mb-1' : 'top-full mt-1'
+                          className={`absolute left-0 w-full bg-white border border-gray-200 rounded-lg shadow-lg z-50 ${
+                            index <= 1 ? 'top-full mt-1' : 'bottom-full mb-1'
                           }`}
                           onClick={(e) => e.stopPropagation()}
                         >

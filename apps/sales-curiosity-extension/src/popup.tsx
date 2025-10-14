@@ -254,9 +254,30 @@ function Popup() {
       const tabId = tabs[0]?.id;
       if (!tabId) throw new Error("No active tab found");
 
-      const extractResponse = await chrome.tabs.sendMessage(tabId, { type: "EXTRACT_LINKEDIN_PROFILE" });
+      let extractResponse;
+      try {
+        extractResponse = await chrome.tabs.sendMessage(tabId, { type: "EXTRACT_LINKEDIN_PROFILE" });
+      } catch (err) {
+        throw new Error(
+          "Could not connect to the page. Please refresh the LinkedIn page and try again.\n\n" +
+          "Tip: After installing or updating the extension, you need to refresh any open LinkedIn tabs."
+        );
+      }
+
       if (!extractResponse?.success) {
-        throw new Error(extractResponse?.error || "Failed to extract profile data");
+        throw new Error(extractResponse?.error || "Failed to extract profile data. Please make sure you're on a LinkedIn profile page and refresh the page.");
+      }
+
+      // Check if we got any usable data
+      const hasUsableData = extractResponse.data?.name || 
+                           extractResponse.data?.headline || 
+                           (extractResponse.data?.fullPageText && extractResponse.data.fullPageText.length > 100);
+      
+      if (!hasUsableData) {
+        throw new Error(
+          "Could not extract any profile information from the page. " +
+          "Please scroll down on the LinkedIn profile to load more content, then try again."
+        );
       }
 
       // Send the extracted data to your API for AI analysis

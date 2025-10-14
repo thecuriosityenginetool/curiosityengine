@@ -516,10 +516,12 @@ export default function DashboardPage() {
   async function connectToOutlook() {
     console.log('🔴 connectToOutlook called!');
     try {
+      console.log('🔴 Calling connectOutlook()...');
       await connectOutlook(); // Use the function we created
+      console.log('🔴 connectOutlook() completed');
     } catch (error) {
       console.error('🔴 Error in connectToOutlook:', error);
-      alert('Error connecting to Outlook. Check console for details.');
+      alert(`Error connecting to Outlook: ${error instanceof Error ? error.message : String(error)}`);
     }
   }
 
@@ -788,41 +790,87 @@ Include: greeting, meeting confirmation, brief agenda, offer to share materials,
 
   async function connectOutlook() {
     try {
-      console.log('🔵 Connecting to Outlook...');
-      const response = await fetch('/api/outlook/auth-user');
-      console.log('🔵 Outlook auth response status:', response.status);
+      console.log('🔵 Step 1: Connecting to Outlook...');
+      console.log('🔵 Step 2: Fetching /api/outlook/auth-user...');
+      const response = await fetch('/api/outlook/auth-user', {
+        method: 'GET',
+        credentials: 'include', // Include cookies for NextAuth session
+        headers: {
+          'Content-Type': 'application/json',
+        },
+      });
+      console.log('🔵 Step 3: Response received. Status:', response.status);
+      console.log('🔵 Step 3: Response headers:', Object.fromEntries(response.headers.entries()));
       
       if (response.ok) {
         const data = await response.json();
-        console.log('🔵 Outlook auth data:', data);
+        console.log('🔵 Step 4: Response data:', data);
         
         if (data.authUrl) {
-          console.log('🔵 Redirecting to:', data.authUrl);
+          console.log('🔵 Step 5: Got authUrl, redirecting to:', data.authUrl);
+          console.log('🔵 Step 5: About to set window.location.href...');
           window.location.href = data.authUrl;
+          console.log('🔵 Step 6: window.location.href set (this may not log if redirect happens immediately)');
         } else {
-          console.error('❌ No authUrl in response');
-          alert('Failed to get Outlook authorization URL');
+          console.error('❌ No authUrl in response:', data);
+          alert('Failed to get Outlook authorization URL. Check console for details.');
         }
       } else {
-        const error = await response.json();
-        console.error('❌ Outlook auth failed:', error);
-        alert(`Failed to connect Outlook: ${error.error || 'Unknown error'}`);
+        console.error('❌ Response not OK. Status:', response.status);
+        let errorData;
+        try {
+          errorData = await response.json();
+        } catch (e) {
+          errorData = await response.text();
+        }
+        console.error('❌ Error data:', errorData);
+        alert(`Failed to connect Outlook (${response.status}): ${typeof errorData === 'object' ? errorData.error : errorData || 'Unknown error'}`);
       }
     } catch (error) {
-      console.error('❌ Error connecting Outlook:', error);
-      alert('Error connecting Outlook. Check console for details.');
+      console.error('❌ Exception in connectOutlook:', error);
+      alert(`Error connecting Outlook: ${error instanceof Error ? error.message : String(error)}`);
     }
   }
 
   async function connectSalesforce() {
     try {
-      const response = await fetch('/api/salesforce/auth-user');
+      console.log('🟣 Step 1: Connecting to Salesforce...');
+      console.log('🟣 Step 2: Fetching /api/salesforce/auth-user...');
+      const response = await fetch('/api/salesforce/auth-user', {
+        method: 'GET',
+        credentials: 'include', // Include cookies for NextAuth session
+        headers: {
+          'Content-Type': 'application/json',
+        },
+      });
+      console.log('🟣 Step 3: Response received. Status:', response.status);
+      
       if (response.ok) {
         const data = await response.json();
-        window.location.href = data.authUrl;
+        console.log('🟣 Step 4: Response data:', data);
+        
+        if (data.authUrl) {
+          console.log('🟣 Step 5: Got authUrl, redirecting to:', data.authUrl);
+          window.location.href = data.authUrl;
+          console.log('🟣 Step 6: window.location.href set');
+        } else {
+          console.error('❌ No authUrl in Salesforce response:', data);
+          alert('Failed to get Salesforce authorization URL. Check console for details.');
+        }
+      } else {
+        console.error('❌ Salesforce response not OK. Status:', response.status);
+        let errorData;
+        try {
+          errorData = await response.json();
+        } catch (e) {
+          errorData = await response.text();
+        }
+        console.error('❌ Salesforce error data:', errorData);
+        alert(`Failed to connect Salesforce (${response.status}): ${typeof errorData === 'object' ? errorData.error : errorData || 'Unknown error'}`);
       }
     } catch (error) {
-      console.error('Error connecting Salesforce:', error);
+      console.error('❌ Exception in connectSalesforce:', error);
+      alert(`Error connecting Salesforce: ${error instanceof Error ? error.message : String(error)}`);
     }
   }
 

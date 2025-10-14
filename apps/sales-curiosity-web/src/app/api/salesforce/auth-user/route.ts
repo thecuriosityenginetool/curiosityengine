@@ -12,60 +12,87 @@ export async function GET(req: NextRequest) {
   const supabase = getSupabaseAdmin();
   
   try {
+    console.log('🟪 [Salesforce Auth-User] API called');
+    console.log('🟪 [Salesforce Auth-User] Headers:', Object.fromEntries(req.headers.entries()));
+    
     let userEmail: string | undefined;
     let userId: string | undefined;
     
     // Try extension token first (from Bearer header)
     const authHeader = req.headers.get('authorization');
     if (authHeader?.startsWith('Bearer ')) {
+      console.log('🟪 [Salesforce Auth-User] Found Bearer token, checking...');
       const token = authHeader.substring(7);
       const user = await getUserFromExtensionToken(token);
       if (user) {
         userEmail = user.email;
         userId = user.id;
+        console.log('🟪 [Salesforce Auth-User] Extension auth successful:', userEmail);
       }
     }
     
     // Fall back to NextAuth session (for web app)
     if (!userEmail) {
+      console.log('🟪 [Salesforce Auth-User] No extension token, checking NextAuth session...');
       const session = await auth();
+      console.log('🟪 [Salesforce Auth-User] Session:', session ? '✓ Valid' : '✗ None');
       if (session?.user?.email) {
         userEmail = session.user.email;
+        console.log('🟪 [Salesforce Auth-User] NextAuth email:', userEmail);
       }
     }
     
     if (!userEmail) {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+      console.error('❌ [Salesforce Auth-User] No email found - user not authenticated');
+      return NextResponse.json({ error: 'Unauthorized - please log in' }, { status: 401 });
     }
 
     // Get user data if we don't have it yet
     if (!userId) {
-      const { data: userData } = await supabase
+      console.log('🟪 [Salesforce Auth-User] Querying users table for:', userEmail);
+      const { data: userData, error: userError } = await supabase
         .from('users')
         .select('id, organization_id')
         .eq('email', userEmail)
         .maybeSingle();
 
+      if (userError) {
+        console.error('❌ [Salesforce Auth-User] Database error:', userError);
+        return NextResponse.json({ error: `Database error: ${userError.message}` }, { status: 500 });
+      }
+
       if (!userData) {
-        return NextResponse.json({ error: 'User not found' }, { status: 404 });
+        console.error('❌ [Salesforce Auth-User] User not found in database');
+        return NextResponse.json({ error: 'User not found in database' }, { status: 404 });
       }
       
       userId = userData.id;
+      console.log('🟪 [Salesforce Auth-User] Found user ID:', userId);
     }
     
     // Get full user data for organizationId
-    const { data: userData } = await supabase
+    console.log('🟪 [Salesforce Auth-User] Fetching full user data...');
+    const { data: userData, error: userDataError } = await supabase
       .from('users')
       .select('id, organization_id')
       .eq('id', userId)
       .single();
 
-    if (!userData) {
-      return NextResponse.json({ error: 'User not found' }, { status: 404 });
+    if (userDataError) {
+      console.error('❌ [Salesforce Auth-User] Database error fetching user:', userDataError);
+      return NextResponse.json({ error: `Database error: ${userDataError.message}` }, { status: 500 });
     }
+
+    if (!userData) {
+      console.error('❌ [Salesforce Auth-User] User not found (second check)');
+      return NextResponse.json({ error: 'User not found in database' }, { status: 404 });
+    }
+
+    console.log('🟪 [Salesforce Auth-User] User data:', { id: userData.id, organization_id: userData.organization_id });
 
     // Use user ID for individual connections, create dummy org if needed
     const organizationId = userData.organization_id || userData.id;
+    console.log('🟪 [Salesforce Auth-User] Using organization_id:', organizationId);
 
     // Check if Salesforce is already connected for this user/organization
     const { data: existingConnection } = await supabase
@@ -76,9 +103,8 @@ export async function GET(req: NextRequest) {
       .eq('is_enabled', true)
       .maybeSingle();
 
-    console.log('🔍 Checking Salesforce connection for user:', userId);
-    console.log('🔍 Organization ID:', organizationId);
-    console.log('🔍 Existing connection:', existingConnection ? 'Found' : 'Not found');
+    console.log('🟪 [Salesforce Auth-User] Checking existing connection...');
+    console.log('🟪 [Salesforce Auth-User] Existing connection:', existingConnection ? 'Found' : 'Not found');
 
     // If already connected, return connected status
     if (existingConnection?.configuration) {
@@ -88,22 +114,23 @@ export async function GET(req: NextRequest) {
         (config.access_token)
       );
       
-      console.log('🔍 Has valid tokens:', hasValidTokens);
-      console.log('🔍 Config structure:', typeof config);
+      console.log('🟪 [Salesforce Auth-User] Has valid tokens:', hasValidTokens);
+      console.log('🟪 [Salesforce Auth-User] Config structure:', typeof config);
       
       if (hasValidTokens) {
-        console.log('✅ Salesforce is connected!');
+        console.log('✅ [Salesforce Auth-User] Salesforce already connected!');
         return NextResponse.json({
           ok: true,
           connected: true,
           message: 'Salesforce already connected'
         });
       } else {
-        console.log('⚠️ Connection exists but no valid tokens found');
+        console.log('⚠️ [Salesforce Auth-User] Connection exists but no valid tokens');
       }
     }
 
     // Not connected, generate OAuth URL
+    console.log('🟪 [Salesforce Auth-User] Creating OAuth state...');
     // Create state token with user_id and organization_id
     const state = Buffer.from(
       JSON.stringify({
@@ -114,8 +141,11 @@ export async function GET(req: NextRequest) {
       })
     ).toString('base64url');
 
+    console.log('🟪 [Salesforce Auth-User] Generated state:', state.substring(0, 20) + '...');
+
     // Generate Salesforce OAuth URL (user-level = true)
     const authUrl = getSalesforceAuthUrl(state, true);
+    console.log('🟪 [Salesforce Auth-User] Generated authUrl:', authUrl);
 
     return NextResponse.json({
       ok: true,
@@ -123,10 +153,9 @@ export async function GET(req: NextRequest) {
       authUrl,
     });
   } catch (error) {
-    console.error('Error initiating user Salesforce OAuth:', error);
-    return NextResponse.json(
-      { error: 'Failed to initiate OAuth flow' },
-      { status: 500 }
-    );
+    console.error('❌ [Salesforce Auth-User] Exception:', error);
+    return NextResponse.json({ 
+      error: error instanceof Error ? error.message : String(error) 
+    }, { status: 500 });
   }
 }

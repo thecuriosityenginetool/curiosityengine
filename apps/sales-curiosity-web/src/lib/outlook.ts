@@ -187,10 +187,21 @@ async function graphApiRequest(
 
   if (!response.ok) {
     const error = await response.text();
-    throw new Error(`Microsoft Graph API error: ${error}`);
+    console.error('❌ Microsoft Graph API error:', {
+      status: response.status,
+      statusText: response.statusText,
+      error: error
+    });
+    throw new Error(`Microsoft Graph API error (${response.status}): ${error}`);
   }
 
-  return await response.json();
+  const result = await response.json();
+  console.log('🔵 Microsoft Graph API success:', { 
+    status: response.status,
+    hasResult: !!result,
+    resultKeys: result ? Object.keys(result) : []
+  });
+  return result;
 }
 
 /**
@@ -206,6 +217,8 @@ export async function createOutlookDraft(
   userId: string
 ): Promise<{ id: string; success: boolean }> {
   try {
+    console.log('🔵 Creating Outlook draft:', { to: emailData.to, subject: emailData.subject });
+    
     const messagePayload = {
       subject: emailData.subject,
       body: {
@@ -221,6 +234,8 @@ export async function createOutlookDraft(
       ]
     };
 
+    // Use the correct endpoint for drafts - POST to /me/messages without sending
+    console.log('🔵 Sending request to Microsoft Graph API...');
     const result = await graphApiRequest(
       organizationId,
       '/me/messages',
@@ -231,9 +246,25 @@ export async function createOutlookDraft(
       userId
     );
 
+    console.log('🔵 Graph API response:', { 
+      id: result.id, 
+      subject: result.subject,
+      isDraft: result.isDraft,
+      hasAttachments: result.hasAttachments,
+      createdDateTime: result.createdDateTime,
+      bodyPreview: result.bodyPreview?.substring(0, 100)
+    });
+
+    // Check if it was created as a draft
+    if (result.isDraft) {
+      console.log('✅ Outlook draft created successfully in Drafts folder');
+    } else {
+      console.log('⚠️ Message created but may not be in Drafts folder');
+    }
+
     return { id: result.id, success: true };
   } catch (error) {
-    console.error('Error creating Outlook draft:', error);
+    console.error('❌ Error creating Outlook draft:', error);
     throw error;
   }
 }

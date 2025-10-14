@@ -1562,7 +1562,12 @@ The draft is now in your Outlook Drafts folder and ready to send.`);
                             })}
                           </p>
                           {event.description && (
-                            <p className="text-xs text-gray-500 mt-1 line-clamp-2">{event.description}</p>
+                            <p className="text-xs text-gray-500 mt-1 overflow-hidden" style={{
+                              display: '-webkit-box',
+                              WebkitLineClamp: 2,
+                              WebkitBoxOrient: 'vertical',
+                              textOverflow: 'ellipsis'
+                            }}>{event.description}</p>
                           )}
                         </div>
                         <span className={`text-xs px-2 py-1 rounded-full ${

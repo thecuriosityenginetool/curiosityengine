@@ -1076,6 +1076,301 @@ function Popup() {
               </button>
             </div>
 
+            {/* LinkedIn Integration */}
+            <div style={{
+              padding: 14,
+              border: "2px solid #e5e7eb",
+              borderRadius: 8,
+              marginBottom: 10
+            }}>
+              <div style={{
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "space-between",
+                marginBottom: 8
+              }}>
+                <div style={{
+                  display: "flex",
+                  alignItems: "center",
+                  gap: 10
+                }}>
+                  <div style={{ fontSize: 22 }}>🔗</div>
+                  <span style={{ fontSize: 14, fontWeight: 700, color: "#111827" }}>LinkedIn</span>
+                </div>
+                <span style={{
+                  padding: "4px 10px",
+                  background: "#d1fae5",
+                  color: "#059669",
+                  borderRadius: 5,
+                  fontSize: 11,
+                  fontWeight: 600
+                }}>
+                  Active
+                </span>
+              </div>
+              <p style={{
+                fontSize: 12,
+                color: "#6b7280",
+                marginBottom: 10,
+                lineHeight: 1.4
+              }}>
+                Profile analysis and AI-powered insights for LinkedIn prospects. This extension provides the LinkedIn integration.
+              </p>
+              <button
+                disabled
+                style={{
+                  width: "100%",
+                  padding: "10px 16px",
+                  background: "#e5e7eb",
+                  border: "none",
+                  borderRadius: 6,
+                  color: "#6b7280",
+                  fontSize: 13,
+                  fontWeight: 600,
+                  cursor: "not-allowed",
+                  opacity: 0.6
+                }}
+              >
+                ✓ Active
+              </button>
+            </div>
+
+            {/* Gmail Integration */}
+            <div style={{
+              padding: 14,
+              border: "2px solid #e5e7eb",
+              borderRadius: 8,
+              marginBottom: 10
+            }}>
+              <div style={{
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "space-between",
+                marginBottom: 8
+              }}>
+                <div style={{
+                  display: "flex",
+                  alignItems: "center",
+                  gap: 10
+                }}>
+                  <div style={{ fontSize: 22 }}>📧</div>
+                  <span style={{ fontSize: 14, fontWeight: 700, color: "#111827" }}>Gmail</span>
+                </div>
+                <span style={{
+                  padding: "4px 10px",
+                  background: "#fef3c7",
+                  color: "#92400e",
+                  borderRadius: 5,
+                  fontSize: 11,
+                  fontWeight: 600
+                }}>
+                  Coming Soon
+                </span>
+              </div>
+              <p style={{
+                fontSize: 12,
+                color: "#6b7280",
+                marginBottom: 10,
+                lineHeight: 1.4
+              }}>
+                Auto-draft personalized replies and follow-ups based on your email history and writing style.
+              </p>
+              <button
+                disabled
+                style={{
+                  width: "100%",
+                  padding: "10px 16px",
+                  background: "#f3f4f6",
+                  border: "none",
+                  borderRadius: 6,
+                  color: "#9ca3af",
+                  fontSize: 13,
+                  fontWeight: 600,
+                  cursor: "not-allowed",
+                  opacity: 0.6
+                }}
+              >
+                Coming Soon
+              </button>
+            </div>
+
+            {/* Outlook Integration */}
+            <div style={{
+              padding: 14,
+              border: "2px solid #e5e7eb",
+              borderRadius: 8,
+              marginBottom: 10
+            }}>
+              <div style={{
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "space-between",
+                marginBottom: 8
+              }}>
+                <div style={{
+                  display: "flex",
+                  alignItems: "center",
+                  gap: 10
+                }}>
+                  <div style={{ fontSize: 22 }}>📅</div>
+                  <span style={{ fontSize: 14, fontWeight: 700, color: "#111827" }}>Outlook</span>
+                </div>
+                <span style={{
+                  padding: "4px 10px",
+                  background: enabledIntegrations.includes('outlook') ? "#d1fae5" : "#fef3c7",
+                  color: enabledIntegrations.includes('outlook') ? "#059669" : "#92400e",
+                  borderRadius: 5,
+                  fontSize: 11,
+                  fontWeight: 600
+                }}>
+                  {enabledIntegrations.includes('outlook') ? "Connected" : "Coming Soon"}
+                </span>
+              </div>
+              <p style={{
+                fontSize: 12,
+                color: "#6b7280",
+                marginBottom: 10,
+                lineHeight: 1.4
+              }}>
+                Microsoft 365 integration with calendar sync, team collaboration, and enterprise-grade security.
+              </p>
+              <button
+                disabled
+                style={{
+                  width: "100%",
+                  padding: "10px 16px",
+                  background: "#f3f4f6",
+                  border: "none",
+                  borderRadius: 6,
+                  color: "#9ca3af",
+                  fontSize: 13,
+                  fontWeight: 600,
+                  cursor: "not-allowed",
+                  opacity: 0.6
+                }}
+              >
+                Coming Soon
+              </button>
+            </div>
+
+            {/* HubSpot Integration */}
+            <div style={{
+              padding: 14,
+              border: "2px solid #e5e7eb",
+              borderRadius: 8,
+              marginBottom: 10
+            }}>
+              <div style={{
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "space-between",
+                marginBottom: 8
+              }}>
+                <div style={{
+                  display: "flex",
+                  alignItems: "center",
+                  gap: 10
+                }}>
+                  <div style={{ fontSize: 22 }}>🎯</div>
+                  <span style={{ fontSize: 14, fontWeight: 700, color: "#111827" }}>HubSpot</span>
+                </div>
+                <span style={{
+                  padding: "4px 10px",
+                  background: "#fef3c7",
+                  color: "#92400e",
+                  borderRadius: 5,
+                  fontSize: 11,
+                  fontWeight: 600
+                }}>
+                  Coming Soon
+                </span>
+              </div>
+              <p style={{
+                fontSize: 12,
+                color: "#6b7280",
+                marginBottom: 10,
+                lineHeight: 1.4
+              }}>
+                Sync contacts, deals, and activities automatically with AI-enriched lead scoring and pipeline insights.
+              </p>
+              <button
+                disabled
+                style={{
+                  width: "100%",
+                  padding: "10px 16px",
+                  background: "#f3f4f6",
+                  border: "none",
+                  borderRadius: 6,
+                  color: "#9ca3af",
+                  fontSize: 13,
+                  fontWeight: 600,
+                  cursor: "not-allowed",
+                  opacity: 0.6
+                }}
+              >
+                Coming Soon
+              </button>
+            </div>
+
+            {/* Google Calendar Integration */}
+            <div style={{
+              padding: 14,
+              border: "2px solid #e5e7eb",
+              borderRadius: 8,
+              marginBottom: 10
+            }}>
+              <div style={{
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "space-between",
+                marginBottom: 8
+              }}>
+                <div style={{
+                  display: "flex",
+                  alignItems: "center",
+                  gap: 10
+                }}>
+                  <div style={{ fontSize: 22 }}>📅</div>
+                  <span style={{ fontSize: 14, fontWeight: 700, color: "#111827" }}>Google Calendar</span>
+                </div>
+                <span style={{
+                  padding: "4px 10px",
+                  background: "#fef3c7",
+                  color: "#92400e",
+                  borderRadius: 5,
+                  fontSize: 11,
+                  fontWeight: 600
+                }}>
+                  Coming Soon
+                </span>
+              </div>
+              <p style={{
+                fontSize: 12,
+                color: "#6b7280",
+                marginBottom: 10,
+                lineHeight: 1.4
+              }}>
+                AI-powered meeting scheduling that analyzes availability patterns and optimizes for prospect time zones.
+              </p>
+              <button
+                disabled
+                style={{
+                  width: "100%",
+                  padding: "10px 16px",
+                  background: "#f3f4f6",
+                  border: "none",
+                  borderRadius: 6,
+                  color: "#9ca3af",
+                  fontSize: 13,
+                  fontWeight: 600,
+                  cursor: "not-allowed",
+                  opacity: 0.6
+                }}
+              >
+                Coming Soon
+              </button>
+            </div>
+
             {/* Info Note */}
             <div style={{
               padding: 12,

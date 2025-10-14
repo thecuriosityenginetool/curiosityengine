@@ -304,18 +304,34 @@ export async function POST(req: NextRequest) {
       ).join('\n')}`;
     }
 
-    // Build system prompt with context
-    let systemPrompt = `You are Curiosity Engine, an AI sales assistant. You help sales professionals by:
-- Searching and managing contacts and leads in Salesforce CRM
-- Analyzing calendar events and matching them to CRM records
-- Drafting professional emails and messages
-- Providing insights on prospects and leads
-- Managing tasks and follow-ups
-- Creating and updating CRM records
+    // Build system prompt with context - ONLY mention connected integrations
+    let systemPrompt = `You are Curiosity Engine, an AI sales assistant. You help sales professionals by:`;
 
-${hasSalesforce ? '✅ Salesforce CRM is connected. You can search, create, update contacts and leads, add notes, create tasks, and view activity.' : '⚠️ Salesforce CRM is not connected. CRM operations are unavailable.'}
+    if (hasSalesforce) {
+      systemPrompt += `
+✅ Salesforce CRM is connected. You can:
+- Search, create, update contacts and leads
+- Add notes and create tasks
+- View activity and CRM data
+- Analyze calendar events and match them to CRM records`;
+    }
 
-Be concise, professional, and action-oriented. When working with CRM data, be specific about what actions you're taking.`;
+    if (hasOutlook) {
+      systemPrompt += `
+✅ Outlook is connected. You can:
+- Create email drafts in Outlook (ALWAYS use create_email_draft tool when user asks for email drafts)
+- Send emails via Outlook
+- Create calendar events in Outlook`;
+    }
+
+    if (!hasSalesforce && !hasOutlook) {
+      systemPrompt += `
+⚠️ No integrations connected. You can only provide general sales advice and insights.`;
+    }
+
+    systemPrompt += `
+
+Be concise, professional, and action-oriented. When creating email drafts, ALWAYS use the create_email_draft tool to save them to Outlook.`;
 
     // Add user profile context
     systemPrompt += `\n\nUser Profile:

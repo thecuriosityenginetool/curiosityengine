@@ -35,7 +35,6 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
     AzureAD({
       clientId: process.env.MICROSOFT_CLIENT_ID!,
       clientSecret: process.env.MICROSOFT_CLIENT_SECRET!,
-      tenantId: process.env.AZURE_AD_TENANT_ID || "common",
       authorization: {
         params: {
           scope: "openid email profile offline_access",
@@ -243,31 +242,15 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
   secret: process.env.NEXTAUTH_SECRET || 'your-secret-key-change-this-in-production',
   debug: true,
   logger: {
-    error(code, metadata) {
-      console.error('NextAuth Error:', code);
-      console.error('NextAuth Error Metadata:', metadata);
-      try {
-        console.error('NextAuth Error Details (stringified):', JSON.stringify(metadata, Object.getOwnPropertyNames(metadata), 2));
-      } catch (e) {
-        console.error('Could not stringify metadata');
-      }
-      if (metadata && typeof metadata === 'object') {
-        if ('cause' in metadata) {
-          console.error('NextAuth Error Cause:', metadata.cause);
-          if (metadata.cause && typeof metadata.cause === 'object') {
-            console.error('NextAuth Error Cause Details:', JSON.stringify(metadata.cause, Object.getOwnPropertyNames(metadata.cause), 2));
-          }
-        }
-        if ('message' in metadata) {
-          console.error('NextAuth Error Message:', metadata.message);
-        }
-      }
+    error(error: Error) {
+      console.error('NextAuth Error:', error.message);
+      console.error('NextAuth Error Details:', error);
     },
-    warn(code) {
-      console.warn('NextAuth Warning:', code);
+    warn(message: string) {
+      console.warn('NextAuth Warning:', message);
     },
-    debug(code, metadata) {
-      console.log('NextAuth Debug:', code, metadata);
+    debug(message: string, metadata?: any) {
+      console.log('NextAuth Debug:', message, metadata);
     }
   },
 });

@@ -7,6 +7,7 @@ import { supabase } from '@/lib/supabase';
 import Image from 'next/image';
 import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
+import { marked } from 'marked';
 
 interface User {
   id: string;
@@ -721,13 +722,28 @@ Please provide:
       setIsSendingMessage(true);
       
       const userMessageContent = `Generate Email for: ${event.title}`;
-      const prompt = `Generate a professional follow-up email for:
-Title: ${event.title}
-Date: ${new Date(event.start).toLocaleDateString()} at ${new Date(event.start).toLocaleTimeString()}
-Description: ${event.description || 'No description provided'}
-Attendees: ${event.attendees?.join(', ') || 'No attendees listed'}
+      const prompt = `Generate a professional, well-formatted follow-up email for this meeting:
 
-Include: greeting, meeting confirmation, brief agenda, offer to share materials, professional closing.`;
+**Meeting Details:**
+- Title: ${event.title}
+- Date: ${new Date(event.start).toLocaleDateString()} at ${new Date(event.start).toLocaleTimeString()}
+- Description: ${event.description || 'No description provided'}
+- Attendees: ${event.attendees?.join(', ') || 'No attendees listed'}
+
+**Email Requirements:**
+1. Use a warm, professional greeting with the recipient's name (if available)
+2. Confirm the meeting details (date, time)
+3. Include a brief agenda with 3-4 bullet points
+4. Offer to share any relevant materials or information
+5. Professional closing with clear next steps
+6. Keep it concise (under 200 words)
+
+**Formatting:**
+- Use ### for section headings
+- Use bullet points (•) for lists
+- Use **bold** for emphasis on key points
+- Add relevant emojis (📅 for calendar, 🎯 for objectives, etc.)
+- Keep paragraphs short and scannable`;
 
       // Create new chat
       const chatResponse = await fetch('/api/chats', {
@@ -947,7 +963,7 @@ Include: greeting, meeting confirmation, brief agenda, offer to share materials,
     }
   }
 
-  async function addToEmailDrafts(content: string, subject?: string) {
+  async function addToEmailDrafts(content: string, subject?: string, recipients?: string[]) {
     // Check if Outlook is connected
     if (!hasOutlookConnection) {
       setConnectionService('outlook');
@@ -956,13 +972,35 @@ Include: greeting, meeting confirmation, brief agenda, offer to share materials,
     }
 
     try {
-      console.log('📧 Creating Outlook draft directly:', { subject, contentLength: content.length });
+      console.log('📧 Creating Outlook draft:', { subject, contentLength: content.length, recipients });
       
-      // Extract recipient email from content if possible
-      const emailMatch = content.match(/to\s+([a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,})/i);
-      const recipientEmail = emailMatch ? emailMatch[1] : 'recipient@example.com';
+      // Use provided recipients or try to extract from content
+      let recipientEmail = 'recipient@example.com';
+      if (recipients && recipients.length > 0) {
+        recipientEmail = recipients[0]; // Use first attendee
+      } else {
+        const emailMatch = content.match(/([a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,})/i);
+        if (emailMatch) recipientEmail = emailMatch[1];
+      }
       
-      // Call the Outlook draft creation API directly
+      // Convert markdown to HTML for Outlook
+      const htmlContent = await marked(content, {
+        breaks: true,
+        gfm: true,
+      });
+      
+      // Wrap in professional email styling
+      const styledHtml = `
+        <div style="font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; font-size: 14px; line-height: 1.6; color: #333;">
+          ${htmlContent}
+          <br><br>
+          <div style="margin-top: 20px; padding-top: 20px; border-top: 1px solid #e5e5e5; color: #666; font-size: 12px;">
+            <p><em>Sent via Curiosity Engine</em></p>
+          </div>
+        </div>
+      `;
+      
+      // Call the Outlook draft creation API
       const response = await fetch('/api/outlook/create-draft', {
         method: 'POST',
         headers: {
@@ -971,7 +1009,7 @@ Include: greeting, meeting confirmation, brief agenda, offer to share materials,
         body: JSON.stringify({
           to: recipientEmail,
           subject: subject || 'Draft from Curiosity Engine',
-          body: content
+          body: styledHtml
         }),
       });
 
@@ -991,7 +1029,7 @@ Subject: ${subject || 'Draft from Curiosity Engine'}
 
 The draft is now in your Outlook Drafts folder and ready to send.`);
       
-      await createActivityLog('email_draft_created', `Email Draft: ${subject || 'Draft from Curiosity Engine'}`, 'Draft created in Outlook');
+      await createActivityLog('email_draft_created', `Email Draft: ${subject || 'Draft from Curiosity Engine'}`, `Draft created for ${recipientEmail}`);
     } catch (error) {
       console.error('❌ Error creating draft:', error);
       alert(`❌ Error creating draft: ${error instanceof Error ? error.message : String(error)}`);
@@ -1362,7 +1400,7 @@ The draft is now in your Outlook Drafts folder and ready to send.`);
                             {hasOutlookConnection && (
                               <div className="group relative">
                                 <button
-                                  onClick={() => addToEmailDrafts(msg.content, selectedEvent?.title)}
+                                  onClick={() => addToEmailDrafts(msg.content, selectedEvent?.title, selectedEvent?.attendees)}
                                   className="w-10 h-10 rounded-full bg-white border-2 border-gray-200 flex items-center justify-center cursor-pointer hover:border-[#F95B14] hover:shadow-md transition-all"
                                 >
                                   <svg className="w-5 h-5" viewBox="0 0 23 23" xmlns="http://www.w3.org/2000/svg">

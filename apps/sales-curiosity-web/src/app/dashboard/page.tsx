@@ -1508,8 +1508,8 @@ The draft is now in your Outlook Drafts folder and ready to send.`);
               </div>
             )}
 
-            {/* AI Chat - Expands when sidebar collapsed */}
-            <div className={`${showChatSidebar ? 'lg:col-span-2 lg:ml-80' : 'lg:col-span-3'} px-6 transition-all duration-300`}>
+            {/* AI Chat - 7/12 columns when sidebar open, 9/12 when closed */}
+            <div className={`${showChatSidebar ? 'lg:col-span-7' : 'lg:col-span-9'} transition-all duration-300`}>
               <div className="bg-white rounded-lg border border-gray-200 shadow-sm h-[700px] flex flex-col">
                 <div className="p-4 border-b border-gray-200">
                   <h2 className="text-lg font-semibold text-gray-900">AI Assistant</h2>

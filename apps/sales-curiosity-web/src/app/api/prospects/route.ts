@@ -111,7 +111,6 @@ export async function POST(req: NextRequest) {
     
     // Get organization context and add to prompt
     let orgContextText = '';
-    const authHeader = req.headers.get('authorization');
     if (authHeader && authHeader.startsWith('Bearer ')) {
       const token = authHeader.substring(7);
       const { data: { user } } = await supabase.auth.getUser(token);
@@ -147,7 +146,6 @@ export async function POST(req: NextRequest) {
     
     if (action === 'email') {
       // Get user's organization for Salesforce check
-      const authHeader = req.headers.get('authorization');
       if (authHeader && authHeader.startsWith('Bearer ')) {
         const token = authHeader.substring(7);
         const { data: { user } } = await supabase.auth.getUser(token);
@@ -436,7 +434,6 @@ ${profileData.name || 'This professional'} is ${profileData.headline || 'a profe
 
     // Save to database (if user is authenticated)
     try {
-      const authHeader = req.headers.get('authorization');
       let userId = null;
       let organizationId = null;
 

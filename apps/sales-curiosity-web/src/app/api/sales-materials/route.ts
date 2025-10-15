@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { createClient } from '@supabase/supabase-js';
 import { auth } from '@/lib/auth';
-import pdf from 'pdf-parse';
+// import pdf from 'pdf-parse'; // Temporarily disabled due to serverless compatibility issues
 import mammoth from 'mammoth';
 
 function corsHeaders(origin?: string) {
@@ -169,8 +169,9 @@ export async function POST(req: NextRequest) {
       
       switch (fileType) {
         case 'pdf':
-          const pdfData = await pdf(arrayBuffer);
-          fileText = pdfData.text;
+          // PDF parsing temporarily disabled due to serverless compatibility issues
+          // TODO: Implement serverless-compatible PDF parsing
+          fileText = 'PDF text extraction temporarily unavailable. Please convert to DOCX or TXT for text extraction.';
           break;
         case 'docx':
         case 'doc':

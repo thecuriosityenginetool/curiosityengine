@@ -3,6 +3,7 @@ import { createClient } from '@supabase/supabase-js';
 import { auth } from '@/lib/auth';
 // import pdf from 'pdf-parse'; // Temporarily disabled due to serverless compatibility issues
 import mammoth from 'mammoth';
+import officeParser from 'officeparser';
 
 function corsHeaders(origin?: string) {
   return {
@@ -166,28 +167,39 @@ export async function POST(req: NextRequest) {
 
     try {
       const arrayBuffer = await file.arrayBuffer();
+      const buffer = Buffer.from(arrayBuffer);
       
       switch (fileType) {
         case 'pdf':
-          // PDF parsing temporarily disabled due to serverless compatibility issues
-          // TODO: Implement serverless-compatible PDF parsing
-          fileText = 'PDF text extraction temporarily unavailable. Please convert to DOCX or TXT for text extraction.';
-          break;
+        case 'pptx':
         case 'docx':
         case 'doc':
-          const docxResult = await mammoth.extractRawText({ buffer: arrayBuffer });
-          fileText = docxResult.value;
+          // Use officeparser for all Office files and PDFs
+          try {
+            console.log(`📄 Extracting text from ${fileType} using officeparser...`);
+            fileText = await officeParser.parseOfficeAsync(buffer);
+            console.log(`✅ Extracted ${fileText.length} characters from ${file.name}`);
+          } catch (parseError) {
+            console.error(`Error parsing ${fileType}:`, parseError);
+            // Fallback to mammoth for DOCX
+            if (fileType === 'docx' || fileType === 'doc') {
+              try {
+                const docxResult = await mammoth.extractRawText({ buffer: arrayBuffer });
+                fileText = docxResult.value;
+                console.log(`✅ Fallback: Extracted ${fileText.length} characters using mammoth`);
+              } catch (mammothError) {
+                fileText = `Unable to extract text from this ${fileType.toUpperCase()} file. Please try converting to TXT format.`;
+              }
+            } else {
+              fileText = `Unable to extract text from this ${fileType.toUpperCase()} file. Please try converting to TXT format.`;
+            }
+          }
           break;
         case 'txt':
           fileText = await file.text();
           break;
-        case 'pptx':
-          // For now, we'll extract basic text from PPTX
-          // In a production environment, you might want to use a library like 'pptx2json'
-          fileText = 'PowerPoint content extraction not yet implemented. Please convert to PDF or DOCX for better text extraction.';
-          break;
         default:
-          fileText = await file.text().catch(() => '');
+          fileText = await file.text().catch(() => 'Unable to extract text from this file type.');
       }
     } catch (error) {
       console.error('Error extracting text from file:', error);

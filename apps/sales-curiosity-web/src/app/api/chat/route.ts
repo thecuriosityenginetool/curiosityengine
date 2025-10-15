@@ -283,9 +283,14 @@ export async function POST(req: NextRequest) {
       .limit(5);
 
     if (materials && materials.length > 0) {
-      salesMaterials = '\n\nSales Materials & Company Guides:\n' + materials.map(m => 
-        `[${m.category}] ${m.file_name}:\n${m.extracted_text?.substring(0, 1000) || 'No text extracted'}...`
-      ).join('\n\n');
+      salesMaterials = '\n\n**YOUR COMPANY MATERIALS & KNOWLEDGE BASE:**\n' + materials.map(m => {
+        const extractedText = m.extracted_text || 'No text extracted';
+        // Increase limit to 5000 chars per document for better context
+        const text = extractedText.length > 5000 ? extractedText.substring(0, 5000) + '...' : extractedText;
+        return `\n📄 **${m.file_name}** [${m.category}]:\n${text}`;
+      }).join('\n\n');
+      
+      console.log('📚 Added sales materials to context:', materials.length, 'files');
     }
 
     // Match calendar events to Salesforce if available

@@ -125,9 +125,14 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: 'File is required' }, { status: 400, headers: corsHeaders(origin) });
     }
 
-    // Check file size (max 50MB for large documents)
-    if (file.size > 50 * 1024 * 1024) {
-      return NextResponse.json({ error: 'File size exceeds 50MB limit. Please use a smaller file.' }, { status: 413, headers: corsHeaders(origin) });
+    // Check file size (max 4MB for Vercel free tier - 4.5MB limit with some buffer)
+    const maxSize = 4 * 1024 * 1024; // 4MB
+    if (file.size > maxSize) {
+      const sizeMB = (file.size / (1024 * 1024)).toFixed(2);
+      return NextResponse.json({ 
+        error: `File size (${sizeMB}MB) exceeds the 4MB limit. Please compress your file or split it into smaller parts.`,
+        hint: 'Tip: Most PowerPoints can be compressed by removing high-res images or saving as PDF.' 
+      }, { status: 413, headers: corsHeaders(origin) });
     }
 
     // Get user

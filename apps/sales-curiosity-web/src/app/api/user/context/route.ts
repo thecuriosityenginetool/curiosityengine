@@ -143,25 +143,48 @@ export async function PUT(req: NextRequest) {
 
     console.log('👤 Found user ID:', matchingUser.id);
 
-    // Upsert user's context (insert if doesn't exist, update if exists)
-    const { error: upsertError } = await supabase
+    // Check if user exists in public.users
+    const { data: existingUser } = await supabase
       .from('users')
-      .upsert({ 
-        id: matchingUser.id,
-        email: session.user.email,
-        full_name: session.user.name || session.user.email?.split('@')[0],
-        user_context: userContext,
-        updated_at: new Date().toISOString()
-      }, {
-        onConflict: 'id'
-      });
+      .select('id')
+      .eq('id', matchingUser.id)
+      .maybeSingle();
 
-    if (upsertError) {
-      console.error('Error updating user context:', upsertError);
-      return NextResponse.json(
-        { error: 'Failed to update user context: ' + upsertError.message },
-        { status: 500, headers: corsHeaders(origin) }
-      );
+    if (existingUser) {
+      // User exists, just update context
+      const { error: updateError } = await supabase
+        .from('users')
+        .update({ 
+          user_context: userContext,
+          updated_at: new Date().toISOString()
+        })
+        .eq('id', matchingUser.id);
+
+      if (updateError) {
+        console.error('Error updating user context:', updateError);
+        return NextResponse.json(
+          { error: 'Failed to update user context: ' + updateError.message },
+          { status: 500, headers: corsHeaders(origin) }
+        );
+      }
+    } else {
+      // User doesn't exist, create new record
+      const { error: insertError } = await supabase
+        .from('users')
+        .insert({ 
+          id: matchingUser.id,
+          email: session.user.email,
+          full_name: session.user.name || session.user.email?.split('@')[0],
+          user_context: userContext
+        });
+
+      if (insertError) {
+        console.error('Error inserting user:', insertError);
+        return NextResponse.json(
+          { error: 'Failed to create user record: ' + insertError.message },
+          { status: 500, headers: corsHeaders(origin) }
+        );
+      }
     }
 
     console.log('✅ Context saved successfully for:', session.user.email);

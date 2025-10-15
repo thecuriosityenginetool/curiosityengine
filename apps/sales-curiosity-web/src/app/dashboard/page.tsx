@@ -1921,20 +1921,21 @@ The draft is now in your Outlook Drafts folder and ready to send.`);
                 onSave={async (context) => {
                   try {
                     console.log('💾 Saving context...', context);
-                    const { data: { session } } = await supabase.auth.getSession();
-                    console.log('🔑 Session:', !!session, session?.access_token?.substring(0, 20));
                     
-                    if (!session) {
+                    if (!session?.user?.email) {
                       alert('No session found. Please refresh and try again.');
                       return;
                     }
 
+                    // Use NextAuth session - already available in component!
+                    console.log('🔑 Using NextAuth session for:', session.user.email);
+
                     const response = await fetch('/api/user/context', {
                       method: 'PUT',
                       headers: {
-                        'Authorization': `Bearer ${session.access_token}`,
                         'Content-Type': 'application/json',
                       },
+                      credentials: 'include', // Include cookies for NextAuth
                       body: JSON.stringify({ userContext: context }),
                     });
 

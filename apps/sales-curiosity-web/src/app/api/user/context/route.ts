@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { createClient } from '@supabase/supabase-js';
+import { auth } from '@/lib/auth';
 
 const supabase = createClient(
   process.env.NEXT_PUBLIC_SUPABASE_URL!,
@@ -107,24 +108,17 @@ export async function PUT(req: NextRequest) {
       );
     }
 
-    // Get auth token from header
-    const authHeader = req.headers.get('authorization');
-    if (!authHeader || !authHeader.startsWith('Bearer ')) {
-      return NextResponse.json(
-        { error: 'Unauthorized - No token provided' },
-        { status: 401, headers: corsHeaders(origin) }
-      );
-    }
-
-    const token = authHeader.substring(7);
-    const { data: { user }, error: authError } = await supabase.auth.getUser(token);
+    // Use NextAuth session instead of Bearer token
+    const session = await auth();
     
-    if (authError || !user) {
+    if (!session?.user?.email) {
       return NextResponse.json(
-        { error: 'Unauthorized - Invalid token' },
+        { error: 'Unauthorized - No session found' },
         { status: 401, headers: corsHeaders(origin) }
       );
     }
+    
+    console.log('🔑 Context save request from:', session.user.email);
 
     const body = await req.json();
     const { userContext } = body;
@@ -136,12 +130,26 @@ export async function PUT(req: NextRequest) {
       );
     }
 
+    // Get user ID from auth.users using email
+    const { data: authUser } = await supabase.auth.admin.listUsers();
+    const matchingUser = authUser.users.find(u => u.email === session.user.email);
+    
+    if (!matchingUser) {
+      return NextResponse.json(
+        { error: 'User not found in auth system' },
+        { status: 404, headers: corsHeaders(origin) }
+      );
+    }
+
+    console.log('👤 Found user ID:', matchingUser.id);
+
     // Upsert user's context (insert if doesn't exist, update if exists)
     const { error: upsertError } = await supabase
       .from('users')
       .upsert({ 
-        id: user.id,
-        email: user.email,
+        id: matchingUser.id,
+        email: session.user.email,
+        full_name: session.user.name || session.user.email?.split('@')[0],
         user_context: userContext,
         updated_at: new Date().toISOString()
       }, {
@@ -156,11 +164,13 @@ export async function PUT(req: NextRequest) {
       );
     }
 
+    console.log('✅ Context saved successfully for:', session.user.email);
+
     // Log audit event
     const { data: userData } = await supabase
       .from('users')
       .select('organization_id')
-      .eq('id', user.id)
+      .eq('id', matchingUser.id)
       .single();
 
     if (userData?.organization_id) {

@@ -16,7 +16,7 @@ const nextConfig: NextConfig = {
   // Increase body size limit for file uploads
   api: {
     bodyParser: {
-      sizeLimit: '5mb',
+      sizeLimit: '50mb',
     },
   },
 };

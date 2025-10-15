@@ -4,18 +4,54 @@ import { auth } from '@/lib/auth';
 import pdf from 'pdf-parse';
 import mammoth from 'mammoth';
 
+function corsHeaders(origin?: string) {
+  return {
+    'Access-Control-Allow-Origin': origin || '*',
+    'Access-Control-Allow-Methods': 'GET, POST, DELETE, OPTIONS',
+    'Access-Control-Allow-Headers': 'Content-Type, Authorization',
+  };
+}
+
+function isAllowedOrigin(origin: string | null) {
+  if (!origin) return true; // Allow requests without origin (like from same domain)
+  const allowed = [
+    'chrome-extension://',
+    process.env.NEXT_PUBLIC_APP_URL || '',
+    'https://your-app.vercel.app',
+    'http://localhost:3000',
+    'https://curiosityengine.io',
+    'https://www.curiosityengine.io'
+  ];
+  return allowed.some((prefix) => origin.startsWith(prefix));
+}
+
 const supabase = createClient(
   process.env.NEXT_PUBLIC_SUPABASE_URL!,
   process.env.SUPABASE_SERVICE_ROLE_KEY!
 );
 
+// OPTIONS - Handle preflight requests
+export async function OPTIONS(req: NextRequest) {
+  const origin = req.headers.get('origin');
+  return NextResponse.json({}, { status: 200, headers: corsHeaders(origin) });
+}
+
 // GET - Get user's sales materials
 export async function GET(req: NextRequest) {
   try {
+    const origin = req.headers.get('origin');
+    
+    if (!isAllowedOrigin(origin)) {
+      return NextResponse.json(
+        { error: 'Forbidden' },
+        { status: 403, headers: corsHeaders(origin) }
+      );
+    }
+
     const session = await auth();
     
     if (!session?.user?.email) {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401, headers: corsHeaders(origin) });
     }
 
     // Get user ID
@@ -26,7 +62,7 @@ export async function GET(req: NextRequest) {
       .maybeSingle();
 
     if (!user) {
-      return NextResponse.json({ error: 'User not found' }, { status: 404 });
+      return NextResponse.json({ error: 'User not found' }, { status: 404, headers: corsHeaders(origin) });
     }
 
     // Get materials
@@ -38,23 +74,32 @@ export async function GET(req: NextRequest) {
 
     if (error) {
       console.error('Error fetching materials:', error);
-      return NextResponse.json({ error: error.message }, { status: 500 });
+      return NextResponse.json({ error: error.message }, { status: 500, headers: corsHeaders(origin) });
     }
 
-    return NextResponse.json({ materials: materials || [] });
+    return NextResponse.json({ materials: materials || [] }, { headers: corsHeaders(origin) });
   } catch (error) {
     console.error('Error in GET /api/sales-materials:', error);
-    return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
+    return NextResponse.json({ error: 'Internal server error' }, { status: 500, headers: corsHeaders() });
   }
 }
 
 // POST - Upload sales material
 export async function POST(req: NextRequest) {
   try {
+    const origin = req.headers.get('origin');
+    
+    if (!isAllowedOrigin(origin)) {
+      return NextResponse.json(
+        { error: 'Forbidden' },
+        { status: 403, headers: corsHeaders(origin) }
+      );
+    }
+
     const session = await auth();
     
     if (!session?.user?.email) {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401, headers: corsHeaders(origin) });
     }
 
     const formData = await req.formData();
@@ -63,12 +108,12 @@ export async function POST(req: NextRequest) {
     const category = formData.get('category') as string;
 
     if (!file) {
-      return NextResponse.json({ error: 'File is required' }, { status: 400 });
+      return NextResponse.json({ error: 'File is required' }, { status: 400, headers: corsHeaders(origin) });
     }
 
-    // Check file size (max 5MB for better compatibility)
-    if (file.size > 5 * 1024 * 1024) {
-      return NextResponse.json({ error: 'File size exceeds 5MB limit. Please use a smaller file.' }, { status: 413 });
+    // Check file size (max 50MB for large documents)
+    if (file.size > 50 * 1024 * 1024) {
+      return NextResponse.json({ error: 'File size exceeds 50MB limit. Please use a smaller file.' }, { status: 413, headers: corsHeaders(origin) });
     }
 
     // Get user
@@ -79,7 +124,7 @@ export async function POST(req: NextRequest) {
       .maybeSingle();
 
     if (!user) {
-      return NextResponse.json({ error: 'User not found' }, { status: 404 });
+      return NextResponse.json({ error: 'User not found' }, { status: 404, headers: corsHeaders(origin) });
     }
 
     // Upload file to Supabase Storage
@@ -93,7 +138,7 @@ export async function POST(req: NextRequest) {
 
     if (uploadError) {
       console.error('Error uploading file:', uploadError);
-      return NextResponse.json({ error: 'Failed to upload file' }, { status: 500 });
+      return NextResponse.json({ error: 'Failed to upload file' }, { status: 500, headers: corsHeaders(origin) });
     }
 
     // Get public URL
@@ -154,30 +199,39 @@ export async function POST(req: NextRequest) {
 
     if (dbError) {
       console.error('Error saving material to DB:', dbError);
-      return NextResponse.json({ error: dbError.message }, { status: 500 });
+      return NextResponse.json({ error: dbError.message }, { status: 500, headers: corsHeaders(origin) });
     }
 
-    return NextResponse.json({ material, success: true });
+    return NextResponse.json({ material, success: true }, { headers: corsHeaders(origin) });
   } catch (error) {
     console.error('Error in POST /api/sales-materials:', error);
-    return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
+    return NextResponse.json({ error: 'Internal server error' }, { status: 500, headers: corsHeaders() });
   }
 }
 
 // DELETE - Remove sales material
 export async function DELETE(req: NextRequest) {
   try {
+    const origin = req.headers.get('origin');
+    
+    if (!isAllowedOrigin(origin)) {
+      return NextResponse.json(
+        { error: 'Forbidden' },
+        { status: 403, headers: corsHeaders(origin) }
+      );
+    }
+
     const session = await auth();
     
     if (!session?.user?.email) {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401, headers: corsHeaders(origin) });
     }
 
     const { searchParams } = new URL(req.url);
     const materialId = searchParams.get('id');
 
     if (!materialId) {
-      return NextResponse.json({ error: 'Material ID required' }, { status: 400 });
+      return NextResponse.json({ error: 'Material ID required' }, { status: 400, headers: corsHeaders(origin) });
     }
 
     // Get user
@@ -188,7 +242,7 @@ export async function DELETE(req: NextRequest) {
       .maybeSingle();
 
     if (!user) {
-      return NextResponse.json({ error: 'User not found' }, { status: 404 });
+      return NextResponse.json({ error: 'User not found' }, { status: 404, headers: corsHeaders(origin) });
     }
 
     // Delete from database
@@ -200,13 +254,13 @@ export async function DELETE(req: NextRequest) {
 
     if (error) {
       console.error('Error deleting material:', error);
-      return NextResponse.json({ error: error.message }, { status: 500 });
+      return NextResponse.json({ error: error.message }, { status: 500, headers: corsHeaders(origin) });
     }
 
-    return NextResponse.json({ success: true });
+    return NextResponse.json({ success: true }, { headers: corsHeaders(origin) });
   } catch (error) {
     console.error('Error in DELETE /api/sales-materials:', error);
-    return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
+    return NextResponse.json({ error: 'Internal server error' }, { status: 500, headers: corsHeaders() });
   }
 }
 

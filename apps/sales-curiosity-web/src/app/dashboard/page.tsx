@@ -86,6 +86,8 @@ export default function DashboardPage() {
   });
   const [salesMaterials, setSalesMaterials] = useState<any[]>([]);
   const [uploadingFile, setUploadingFile] = useState(false);
+  const [uploadMessage, setUploadMessage] = useState('');
+  const [uploadMessageType, setUploadMessageType] = useState<'success' | 'error' | ''>('');
   
   // Connection modal state
   const [showConnectionModal, setShowConnectionModal] = useState(false);
@@ -1291,16 +1293,34 @@ The draft is now in your Outlook Drafts folder and ready to send.`);
       });
 
       if (response.ok) {
-        alert('✅ File uploaded successfully!');
+        setUploadMessage('✅ File uploaded successfully!');
+        setUploadMessageType('success');
         loadSalesMaterials();
         await createActivityLog('integration_connected', `Sales Material Uploaded: ${file.name}`);
+        // Clear message after 3 seconds
+        setTimeout(() => {
+          setUploadMessage('');
+          setUploadMessageType('');
+        }, 3000);
       } else {
         const errorData = await response.json().catch(() => ({ error: 'Unknown error' }));
-        alert(`❌ Failed to upload file: ${errorData.error || 'Unknown error'}`);
+        setUploadMessage(`❌ Failed to upload file: ${errorData.error || 'Unknown error'}`);
+        setUploadMessageType('error');
+        // Clear message after 5 seconds for errors
+        setTimeout(() => {
+          setUploadMessage('');
+          setUploadMessageType('');
+        }, 5000);
       }
     } catch (error) {
       console.error('Error uploading file:', error);
-      alert('❌ Error uploading file');
+      setUploadMessage('❌ Error uploading file');
+      setUploadMessageType('error');
+      // Clear message after 5 seconds for errors
+      setTimeout(() => {
+        setUploadMessage('');
+        setUploadMessageType('');
+      }, 5000);
     } finally {
       setUploadingFile(false);
       event.target.value = ''; // Reset input
@@ -1955,6 +1975,18 @@ The draft is now in your Outlook Drafts folder and ready to send.`);
                     )}
                   </label>
           </div>
+                
+                {/* Upload Message */}
+                {uploadMessage && (
+                  <div className={`mt-4 p-3 rounded-lg border ${
+                    uploadMessageType === 'success' 
+                      ? 'bg-green-50 border-green-200 text-green-800' 
+                      : 'bg-red-50 border-red-200 text-red-800'
+                  }`}>
+                    <p className="text-sm font-medium">{uploadMessage}</p>
+                  </div>
+                )}
+                
                 {/* Uploaded files list */}
                 <div className="mt-4 space-y-2">
                   {salesMaterials.length > 0 && (

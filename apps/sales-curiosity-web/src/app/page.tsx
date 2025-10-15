@@ -439,7 +439,7 @@ export default function Home() {
               </h1>
               
               <p className="text-lg text-gray-700 mb-10 leading-relaxed max-w-2xl mx-auto animate-fade-in-up" style={{animationDelay: '0.4s'}}>
-                <strong className="text-black">Auto-draft emails</strong> from LinkedIn profiles and CRM entries, <strong className="text-black">auto-research</strong> LinkedIn accounts and CRM deals, <strong className="text-black">enrich CRM leads</strong> with AI research and <strong className="text-black">generate messages</strong> to leads from your Outlook or Gmail.
+                <strong className="text-black">Curiosity Engine is YOUR company's LLM</strong> - a vector database of your company info, trained on your brand voice, accessing your case studies, and creating compelling fits for prospects. <strong className="text-black">Auto-draft emails</strong> from LinkedIn profiles, <strong className="text-black">auto-research</strong> accounts, and <strong className="text-black">generate personalized messages</strong> that sound like you.
               </p>
 
               {/* Get started text */}
@@ -574,11 +574,11 @@ export default function Home() {
             </div>
             <GSAPReveal>
               <h2 className="text-4xl sm:text-5xl font-bold text-white mb-6 headline">
-                Analyze prospects in one click
+                Your company's LLM in action
               </h2>
             </GSAPReveal>
             <p className="text-xl text-gray-300 max-w-2xl mx-auto">
-              Install our Chrome extension and get instant AI-powered insights on any LinkedIn profile—no copy-pasting required.
+              Trained on your brand, accessing your case studies, and creating compelling fits for prospects. Get instant AI-powered insights that understand YOUR company's unique value proposition.
             </p>
           </div>
 
@@ -590,9 +590,9 @@ export default function Home() {
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 10V3L4 14h7v7l9-11h-7z" />
                   </svg>
                 </div>
-                <h3 className="text-lg font-semibold text-black mb-2">Instant Analysis</h3>
+                <h3 className="text-lg font-semibold text-black mb-2">Brand-Trained Analysis</h3>
                 <p className="text-sm text-gray-600">
-                  Get AI insights directly on LinkedIn profile pages in seconds
+                  AI trained on your company's voice analyzes prospects using your case studies and value props
                 </p>
               </div>
 
@@ -602,9 +602,9 @@ export default function Home() {
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
                   </svg>
                 </div>
-                <h3 className="text-lg font-semibold text-black mb-2">Draft Emails</h3>
+                <h3 className="text-lg font-semibold text-black mb-2">Compelling Fits</h3>
                 <p className="text-sm text-gray-600">
-                  Generate personalized outreach emails in your voice, instantly
+                  Create personalized outreach that references your specific case studies and solutions
                 </p>
               </div>
 
@@ -614,9 +614,9 @@ export default function Home() {
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
                   </svg>
                 </div>
-                <h3 className="text-lg font-semibold text-black mb-2">Sync to CRM</h3>
+                <h3 className="text-lg font-semibold text-black mb-2">Vector Database</h3>
                 <p className="text-sm text-gray-600">
-                  Automatically save prospects and activities to your CRM
+                  Your company's knowledge base grows with every interaction and material uploaded
                 </p>
               </div>
             </div>

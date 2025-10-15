@@ -1919,23 +1919,40 @@ The draft is now in your Outlook Drafts folder and ready to send.`);
               <ContextForm 
                 context={userData.user_context || { aboutMe: '', objectives: '' }}
                 onSave={async (context) => {
-                  const { data: { session } } = await supabase.auth.getSession();
-                  if (!session) return;
-
-                  const response = await fetch('/api/user/context', {
-                    method: 'PUT',
-                    headers: {
-                      'Authorization': `Bearer ${session.access_token}`,
-                      'Content-Type': 'application/json',
-                    },
-                    body: JSON.stringify({ userContext: context }),
-                  });
-
-                  if (response.ok) {
-                    alert('Context saved successfully!');
-                    if (userData) {
-                      setUserData({ ...userData, user_context: context });
+                  try {
+                    console.log('💾 Saving context...', context);
+                    const { data: { session } } = await supabase.auth.getSession();
+                    console.log('🔑 Session:', !!session, session?.access_token?.substring(0, 20));
+                    
+                    if (!session) {
+                      alert('No session found. Please refresh and try again.');
+                      return;
                     }
+
+                    const response = await fetch('/api/user/context', {
+                      method: 'PUT',
+                      headers: {
+                        'Authorization': `Bearer ${session.access_token}`,
+                        'Content-Type': 'application/json',
+                      },
+                      body: JSON.stringify({ userContext: context }),
+                    });
+
+                    console.log('📡 Response status:', response.status);
+                    const data = await response.json();
+                    console.log('📡 Response data:', data);
+
+                    if (response.ok) {
+                      alert('✅ Context saved successfully!');
+                      if (userData) {
+                        setUserData({ ...userData, user_context: context });
+                      }
+                    } else {
+                      alert(`❌ Error saving: ${data.error || 'Unknown error'}`);
+                    }
+                  } catch (error) {
+                    console.error('❌ Error saving context:', error);
+                    alert(`❌ Error: ${error instanceof Error ? error.message : 'Unknown error'}`);
                   }
                 }}
               />

@@ -34,6 +34,46 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
   callbacks: {
     async signIn({ user, account, profile }) {
       console.log('🔐 OAuth SignIn callback for:', user.email, 'provider:', account?.provider);
+      
+      // Auto-create user in public.users on first OAuth login
+      if (user.email) {
+        try {
+          console.log('👤 Ensuring user exists in public.users...');
+          
+          // Check if user already exists
+          const { data: existing } = await supabase
+            .from('users')
+            .select('id')
+            .eq('email', user.email)
+            .maybeSingle();
+          
+          if (!existing) {
+            console.log('🆕 Creating new user record for:', user.email);
+            
+            // Create user record
+            const { error: insertError } = await supabase
+              .from('users')
+              .insert({
+                email: user.email,
+                full_name: user.name || user.email.split('@')[0],
+                role: 'member',
+                user_context: { aboutMe: '', objectives: '' }
+              });
+            
+            if (insertError) {
+              console.error('❌ Error creating user:', insertError);
+            } else {
+              console.log('✅ User record created successfully');
+            }
+          } else {
+            console.log('✅ User already exists in public.users');
+          }
+        } catch (error) {
+          console.error('❌ Error in signIn callback:', error);
+          // Don't block login if user creation fails
+        }
+      }
+      
       return true;
     },
     async jwt({ token, user, account }) {

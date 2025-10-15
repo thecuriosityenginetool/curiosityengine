@@ -254,22 +254,29 @@ export default function Home() {
 
     try {
       const { data: { session } } = await supabase.auth.getSession();
-    if (!session) {
+      if (!session) {
         setContextMessage('Please log in first');
         return;
       }
 
-      const { error } = await supabase
-        .from('users')
-        .update({ 
-          user_context: { aboutMe, objectives } 
-        })
-        .eq('id', session.user.id);
+      const response = await fetch('/api/user/context', {
+        method: 'PUT',
+        headers: {
+          'Authorization': `Bearer ${session.access_token}`,
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ 
+          userContext: { aboutMe, objectives } 
+        }),
+      });
 
-      if (error) throw error;
-
-      setContextMessage('✓ Context saved successfully!');
-      setTimeout(() => setContextMessage(''), 3000);
+      if (response.ok) {
+        setContextMessage('✓ Context saved successfully!');
+        setTimeout(() => setContextMessage(''), 3000);
+      } else {
+        const errorData = await response.json();
+        setContextMessage('Error saving context: ' + (errorData.error || 'Unknown error'));
+      }
     } catch (err: any) {
       setContextMessage('Error saving context: ' + err.message);
     } finally {

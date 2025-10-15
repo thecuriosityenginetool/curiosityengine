@@ -104,7 +104,7 @@ export async function POST(req: NextRequest) {
     // Extract text from file based on file type
     let fileText = '';
     const fileExt = file.name.split('.').pop()?.toLowerCase() || 'txt';
-    const fileType = ['pdf', 'docx', 'txt', 'pptx'].includes(fileExt) ? fileExt : 'txt';
+    const fileType = ['pdf', 'docx', 'txt', 'pptx', 'doc'].includes(fileExt) ? fileExt : 'txt';
 
     try {
       const arrayBuffer = await file.arrayBuffer();
@@ -115,6 +115,7 @@ export async function POST(req: NextRequest) {
           fileText = pdfData.text;
           break;
         case 'docx':
+        case 'doc':
           const docxResult = await mammoth.extractRawText({ buffer: arrayBuffer });
           fileText = docxResult.value;
           break;
@@ -141,7 +142,7 @@ export async function POST(req: NextRequest) {
         user_id: user.id,
         organization_id: user.organization_id,
         file_name: file.name,
-        file_type: fileType,
+        file_type: fileType === 'doc' ? 'docx' : fileType, // Store .doc as .docx in database
         file_size: file.size,
         file_url: urlData.publicUrl,
         extracted_text: fileText.substring(0, 50000), // Limit to 50k chars

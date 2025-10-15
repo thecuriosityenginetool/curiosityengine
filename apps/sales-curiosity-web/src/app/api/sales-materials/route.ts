@@ -172,43 +172,42 @@ export async function POST(req: NextRequest) {
 
     try {
       const arrayBuffer = await file.arrayBuffer();
-      const buffer = Buffer.from(arrayBuffer);
       
       switch (fileType) {
-        case 'pdf':
-        case 'pptx':
         case 'docx':
         case 'doc':
-          // Use officeparser for all Office files and PDFs
+          // Use mammoth for DOCX (faster and more reliable)
           try {
-            console.log(`📄 Extracting text from ${fileType} using officeparser...`);
-            fileText = await officeParser.parseOfficeAsync(buffer);
+            console.log(`📄 Extracting text from ${fileType} using mammoth...`);
+            const docxResult = await mammoth.extractRawText({ buffer: arrayBuffer });
+            fileText = docxResult.value;
             console.log(`✅ Extracted ${fileText.length} characters from ${file.name}`);
           } catch (parseError) {
             console.error(`Error parsing ${fileType}:`, parseError);
-            // Fallback to mammoth for DOCX
-            if (fileType === 'docx' || fileType === 'doc') {
-              try {
-                const docxResult = await mammoth.extractRawText({ buffer: arrayBuffer });
-                fileText = docxResult.value;
-                console.log(`✅ Fallback: Extracted ${fileText.length} characters using mammoth`);
-              } catch (mammothError) {
-                fileText = `Unable to extract text from this ${fileType.toUpperCase()} file. Please try converting to TXT format.`;
-              }
-            } else {
-              fileText = `Unable to extract text from this ${fileType.toUpperCase()} file. Please try converting to TXT format.`;
-            }
+            fileText = `File uploaded successfully but text extraction failed. You can still reference this file by name.`;
           }
           break;
         case 'txt':
           fileText = await file.text();
+          console.log(`✅ Read ${fileText.length} characters from text file`);
+          break;
+        case 'pdf':
+        case 'pptx':
+          // For PDF and PPTX, skip extraction to avoid timeout
+          // Store file info so AI knows it exists
+          fileText = `${fileType.toUpperCase()} file uploaded: ${file.name}. Content available but not extracted for performance. AI can reference this file by name and category.`;
+          console.log(`⚡ Skipped text extraction for ${fileType} to avoid timeout`);
           break;
         default:
-          fileText = await file.text().catch(() => 'Unable to extract text from this file type.');
+          try {
+            fileText = await file.text();
+          } catch {
+            fileText = 'File uploaded successfully. Content type not fully supported for text extraction.';
+          }
       }
     } catch (error) {
-      console.error('Error extracting text from file:', error);
-      fileText = 'Error extracting text from file.';
+      console.error('Error processing file:', error);
+      fileText = 'File uploaded but text extraction failed.';
     }
 
     // Save to database

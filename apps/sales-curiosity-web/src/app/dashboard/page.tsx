@@ -110,6 +110,19 @@ export default function DashboardPage() {
     
     if (status === 'authenticated' && session?.user) {
       checkAuth();
+      
+      // Check for URL parameters from extension
+      const params = new URLSearchParams(window.location.search);
+      if (params.get('openChat') === 'true') {
+        const profileName = params.get('profile');
+        const analysis = params.get('analysis');
+        
+        if (profileName && analysis) {
+          setTimeout(() => {
+            handleOpenChatFromExtension(decodeURIComponent(profileName), decodeURIComponent(analysis));
+          }, 1000); // Wait for auth to complete
+        }
+      }
     }
   }, [status, session]);
 
@@ -836,6 +849,121 @@ IMPORTANT: Write ONLY the email body. Do NOT include phrases like "Feel free to 
       }
     } catch (error) {
       console.error('Error generating email:', error);
+    } finally {
+      setIsSendingMessage(false);
+    }
+  }
+  
+  async function handleOpenChatFromExtension(profileName: string, analysis: string) {
+    try {
+      setIsSendingMessage(true);
+      
+      const userMessageContent = `Draft an email to ${profileName}`;
+      const prompt = `Based on this LinkedIn profile analysis, draft a professional outreach email:
+
+${analysis}
+
+Create a personalized email that:
+1. References specific details from their profile
+2. Explains why you're reaching out
+3. Proposes a clear value proposition
+4. Includes a soft call-to-action
+5. Keeps it concise (under 150 words)
+
+Format with markdown for readability.`;
+
+      // Create new chat
+      const chatResponse = await fetch('/api/chats', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          title: `LinkedIn: ${profileName}`,
+          initialMessage: userMessageContent
+        }),
+      });
+
+      let newChatId = null;
+      if (chatResponse.ok) {
+        const { chat } = await chatResponse.json();
+        newChatId = chat.id;
+        setCurrentChatId(newChatId);
+      }
+
+      // Show user's prompt in chat
+      const userMessage: ChatMessage = {
+        role: 'user',
+        content: userMessageContent,
+        timestamp: new Date().toISOString()
+      };
+      setChatMessages([userMessage]);
+
+      const response = await fetch('/api/chat', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          message: prompt,
+          conversationHistory: [],
+          userContext: userData?.user_context,
+        }),
+      });
+
+      if (!response.ok) {
+        throw new Error('Failed to send message');
+      }
+
+      // Handle streaming response
+      const reader = response.body?.getReader();
+      const decoder = new TextDecoder();
+      let accumulatedContent = '';
+
+      if (reader) {
+        while (true) {
+          const { done, value } = await reader.read();
+          if (done) break;
+
+          const chunk = decoder.decode(value);
+          const lines = chunk.split('\n');
+
+          for (const line of lines) {
+            if (line.startsWith('data: ')) {
+              try {
+                const jsonData = JSON.parse(line.substring(6));
+                if (jsonData.content) {
+                  accumulatedContent += jsonData.content;
+                  const assistantMessage: ChatMessage = {
+                    role: 'assistant',
+                    content: accumulatedContent,
+                    timestamp: new Date().toISOString()
+                  };
+                  setChatMessages([userMessage, assistantMessage]);
+                }
+              } catch (e) {
+                // Skip invalid JSON
+              }
+            }
+          }
+        }
+
+        // Save final assistant message to chat
+        if (newChatId && accumulatedContent) {
+          await fetch(`/api/chats/${newChatId}/messages`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              role: 'assistant',
+              content: accumulatedContent
+            }),
+          });
+        }
+        
+        await createActivityLog('linkedin_analysis', `LinkedIn Profile: ${profileName}`, 'Opened from Chrome extension');
+        loadChatHistory();
+      }
+      
+      // Clear URL parameters
+      window.history.replaceState({}, '', '/dashboard');
+    } catch (error) {
+      console.error('Error opening chat from extension:', error);
     } finally {
       setIsSendingMessage(false);
     }

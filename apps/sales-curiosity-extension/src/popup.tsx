@@ -206,7 +206,7 @@ function Popup() {
     }
   }
 
-  // Get current tab URL on mount
+  // Get current tab URL on mount and load last analysis
   useEffect(() => {
     async function getCurrentTab() {
       try {
@@ -215,6 +215,14 @@ function Popup() {
         if (tab?.url) {
           setCurrentUrl(tab.url);
           setIsLinkedIn(tab.url.includes("linkedin.com"));
+          
+          // Load last analysis if we're on the same URL
+          const { lastAnalysis, lastAnalysisUrl } = await chrome.storage.local.get(['lastAnalysis', 'lastAnalysisUrl']);
+          if (lastAnalysis && lastAnalysisUrl === tab.url) {
+            setResponse(lastAnalysis);
+            const { lastProfileData } = await chrome.storage.local.get(['lastProfileData']);
+            if (lastProfileData) setProfileData(lastProfileData);
+          }
         }
       } catch (e) {
         console.error("Error getting current tab:", e);
@@ -298,6 +306,13 @@ function Popup() {
       if (res.ok && res.data?.analysis) {
         setResponse(res.data.analysis);
         setProfileData(res.data.profileData || extractResponse.data);
+        
+        // Save to local storage for persistence
+        await chrome.storage.local.set({
+          lastAnalysis: res.data.analysis,
+          lastAnalysisUrl: currentUrl,
+          lastProfileData: res.data.profileData || extractResponse.data
+        });
         
         // Show Salesforce status if available
         if (res.data.salesforceStatus) {
@@ -835,6 +850,39 @@ function Popup() {
                   return <div key={i} style={{ marginTop: 2 }}>{cleanLine}</div>;
                 })}
               </div>
+            )}
+
+            {/* Draft Email Button - Opens Web App Chat */}
+            {response && (
+              <button
+                onClick={() => {
+                  const chatUrl = `${apiBase}/dashboard?openChat=true&profile=${encodeURIComponent(profileData?.name || 'LinkedIn Profile')}&analysis=${encodeURIComponent(response)}`;
+                  chrome.tabs.create({ url: chatUrl });
+                }}
+                style={{
+                  width: "100%",
+                  padding: 12,
+                  background: "#F95B14",
+                  border: "none",
+                  borderRadius: 8,
+                  color: "white",
+                  fontSize: 13,
+                  fontWeight: 700,
+                  cursor: "pointer",
+                  marginTop: 12,
+                  transition: "all 0.2s ease"
+                }}
+                onMouseOver={(e) => {
+                  e.currentTarget.style.background = "#e04d0f";
+                  e.currentTarget.style.transform = "translateY(-1px)";
+                }}
+                onMouseOut={(e) => {
+                  e.currentTarget.style.background = "#F95B14";
+                  e.currentTarget.style.transform = "translateY(0)";
+                }}
+              >
+                ✉️ Draft Email in Chat
+              </button>
             )}
 
             {/* Export Buttons */}

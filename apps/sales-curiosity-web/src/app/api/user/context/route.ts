@@ -136,16 +136,22 @@ export async function PUT(req: NextRequest) {
       );
     }
 
-    // Update user's context in database
-    const { error: updateError } = await supabase
+    // Upsert user's context (insert if doesn't exist, update if exists)
+    const { error: upsertError } = await supabase
       .from('users')
-      .update({ user_context: userContext })
-      .eq('id', user.id);
+      .upsert({ 
+        id: user.id,
+        email: user.email,
+        user_context: userContext,
+        updated_at: new Date().toISOString()
+      }, {
+        onConflict: 'id'
+      });
 
-    if (updateError) {
-      console.error('Error updating user context:', updateError);
+    if (upsertError) {
+      console.error('Error updating user context:', upsertError);
       return NextResponse.json(
-        { error: 'Failed to update user context' },
+        { error: 'Failed to update user context: ' + upsertError.message },
         { status: 500, headers: corsHeaders(origin) }
       );
     }

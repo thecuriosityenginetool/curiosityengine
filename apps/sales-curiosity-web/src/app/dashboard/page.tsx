@@ -1657,10 +1657,6 @@ The draft is now in your Outlook Drafts folder and ready to send.`);
               </div>
             </div>
 
-                </div>
-              </div>
-            </div>
-
             {/* Calendar - Takes 1 column */}
             <div className="lg:col-span-1">
               <div className="bg-white rounded-lg border border-gray-200 shadow-sm" style={{ overflow: 'visible' }}>
@@ -1776,10 +1772,12 @@ The draft is now in your Outlook Drafts folder and ready to send.`);
             </div>
               </div>
             </div>
+            </div>
           </div>
         )}
 
         {activeTab === 'leads' && (
+          <div className="px-6">
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
             {/* Leads List */}
             <div className="lg:col-span-1">

@@ -176,23 +176,57 @@ export default function DashboardPage() {
       setUser(session.user);
       
       // Fetch user data from database
-      const { data: userData, error: userError } = await supabase
+      let { data: userData, error: userError } = await supabase
         .from('users')
         .select('*')
         .eq('email', session.user.email)
-        .single();
+        .maybeSingle();
 
       if (userData) {
         setUserData(userData);
       } else {
-        // User doesn't exist in database yet, show basic info
-        setUserData({
-          id: session.user.id || '',
-          email: session.user.email,
-          full_name: session.user.name || session.user.email?.split('@')[0] || 'User',
-          role: 'member',
-          user_context: { aboutMe: '', objectives: '' }
-        });
+        // User doesn't exist - auto-create via API
+        console.log('🆕 User not found, creating record for:', session.user.email);
+        
+        try {
+          const createResponse = await fetch('/api/user/ensure-exists', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            credentials: 'include'
+          });
+          
+          if (createResponse.ok) {
+            // Fetch again
+            const { data: newUserData } = await supabase
+              .from('users')
+              .select('*')
+              .eq('email', session.user.email)
+              .maybeSingle();
+            
+            if (newUserData) {
+              setUserData(newUserData);
+            } else {
+              // Fallback to session data
+              setUserData({
+                id: session.user.id || '',
+                email: session.user.email,
+                full_name: session.user.name || session.user.email?.split('@')[0] || 'User',
+                role: 'member',
+                user_context: { aboutMe: '', objectives: '' }
+              });
+            }
+          }
+        } catch (createError) {
+          console.error('Error auto-creating user:', createError);
+          // Fallback to session data
+          setUserData({
+            id: session.user.id || '',
+            email: session.user.email,
+            full_name: session.user.name || session.user.email?.split('@')[0] || 'User',
+            role: 'member',
+            user_context: { aboutMe: '', objectives: '' }
+          });
+        }
       }
 
       setLoading(false);

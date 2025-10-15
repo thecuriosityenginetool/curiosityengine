@@ -1656,9 +1656,9 @@ The draft is now in your Outlook Drafts folder and ready to send.`);
             </div>
 
             {/* Calendar - 3/12 columns, always on right */}
-            <div className="lg:col-span-3 transition-all duration-300">
+            <div className="lg:col-span-3 transition-all duration-300" style={{ overflow: 'visible' }}>
               <div className="bg-white rounded-lg border border-gray-200 shadow-sm" style={{ overflow: 'visible' }}>
-                <div className="p-4 border-b border-gray-200 flex justify-between items-center">
+                <div className="p-4 border-b border-gray-200 flex justify-between items-center" style={{ overflow: 'visible' }}>
                   <h2 className="text-lg font-semibold text-gray-900">📅 Upcoming Events</h2>
                   <button
                     onClick={syncCalendar}
@@ -1679,7 +1679,7 @@ The draft is now in your Outlook Drafts folder and ready to send.`);
                   </button>
                 </div>
 
-                <div className="p-4 space-y-3 max-h-[640px] overflow-y-auto" style={{ overflowX: 'visible' }}>
+                <div className="p-4 space-y-3 max-h-[640px]" style={{ overflowY: 'auto', overflowX: 'visible' }}>
                   {calendarEvents.length === 0 && (
                     <div className="text-center text-gray-500 py-8">
                       <div className="text-3xl mb-2">📅</div>

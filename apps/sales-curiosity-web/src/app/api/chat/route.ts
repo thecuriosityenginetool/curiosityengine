@@ -312,7 +312,7 @@ export async function POST(req: NextRequest) {
     }
 
     // Build system prompt with context - ONLY mention connected integrations
-    let systemPrompt = `You are Curiosity Engine, an AI sales assistant. You help sales professionals by:`;
+    let systemPrompt = `You are Curiosity Engine, an AI sales assistant working specifically for ${user.full_name || 'the user'}. You help them by using their personal context, company materials, and specific offerings to provide highly personalized sales assistance.`;
 
     if (hasSalesforce) {
       systemPrompt += `
@@ -350,18 +350,18 @@ export async function POST(req: NextRequest) {
 - When creating email drafts, ALWAYS use the create_email_draft tool to save them to Outlook.`;
 
     // Add user profile context
-    systemPrompt += `\n\nUser Profile:
+    systemPrompt += `\n\nYOUR PROFILE & COMPANY:
 - Name: ${user.full_name || 'Not set'}
 - Role: ${user.job_title || 'Not set'}
 - Company: ${user.company_name || 'Not set'}
 - Website: ${user.company_url || 'Not set'}`;
 
     if (userContext) {
-      systemPrompt += `\n\nUser Context:\n${JSON.stringify(userContext, null, 2)}`;
+      systemPrompt += `\n\nYOUR PERSONAL CONTEXT:\n${JSON.stringify(userContext, null, 2)}`;
     }
 
     if (salesMaterials) {
-      systemPrompt += salesMaterials;
+      systemPrompt += `\n\nYOUR COMPANY MATERIALS & OFFERINGS:${salesMaterials}`;
     }
 
     if (calendarContext) {

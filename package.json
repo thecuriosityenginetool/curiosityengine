@@ -30,6 +30,8 @@
   "dependencies": {
     "@heroui/react": "^2.8.5",
     "framer-motion": "^12.23.22",
-    "gsap": "^3.13.0"
+    "gsap": "^3.13.0",
+    "mammoth": "^1.11.0",
+    "pdf-parse": "^2.3.12"
   }
 }

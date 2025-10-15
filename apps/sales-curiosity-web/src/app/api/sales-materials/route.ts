@@ -1,6 +1,8 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { createClient } from '@supabase/supabase-js';
 import { auth } from '@/lib/auth';
+import pdf from 'pdf-parse';
+import mammoth from 'mammoth';
 
 const supabase = createClient(
   process.env.NEXT_PUBLIC_SUPABASE_URL!,
@@ -99,12 +101,38 @@ export async function POST(req: NextRequest) {
       .from('sales-materials')
       .getPublicUrl(fileName);
 
-    // Extract text from file (basic implementation - can be enhanced with PDF parsing)
-    const fileText = await file.text().catch(() => '');
-
-    // Get file extension
+    // Extract text from file based on file type
+    let fileText = '';
     const fileExt = file.name.split('.').pop()?.toLowerCase() || 'txt';
     const fileType = ['pdf', 'docx', 'txt', 'pptx'].includes(fileExt) ? fileExt : 'txt';
+
+    try {
+      const arrayBuffer = await file.arrayBuffer();
+      
+      switch (fileType) {
+        case 'pdf':
+          const pdfData = await pdf(arrayBuffer);
+          fileText = pdfData.text;
+          break;
+        case 'docx':
+          const docxResult = await mammoth.extractRawText({ buffer: arrayBuffer });
+          fileText = docxResult.value;
+          break;
+        case 'txt':
+          fileText = await file.text();
+          break;
+        case 'pptx':
+          // For now, we'll extract basic text from PPTX
+          // In a production environment, you might want to use a library like 'pptx2json'
+          fileText = 'PowerPoint content extraction not yet implemented. Please convert to PDF or DOCX for better text extraction.';
+          break;
+        default:
+          fileText = await file.text().catch(() => '');
+      }
+    } catch (error) {
+      console.error('Error extracting text from file:', error);
+      fileText = 'Error extracting text from file.';
+    }
 
     // Save to database
     const { data: material, error: dbError } = await supabase

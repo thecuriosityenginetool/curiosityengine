@@ -85,6 +85,29 @@ export async function POST(req: NextRequest) {
         userContextText += `Your Objectives: ${userContext.objectives}\n`;
       }
     }
+
+    // Add sales materials context if user is authenticated
+    let salesMaterialsText = '';
+    const authHeader = req.headers.get('authorization');
+    if (authHeader && authHeader.startsWith('Bearer ')) {
+      const token = authHeader.substring(7);
+      const { data: { user } } = await supabase.auth.getUser(token);
+      
+      if (user) {
+        const { data: materials } = await supabase
+          .from('sales_materials')
+          .select('file_name, extracted_text, category')
+          .eq('user_id', user.id)
+          .limit(3); // Limit to 3 most recent materials
+
+        if (materials && materials.length > 0) {
+          salesMaterialsText = '\n\n**Your Sales Materials & Company Guides:**\n';
+          materials.forEach(material => {
+            salesMaterialsText += `[${material.category}] ${material.file_name}:\n${material.extracted_text?.substring(0, 1000) || 'No text extracted'}...\n\n`;
+          });
+        }
+      }
+    }
     
     // Get organization context and add to prompt
     let orgContextText = '';
@@ -221,24 +244,34 @@ Approach accordingly:
 - Don't assume any prior relationship`;
       }
 
-      prompt = `You are an expert sales email writer. Draft a personalized, professional outreach email to this LinkedIn prospect.
+      prompt = `You are an expert sales email writer working for ${userContext?.aboutMe ? userContext.aboutMe.split(' ').slice(0, 3).join(' ') : 'the company'}. Draft a highly personalized, professional outreach email to this LinkedIn prospect.
 
-**Prospect's Profile:**
+**PROSPECT TO TARGET:**
 ${contextText}
+
+**YOUR CONTEXT & COMPANY MATERIALS:**
 ${userContextText}
 ${orgContextText}
+${salesMaterialsText}
+
+**SALESFORCE CRM DATA:**
 ${salesforceContext}
+
+**EMAIL INSTRUCTIONS:**
 ${emailInstructions}
 
-Please draft a complete email with:
-- A compelling subject line (adjust based on whether this is first contact or follow-up)
-- Personalized greeting
-- Opening that references something specific from their profile
-- Value proposition that aligns with their role/industry
-- Clear but soft call-to-action
-- Professional closing
+CRITICAL: Use your company materials and context to identify the MOST RELEVANT products/services for this specific prospect. Reference specific offerings from your uploaded materials that would solve their likely pain points.
 
-Keep the tone conversational, authentic, and focused on providing value. The email should be 150-200 words. Make it feel personal, not templated.
+Please draft a complete email with:
+- A compelling subject line that references something specific about them
+- Personalized greeting using their name
+- Opening that references something specific from their profile AND connects to your relevant offerings
+- Value proposition that specifically mentions how YOUR products/services (from your materials) can help THEIR specific situation
+- Reference specific benefits or case studies from your uploaded materials that relate to their role/industry
+- Clear but soft call-to-action
+- Professional closing with your name and company
+
+Keep the tone conversational, authentic, and focused on providing value. The email should be 150-200 words. Make it feel personal and specifically tailored to them using your company's actual offerings.
 
 ${salesforceResult?.found ? '**Remember: This is a FOLLOW-UP/RE-ENGAGEMENT email, not a cold email.**' : '**Remember: This is a FIRST CONTACT cold email.**'}
 
@@ -250,7 +283,7 @@ Format your response exactly as follows:
 [email body]`;
     } else {
       // Analysis prompt (default)
-      prompt = `You are an expert sales intelligence assistant. Analyze this LinkedIn profile and provide insightful, actionable intelligence for a sales professional.
+      prompt = `You are an expert sales intelligence assistant working for ${userContext?.aboutMe ? userContext.aboutMe.split(' ').slice(0, 3).join(' ') : 'the company'}. Analyze this LinkedIn profile and provide insightful, actionable intelligence specifically tailored to your company's offerings and this prospect's potential needs.
 
 CRITICAL INSTRUCTIONS:
 - ONLY use information explicitly provided in the profile data
@@ -258,30 +291,37 @@ CRITICAL INSTRUCTIONS:
 - If information is missing, state "Information not available" rather than guessing
 - Focus on factual observations from the profile
 - Be conservative with insights - only state what you can clearly infer
+- MOST IMPORTANTLY: Use your company materials to identify the most relevant products/services for this specific prospect
 
-**Prospect's Profile:**
+**PROSPECT TO ANALYZE:**
 ${contextText}
+
+**YOUR COMPANY CONTEXT & MATERIALS:**
 ${userContextText}
 ${orgContextText}
+${salesMaterialsText}
 
-Based ONLY on the LinkedIn profile information provided above, please provide:
+Based on the prospect's profile and your company materials, please provide:
 
 **1. Executive Summary**
-A brief 2-3 sentence overview of who this person is professionally based on the available profile information. Do not add details that aren't explicitly stated.
+A brief 2-3 sentence overview of who this person is professionally and why they might be a good fit for your offerings.
 
 **2. Key Insights**
-3-5 factual observations about their career, expertise, or professional background based on what's actually in their profile. Only mention what is clearly stated.
+3-5 factual observations about their career, expertise, or professional background that are relevant to your business.
 
-**3. Sales Angles**
-Specific talking points or connection opportunities based on their actual profile content. Reference specific details from their profile.
+**3. Relevant Company Offerings**
+From your uploaded materials, identify 2-3 specific products/services that would be most valuable to this prospect based on their role and industry. Reference specific details from your materials.
 
-**4. Potential Pain Points**
-Based on their actual role and industry as stated in their profile, what challenges might they logically be facing? Keep this grounded in their stated responsibilities.
+**4. Sales Angles & Pain Points**
+Specific talking points that connect their likely challenges to your solutions. Reference specific benefits or case studies from your materials that relate to their situation.
 
-**5. Conversation Starters**
-2-3 personalized opening lines that reference specific details from their profile. Make them natural and reference actual content from their profile.
+**5. Personalized Conversation Starters**
+2-3 opening lines that reference something specific from their profile AND connect to your relevant offerings. Make them natural and reference actual content from both their profile and your materials.
 
-Remember: Stick to facts from the profile. If something isn't stated, don't assume it.`;
+**6. Recommended Next Steps**
+Specific actions you should take based on this analysis and your company's sales process.
+
+Remember: Focus on how YOUR specific offerings can help THIS specific prospect. Use your company materials to identify the most relevant solutions.`;
     }
 
     // Check if we should use mock mode

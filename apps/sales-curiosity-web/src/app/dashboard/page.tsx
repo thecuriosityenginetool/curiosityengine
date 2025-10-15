@@ -1442,15 +1442,15 @@ The draft is now in your Outlook Drafts folder and ready to send.`);
         </div>
       </div>
 
-      {/* Main Content - Remove horizontal padding for flush sidebar */}
-      <div className="max-w-7xl mx-auto py-8">
+      {/* Main Content */}
+      <div className="max-w-7xl mx-auto py-8 px-0">
         {activeTab === 'dashboard' && (
-          <div className="grid grid-cols-1 lg:grid-cols-4 gap-0 relative">
+          <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 relative px-6">
             {/* Floating sidebar toggle when collapsed */}
             {!showChatSidebar && (
               <button
                 onClick={() => setShowChatSidebar(true)}
-                className="fixed left-0 top-1/2 -translate-y-1/2 bg-[#F95B14] text-white p-3 rounded-r-lg shadow-lg hover:bg-orange-600 transition-all duration-300 z-50 animate-slide-in-left"
+                className="fixed left-6 top-1/2 -translate-y-1/2 bg-[#F95B14] text-white p-3 rounded-r-lg shadow-lg hover:bg-orange-600 transition-all duration-300 z-40"
                 title="Show chat history"
               >
                 <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -1459,9 +1459,10 @@ The draft is now in your Outlook Drafts folder and ready to send.`);
               </button>
             )}
 
-            {/* Chat History Sidebar - Flush left with smooth slide animation */}
-            <div className={`lg:col-span-1 fixed left-0 top-0 h-screen z-40 transition-transform duration-300 ease-in-out ${showChatSidebar ? 'translate-x-0' : '-translate-x-full'}`}>
-              <div className="bg-white border-r border-gray-200 shadow-lg h-full flex flex-col pt-24">
+            {/* Chat History Sidebar - 2/12 columns (~17% width, close to 20%) */}
+            {showChatSidebar && (
+              <div className="lg:col-span-2 transition-all duration-300 ease-in-out">
+                <div className="bg-white rounded-lg border border-gray-200 shadow-sm h-[700px] flex flex-col max-w-xs">
                   <div className="p-4 border-b border-gray-200">
                     <div className="flex items-center justify-between mb-3">
                       <h3 className="font-semibold text-gray-900">Chats</h3>
@@ -1654,8 +1655,8 @@ The draft is now in your Outlook Drafts folder and ready to send.`);
               </div>
             </div>
 
-            {/* Calendar - Takes up 1 column, no left margin when sidebar open */}
-            <div className={`lg:col-span-1 px-6 ${showChatSidebar ? '' : 'lg:ml-0'} transition-all duration-300`}>
+            {/* Calendar - 3/12 columns, always on right */}
+            <div className="lg:col-span-3 transition-all duration-300">
               <div className="bg-white rounded-lg border border-gray-200 shadow-sm" style={{ overflow: 'visible' }}>
                 <div className="p-4 border-b border-gray-200 flex justify-between items-center">
                   <h2 className="text-lg font-semibold text-gray-900">📅 Upcoming Events</h2>

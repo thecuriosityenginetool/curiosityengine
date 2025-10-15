@@ -191,10 +191,10 @@ export async function PUT(req: NextRequest) {
 
     console.log('✅ Context saved successfully for:', session.user.email);
 
-    // Log audit event
+    // Get updated user data for audit log
     const { data: userData } = await supabase
       .from('users')
-      .select('organization_id')
+      .select('id, organization_id')
       .eq('email', session.user.email)
       .maybeSingle();
 
@@ -203,7 +203,7 @@ export async function PUT(req: NextRequest) {
         p_organization_id: userData.organization_id,
         p_action: 'user_context_updated',
         p_resource_type: 'user',
-        p_resource_id: user.id,
+        p_resource_id: userData.id,
         p_details: { context_keys: Object.keys(userContext) }
       }).catch(err => console.error('Audit log error:', err));
     }

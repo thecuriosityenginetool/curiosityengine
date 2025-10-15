@@ -1295,7 +1295,8 @@ The draft is now in your Outlook Drafts folder and ready to send.`);
         loadSalesMaterials();
         await createActivityLog('integration_connected', `Sales Material Uploaded: ${file.name}`);
       } else {
-        alert('❌ Failed to upload file');
+        const errorData = await response.json().catch(() => ({ error: 'Unknown error' }));
+        alert(`❌ Failed to upload file: ${errorData.error || 'Unknown error'}`);
       }
     } catch (error) {
       console.error('Error uploading file:', error);

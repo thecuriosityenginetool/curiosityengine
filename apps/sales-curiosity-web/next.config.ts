@@ -13,6 +13,12 @@ const nextConfig: NextConfig = {
       "react-dom",
     ],
   },
+  // Increase body size limit for file uploads
+  api: {
+    bodyParser: {
+      sizeLimit: '5mb',
+    },
+  },
 };
 
 export default nextConfig;

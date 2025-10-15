@@ -1442,15 +1442,15 @@ The draft is now in your Outlook Drafts folder and ready to send.`);
         </div>
       </div>
 
-      {/* Main Content */}
-      <div className="max-w-7xl mx-auto px-6 py-8">
+      {/* Main Content - Remove horizontal padding for flush sidebar */}
+      <div className="max-w-7xl mx-auto py-8">
         {activeTab === 'dashboard' && (
-          <div className="grid grid-cols-1 lg:grid-cols-4 gap-6 relative">
+          <div className="grid grid-cols-1 lg:grid-cols-4 gap-0 relative">
             {/* Floating sidebar toggle when collapsed */}
             {!showChatSidebar && (
               <button
                 onClick={() => setShowChatSidebar(true)}
-                className="fixed left-6 top-1/2 -translate-y-1/2 bg-[#F95B14] text-white p-3 rounded-r-lg shadow-lg hover:bg-orange-600 transition-all z-40"
+                className="fixed left-0 top-1/2 -translate-y-1/2 bg-[#F95B14] text-white p-3 rounded-r-lg shadow-lg hover:bg-orange-600 transition-all duration-300 z-50 animate-slide-in-left"
                 title="Show chat history"
               >
                 <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -1459,10 +1459,9 @@ The draft is now in your Outlook Drafts folder and ready to send.`);
               </button>
             )}
 
-            {/* Chat History Sidebar - Collapsible */}
-            {showChatSidebar && (
-              <div className="lg:col-span-1">
-                <div className="bg-white rounded-lg border border-gray-200 shadow-sm h-[700px] flex flex-col">
+            {/* Chat History Sidebar - Flush left with smooth slide animation */}
+            <div className={`lg:col-span-1 fixed left-0 top-0 h-screen z-40 transition-transform duration-300 ease-in-out ${showChatSidebar ? 'translate-x-0' : '-translate-x-full'}`}>
+              <div className="bg-white border-r border-gray-200 shadow-lg h-full flex flex-col pt-24">
                   <div className="p-4 border-b border-gray-200">
                     <div className="flex items-center justify-between mb-3">
                       <h3 className="font-semibold text-gray-900">Chats</h3>
@@ -1509,7 +1508,7 @@ The draft is now in your Outlook Drafts folder and ready to send.`);
             )}
 
             {/* AI Chat - Expands when sidebar collapsed */}
-            <div className={showChatSidebar ? 'lg:col-span-2' : 'lg:col-span-3'}>
+            <div className={`${showChatSidebar ? 'lg:col-span-2 lg:ml-80' : 'lg:col-span-3'} px-6 transition-all duration-300`}>
               <div className="bg-white rounded-lg border border-gray-200 shadow-sm h-[700px] flex flex-col">
                 <div className="p-4 border-b border-gray-200">
                   <h2 className="text-lg font-semibold text-gray-900">AI Assistant</h2>
@@ -1544,14 +1543,14 @@ The draft is now in your Outlook Drafts folder and ready to send.`);
                               h2: ({node, ...props}) => <h2 className="text-base font-bold text-gray-900 mt-3 mb-2" {...props} />,
                               h3: ({node, ...props}) => <h3 className="text-sm font-bold text-gray-900 mt-3 mb-2" {...props} />,
                               p: ({node, ...props}) => <p className="my-2 leading-relaxed" {...props} />,
-                              ul: ({node, ...props}) => <ul className="my-2 space-y-1 list-none pl-0" {...props} />,
-                              ol: ({node, ...props}) => <ol className="my-2 space-y-1 pl-6" {...props} />,
+                              ul: ({node, ...props}) => <ul className="my-2 space-y-1.5 list-none pl-0" {...props} />,
+                              ol: ({node, ...props}) => <ol className="my-2 space-y-1.5 pl-6 list-decimal" {...props} />,
                               li: ({node, children, ...props}) => {
                                 const isOrdered = props.className?.includes('task-list-item') === false;
                                 return (
-                                  <li className="my-0.5 flex items-start" {...props}>
-                                    {!isOrdered && <span className="mr-2 text-orange-500 flex-shrink-0">•</span>}
-                                    <span className="flex-1">{children}</span>
+                                  <li className="my-1 flex items-start gap-2" {...props}>
+                                    {!isOrdered && <span className="text-orange-500 flex-shrink-0 leading-relaxed mt-0.5">•</span>}
+                                    <span className="flex-1 leading-relaxed">{children}</span>
                                   </li>
                                 );
                               },
@@ -1655,9 +1654,9 @@ The draft is now in your Outlook Drafts folder and ready to send.`);
               </div>
             </div>
 
-            {/* Calendar - Takes up 1 column */}
-            <div className="lg:col-span-1">
-              <div className="bg-white rounded-lg border border-gray-200 shadow-sm">
+            {/* Calendar - Takes up 1 column, no left margin when sidebar open */}
+            <div className={`lg:col-span-1 px-6 ${showChatSidebar ? '' : 'lg:ml-0'} transition-all duration-300`}>
+              <div className="bg-white rounded-lg border border-gray-200 shadow-sm" style={{ overflow: 'visible' }}>
                 <div className="p-4 border-b border-gray-200 flex justify-between items-center">
                   <h2 className="text-lg font-semibold text-gray-900">📅 Upcoming Events</h2>
                   <button
@@ -1679,7 +1678,7 @@ The draft is now in your Outlook Drafts folder and ready to send.`);
                   </button>
                 </div>
 
-                <div className="p-4 space-y-3 max-h-[640px] overflow-y-auto overflow-x-visible">
+                <div className="p-4 space-y-3 max-h-[640px] overflow-y-auto" style={{ overflowX: 'visible' }}>
                   {calendarEvents.length === 0 && (
                     <div className="text-center text-gray-500 py-8">
                       <div className="text-3xl mb-2">📅</div>

@@ -22,7 +22,7 @@ BEGIN
   -- Get your auth ID
   SELECT id INTO v_user_id 
   FROM auth.users 
-  WHERE email = v_email
+  WHERE email =  
   ORDER BY created_at DESC
   LIMIT 1;
   

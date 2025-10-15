@@ -130,27 +130,16 @@ export async function PUT(req: NextRequest) {
       );
     }
 
-    // Get user ID from auth.users using email
-    const { data: authUser } = await supabase.auth.admin.listUsers();
-    const matchingUser = authUser.users.find(u => u.email === session.user.email);
-    
-    if (!matchingUser) {
-      return NextResponse.json(
-        { error: 'User not found in auth system' },
-        { status: 404, headers: corsHeaders(origin) }
-      );
-    }
-
-    console.log('👤 Found user ID:', matchingUser.id);
-
-    // Check if user exists in public.users
+    // Find user in public.users by email (simpler approach)
     const { data: existingUser } = await supabase
       .from('users')
-      .select('id')
-      .eq('id', matchingUser.id)
+      .select('id, email')
+      .eq('email', session.user.email)
       .maybeSingle();
 
     if (existingUser) {
+      console.log('👤 Updating existing user:', existingUser.id);
+      
       // User exists, just update context
       const { error: updateError } = await supabase
         .from('users')
@@ -158,7 +147,7 @@ export async function PUT(req: NextRequest) {
           user_context: userContext,
           updated_at: new Date().toISOString()
         })
-        .eq('id', matchingUser.id);
+        .eq('email', session.user.email);
 
       if (updateError) {
         console.error('Error updating user context:', updateError);
@@ -168,11 +157,24 @@ export async function PUT(req: NextRequest) {
         );
       }
     } else {
+      console.log('👤 Creating new user for:', session.user.email);
+      
+      // Get auth user ID
+      const { data: authUser } = await supabase.auth.admin.listUsers();
+      const matchingAuthUser = authUser.users.find(u => u.email === session.user.email);
+      
+      if (!matchingAuthUser) {
+        return NextResponse.json(
+          { error: 'User not found in auth system' },
+          { status: 404, headers: corsHeaders(origin) }
+        );
+      }
+
       // User doesn't exist, create new record
       const { error: insertError } = await supabase
         .from('users')
         .insert({ 
-          id: matchingUser.id,
+          id: matchingAuthUser.id,
           email: session.user.email,
           full_name: session.user.name || session.user.email?.split('@')[0],
           user_context: userContext
@@ -193,8 +195,8 @@ export async function PUT(req: NextRequest) {
     const { data: userData } = await supabase
       .from('users')
       .select('organization_id')
-      .eq('id', matchingUser.id)
-      .single();
+      .eq('email', session.user.email)
+      .maybeSingle();
 
     if (userData?.organization_id) {
       await supabase.rpc('log_audit_event', {

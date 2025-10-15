@@ -1561,13 +1561,17 @@ The draft is now in your Outlook Drafts folder and ready to send.`);
                               minute: '2-digit'
                             })}
                           </p>
-                          {event.description && (
-                            <p className="text-xs text-gray-500 mt-1 overflow-hidden" style={{
+                          {event.description && event.description.trim() && (
+                            <p className="text-xs text-gray-500 mt-1 overflow-hidden max-w-full break-words" style={{
                               display: '-webkit-box',
                               WebkitLineClamp: 2,
-                              WebkitBoxOrient: 'vertical',
-                              textOverflow: 'ellipsis'
-                            }}>{event.description}</p>
+                              WebkitBoxOrient: 'vertical' as any,
+                              textOverflow: 'ellipsis',
+                              wordBreak: 'break-word',
+                              overflowWrap: 'break-word'
+                            }}>
+                              {event.description.replace(/\.{3,}/g, '...').trim()}
+                            </p>
                           )}
                         </div>
                         <span className={`text-xs px-2 py-1 rounded-full ${

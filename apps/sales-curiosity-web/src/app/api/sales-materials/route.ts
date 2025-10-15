@@ -86,28 +86,41 @@ export async function GET(req: NextRequest) {
 
 // POST - Upload sales material
 export async function POST(req: NextRequest) {
+  console.log('📁 POST /api/sales-materials called');
+  
   try {
     const origin = req.headers.get('origin');
+    console.log('📁 Origin:', origin);
     
     if (!isAllowedOrigin(origin)) {
+      console.log('📁 Origin not allowed');
       return NextResponse.json(
         { error: 'Forbidden' },
         { status: 403, headers: corsHeaders(origin) }
       );
     }
 
+    console.log('📁 Getting session...');
     const session = await auth();
+    console.log('📁 Session:', !!session, !!session?.user?.email);
     
     if (!session?.user?.email) {
+      console.log('📁 No session or email');
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401, headers: corsHeaders(origin) });
     }
 
+    console.log('📁 Parsing form data...');
     const formData = await req.formData();
     const file = formData.get('file') as File;
     const description = formData.get('description') as string;
     const category = formData.get('category') as string;
+    
+    console.log('📁 File received:', !!file, file?.name, file?.size);
+    console.log('📁 Description:', description);
+    console.log('📁 Category:', category);
 
     if (!file) {
+      console.log('📁 No file provided');
       return NextResponse.json({ error: 'File is required' }, { status: 400, headers: corsHeaders(origin) });
     }
 

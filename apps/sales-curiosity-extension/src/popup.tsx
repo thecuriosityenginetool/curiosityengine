@@ -374,7 +374,7 @@ function Popup() {
             marginBottom: 24
           }}>
             <img 
-              src="icons/fulllogo.png" 
+              src="icons/logo-full.png" 
               alt="Sales Curiosity"
               style={{
                 height: 60,
@@ -536,7 +536,7 @@ function Popup() {
         }}>
           <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
             <img 
-              src="icons/logo.png" 
+              src="icons/logo-icon.png" 
               alt="Sales Curiosity"
               style={{
                 height: 32,
@@ -792,18 +792,47 @@ function Popup() {
                 lineHeight: 1.6,
                 maxHeight: 280,
                 overflowY: "auto",
-                whiteSpace: "pre-wrap",
                 border: "1px solid #e5e7eb",
                 color: "#374151"
               }}>
                 {response.split('\n').map((line, i) => {
-                  if (line.startsWith('**') && line.endsWith('**')) {
-                    return <div key={i} style={{ fontWeight: 700, marginTop: i > 0 ? 8 : 0, color: "#111827" }}>{line.replace(/\*\*/g, '')}</div>;
+                  // Strip HTML tags and render clean
+                  let cleanLine = line
+                    .replace(/<h3>/g, '')
+                    .replace(/<\/h3>/g, '')
+                    .replace(/<h4>/g, '')
+                    .replace(/<\/h4>/g, '')
+                    .replace(/<p>/g, '')
+                    .replace(/<\/p>/g, '')
+                    .replace(/<strong>/g, '')
+                    .replace(/<\/strong>/g, '')
+                    .replace(/<ul>/g, '')
+                    .replace(/<\/ul>/g, '')
+                    .replace(/<li>/g, '• ')
+                    .replace(/<\/li>/g, '')
+                    .replace(/<br\s*\/?>/g, '')
+                    .trim();
+                  
+                  if (!cleanLine) return null;
+                  
+                  // Check if it was a heading (h3/h4)
+                  const wasHeading = line.includes('<h3>') || line.includes('<h4>');
+                  const wasBold = line.includes('<strong>');
+                  const wasBullet = line.includes('<li>');
+                  
+                  if (wasHeading || (line.startsWith('**') && line.endsWith('**'))) {
+                    return <div key={i} style={{ fontWeight: 700, marginTop: i > 0 ? 12 : 0, marginBottom: 6, color: "#F95B14", fontSize: 14 }}>{cleanLine.replace(/\*\*/g, '')}</div>;
+                  }
+                  if (wasBold || (line.includes('**') && !line.startsWith('**'))) {
+                    return <div key={i} style={{ fontWeight: 600, marginTop: 4, color: "#111827" }}>{cleanLine.replace(/\*\*/g, '')}</div>;
+                  }
+                  if (wasBullet || line.trim().startsWith('•') || line.trim().startsWith('-')) {
+                    return <div key={i} style={{ paddingLeft: 12, marginTop: 2, color: "#374151" }}>{cleanLine}</div>;
                   }
                   if (line.startsWith('🔗') || line.startsWith('➕')) {
-                    return <div key={i} style={{ background: '#fef3c7', padding: 8, borderRadius: 6, marginBottom: 8, color: '#92400e', fontSize: 12 }}>{line}</div>;
+                    return <div key={i} style={{ background: '#fef3c7', padding: 8, borderRadius: 6, marginTop: 8, marginBottom: 8, color: '#92400e', fontSize: 12 }}>{cleanLine}</div>;
                   }
-                  return <div key={i}>{line}</div>;
+                  return <div key={i} style={{ marginTop: 2 }}>{cleanLine}</div>;
                 })}
               </div>
             )}

@@ -3,7 +3,6 @@ import { createClient } from '@supabase/supabase-js';
 import { auth } from '@/lib/auth';
 // import pdf from 'pdf-parse'; // Temporarily disabled due to serverless compatibility issues
 import mammoth from 'mammoth';
-import officeParser from 'officeparser';
 
 function corsHeaders(origin?: string) {
   return {
@@ -125,14 +124,9 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: 'File is required' }, { status: 400, headers: corsHeaders(origin) });
     }
 
-    // Check file size (max 4MB for Vercel free tier - 4.5MB limit with some buffer)
-    const maxSize = 4 * 1024 * 1024; // 4MB
-    if (file.size > maxSize) {
-      const sizeMB = (file.size / (1024 * 1024)).toFixed(2);
-      return NextResponse.json({ 
-        error: `File size (${sizeMB}MB) exceeds the 4MB limit. Please compress your file or split it into smaller parts.`,
-        hint: 'Tip: Most PowerPoints can be compressed by removing high-res images or saving as PDF.' 
-      }, { status: 413, headers: corsHeaders(origin) });
+    // Check file size (max 50MB for large documents)
+    if (file.size > 50 * 1024 * 1024) {
+      return NextResponse.json({ error: 'File size exceeds 50MB limit. Please use a smaller file.' }, { status: 413, headers: corsHeaders(origin) });
     }
 
     // Get user
@@ -174,40 +168,30 @@ export async function POST(req: NextRequest) {
       const arrayBuffer = await file.arrayBuffer();
       
       switch (fileType) {
+        case 'pdf':
+          // PDF parsing temporarily disabled due to serverless compatibility issues
+          // TODO: Implement serverless-compatible PDF parsing
+          fileText = 'PDF text extraction temporarily unavailable. Please convert to DOCX or TXT for text extraction.';
+          break;
         case 'docx':
         case 'doc':
-          // Use mammoth for DOCX (faster and more reliable)
-          try {
-            console.log(`📄 Extracting text from ${fileType} using mammoth...`);
-            const docxResult = await mammoth.extractRawText({ buffer: arrayBuffer });
-            fileText = docxResult.value;
-            console.log(`✅ Extracted ${fileText.length} characters from ${file.name}`);
-          } catch (parseError) {
-            console.error(`Error parsing ${fileType}:`, parseError);
-            fileText = `File uploaded successfully but text extraction failed. You can still reference this file by name.`;
-          }
+          const docxResult = await mammoth.extractRawText({ buffer: arrayBuffer });
+          fileText = docxResult.value;
           break;
         case 'txt':
           fileText = await file.text();
-          console.log(`✅ Read ${fileText.length} characters from text file`);
           break;
-        case 'pdf':
         case 'pptx':
-          // For PDF and PPTX, skip extraction to avoid timeout
-          // Store file info so AI knows it exists
-          fileText = `${fileType.toUpperCase()} file uploaded: ${file.name}. Content available but not extracted for performance. AI can reference this file by name and category.`;
-          console.log(`⚡ Skipped text extraction for ${fileType} to avoid timeout`);
+          // For now, we'll extract basic text from PPTX
+          // In a production environment, you might want to use a library like 'pptx2json'
+          fileText = 'PowerPoint content extraction not yet implemented. Please convert to PDF or DOCX for better text extraction.';
           break;
         default:
-          try {
-            fileText = await file.text();
-          } catch {
-            fileText = 'File uploaded successfully. Content type not fully supported for text extraction.';
-          }
+          fileText = await file.text().catch(() => '');
       }
     } catch (error) {
-      console.error('Error processing file:', error);
-      fileText = 'File uploaded but text extraction failed.';
+      console.error('Error extracting text from file:', error);
+      fileText = 'Error extracting text from file.';
     }
 
     // Save to database

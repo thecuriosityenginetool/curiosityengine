@@ -1445,7 +1445,7 @@ The draft is now in your Outlook Drafts folder and ready to send.`);
       {/* Main Content */}
       <div className="max-w-7xl mx-auto py-8 px-0">
         {activeTab === 'dashboard' && (
-          <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 relative px-6">
+          <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 relative px-6" style={{ overflow: 'visible' }}>
             {/* Floating sidebar toggle when collapsed */}
             {!showChatSidebar && (
               <button

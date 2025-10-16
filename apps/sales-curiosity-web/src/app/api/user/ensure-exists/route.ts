@@ -32,10 +32,11 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ ok: true, created: false });
     }
 
-    // Create user with generated UUID
+    // Create user with explicit UUID
     const { data: newUser, error: insertError } = await supabase
       .from('users')
       .insert({
+        id: crypto.randomUUID(), // Explicitly set UUID
         email: session.user.email,
         full_name: session.user.name || session.user.email?.split('@')[0] || 'User',
         role: 'member',

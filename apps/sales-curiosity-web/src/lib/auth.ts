@@ -53,10 +53,11 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
           if (!existing) {
             console.log('🆕 Creating NEW user record for:', normalizedEmail);
             
-            // Create user record with lowercase email
+            // Create user record with lowercase email and explicit UUID
             const { data: newUser, error: insertError } = await supabase
               .from('users')
               .insert({
+                id: crypto.randomUUID(), // Explicitly generate UUID
                 email: normalizedEmail,
                 full_name: user.name || user.email.split('@')[0] || 'User',
                 role: 'member',

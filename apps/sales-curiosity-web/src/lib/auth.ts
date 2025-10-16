@@ -38,39 +38,44 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
       // Auto-create user in public.users on first OAuth login
       if (user.email) {
         try {
-          console.log('👤 Ensuring user exists in public.users...');
+          console.log('👤 Ensuring user exists in public.users for:', user.email);
           
-          // Check if user already exists
+          // Normalize email to lowercase for consistency
+          const normalizedEmail = user.email.toLowerCase();
+          
+          // Check if user already exists (case-insensitive)
           const { data: existing } = await supabase
             .from('users')
-            .select('id')
-            .eq('email', user.email)
+            .select('id, email')
+            .ilike('email', normalizedEmail)
             .maybeSingle();
           
           if (!existing) {
-            console.log('🆕 Creating new user record for:', user.email);
+            console.log('🆕 Creating NEW user record for:', normalizedEmail);
             
-            // Create user record
-            const { error: insertError } = await supabase
+            // Create user record with lowercase email
+            const { data: newUser, error: insertError } = await supabase
               .from('users')
               .insert({
-                email: user.email,
-                full_name: user.name || user.email.split('@')[0],
+                email: normalizedEmail,
+                full_name: user.name || user.email.split('@')[0] || 'User',
                 role: 'member',
                 user_context: { aboutMe: '', objectives: '' }
-              });
+              })
+              .select()
+              .single();
             
             if (insertError) {
               console.error('❌ Error creating user:', insertError);
             } else {
-              console.log('✅ User record created successfully');
+              console.log('✅ User record created successfully:', newUser.id);
             }
           } else {
-            console.log('✅ User already exists in public.users');
+            console.log('✅ User already exists:', existing.id);
           }
         } catch (error) {
           console.error('❌ Error in signIn callback:', error);
-          // Don't block login if user creation fails
+          // Don't block login if user creation fails - they can still sign in
         }
       }
       

@@ -311,8 +311,12 @@ function Popup() {
         let thinkingContent = '';
         let finalContent = '';
         
+        console.log('🧠 Raw analysis received:', analysisText.substring(0, 200));
+        
         // Check for thinking tags (complete or incomplete)
         if (analysisText.includes('<think>')) {
+          console.log('💡 Thinking tags detected, parsing...');
+          
           // Extract thinking content (handle both complete and incomplete tags)
           const thinkStart = analysisText.indexOf('<think>');
           const thinkEnd = analysisText.indexOf('</think>');
@@ -321,22 +325,37 @@ function Popup() {
             // Complete thinking tag found
             thinkingContent = analysisText.substring(thinkStart + 7, thinkEnd).trim();
             finalContent = analysisText.substring(thinkEnd + 8).trim();
+            console.log('✅ Parsed - Thinking:', thinkingContent.substring(0, 100), '... Final:', finalContent.substring(0, 100));
           } else {
             // Incomplete tag - take everything after <think> as thinking
             thinkingContent = analysisText.substring(thinkStart + 7).trim();
-            finalContent = '';
+            finalContent = 'Still thinking...';
+            console.log('⚠️ Incomplete thinking tag found');
           }
-          
-          setThinking(thinkingContent);
-          setResponse(finalContent || 'Processing...');
         } else {
           // No thinking tags - use full content
-          setThinking('');
-          setResponse(analysisText);
+          console.log('ℹ️ No thinking tags found, using full content');
+          finalContent = analysisText;
         }
         
+        // Add Salesforce status BEFORE setting response
+        let salesforcePrefix = '';
+        if (res.data.salesforceStatus) {
+          const sfStatus = res.data.salesforceStatus;
+          if (sfStatus.found) {
+            salesforcePrefix = `🔗 **Salesforce Status:** Found as ${sfStatus.type} in your CRM\n\n`;
+          } else if (sfStatus.inCRM === false) {
+            salesforcePrefix = `➕ **Salesforce Status:** New contact added to your CRM\n\n`;
+          }
+        }
+        
+        // Set thinking and response separately
+        setThinking(thinkingContent);
+        setResponse(salesforcePrefix + finalContent);
         setProfileData(res.data.profileData || extractResponse.data);
         setShowThinking(false); // Start collapsed
+        
+        console.log('✅ Response set:', (salesforcePrefix + finalContent).substring(0, 100));
         
         // Save to local storage for persistence
         await chrome.storage.local.set({
@@ -344,20 +363,6 @@ function Popup() {
           lastAnalysisUrl: currentUrl,
           lastProfileData: res.data.profileData || extractResponse.data
         });
-        
-        // Show Salesforce status if available
-        if (res.data.salesforceStatus) {
-          const sfStatus = res.data.salesforceStatus;
-          if (sfStatus.found) {
-            setResponse(prev => 
-              `🔗 **Salesforce Status:** Found as ${sfStatus.type} in your CRM\n\n` + prev
-            );
-          } else if (sfStatus.inCRM === false) {
-            setResponse(prev => 
-              `➕ **Salesforce Status:** New contact added to your CRM\n\n` + prev
-            );
-          }
-        }
         
         setActionType(null);
         setEmailContext("");

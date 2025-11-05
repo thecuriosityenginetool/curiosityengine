@@ -1572,11 +1572,11 @@ The draft is now in your Outlook Drafts folder and ready to send.`);
 
   return (
     <div className="min-h-screen bg-white">
-      {/* Header - Modern Style */}
+      {/* Header - Full Width */}
       <div className="sticky top-0 z-50 bg-white/90 backdrop-blur-md border-b border-gray-100">
-        <div className="max-w-7xl mx-auto px-8 py-4">
+        <div className="w-full px-6 py-4">
           <div className="flex justify-between items-center">
-            {/* Logo */}
+            {/* Logo - Far Left */}
             <div className="flex items-center">
               <Image
                 src="/fulllogo_transparent_nobuffer.png"
@@ -1587,7 +1587,7 @@ The draft is now in your Outlook Drafts folder and ready to send.`);
               />
             </div>
             
-            {/* Account Menu */}
+            {/* Account Menu - Far Right */}
             <div className="relative account-menu-container">
               <button
                 onClick={(e) => {

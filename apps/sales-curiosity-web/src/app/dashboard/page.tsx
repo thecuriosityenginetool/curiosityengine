@@ -3373,6 +3373,7 @@ The draft is now in your Outlook Drafts folder and ready to send.`);
           </div>
         </div>
       )}
+      </motion.div>
     </div>
   );
 }

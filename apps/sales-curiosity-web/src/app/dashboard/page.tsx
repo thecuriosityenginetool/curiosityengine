@@ -104,6 +104,12 @@ export default function DashboardPage() {
   });
   const [salesMaterials, setSalesMaterials] = useState<any[]>([]);
   const [userPermissions, setUserPermissions] = useState<any>(null);
+  
+  // Team invitation state
+  const [inviteEmail, setInviteEmail] = useState('');
+  const [inviteRole, setInviteRole] = useState<'member' | 'org_admin'>('member');
+  const [inviteLoading, setInviteLoading] = useState(false);
+  const [inviteMessage, setInviteMessage] = useState('');
   const [uploadingFile, setUploadingFile] = useState(false);
   const [uploadMessage, setUploadMessage] = useState('');
   const [uploadMessageType, setUploadMessageType] = useState<'success' | 'error' | ''>('');
@@ -1404,6 +1410,50 @@ The draft is now in your Outlook Drafts folder and ready to send.`);
     }
   }
 
+  async function handleSendInvitation() {
+    if (!inviteEmail) {
+      alert('Please enter an email address');
+      return;
+    }
+
+    setInviteLoading(true);
+    setInviteMessage('');
+
+    try {
+      const response = await fetch('/api/invitations', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          email: inviteEmail,
+          role: inviteRole,
+          permissions: {
+            can_view_org_materials: true,
+            can_upload_materials: true,
+            can_delete_own_materials: true,
+            can_share_materials: inviteRole === 'org_admin',
+            can_view_team_analyses: true,
+            can_view_team_emails: false,
+          }
+        }),
+      });
+
+      const data = await response.json();
+
+      if (!response.ok || !data.success) {
+        throw new Error(data.error || 'Failed to send invitation');
+      }
+
+      setInviteMessage(`✅ Invitation sent to ${inviteEmail}!\n\nShare this link:\n${data.invitationLink}`);
+      setInviteEmail('');
+      setInviteRole('member');
+    } catch (err: any) {
+      console.error('Invitation error:', err);
+      setInviteMessage(`❌ ${err.message}`);
+    } finally {
+      setInviteLoading(false);
+    }
+  }
+
   async function handleFileUpload(event: React.ChangeEvent<HTMLInputElement>) {
     const file = event.target.files?.[0];
     if (!file) return;
@@ -2464,52 +2514,89 @@ The draft is now in your Outlook Drafts folder and ready to send.`);
                 {isAdmin ? (
                   <div>
                     <p className="text-sm text-gray-600 mb-4">
-                      Manage your team, send invitations, and control permissions from the Organization Dashboard.
+                      Invite team members and manage your organization.
                     </p>
                     
+                    {/* Invitation Form */}
                     <div className="bg-gradient-to-r from-blue-50 to-indigo-50 border border-blue-200 rounded-lg p-4 mb-4">
-                      <h4 className="text-sm font-semibold text-blue-900 mb-2">✨ Admin Features Available:</h4>
-                      <ul className="text-xs text-blue-800 space-y-1.5">
-                        <li>• <strong>Send invitations</strong> with custom permissions per user</li>
-                        <li>• <strong>View all team members</strong> and their activity</li>
-                        <li>• <strong>Manage permissions</strong> for what users can do</li>
-                        <li>• <strong>Track team analytics</strong> - analyses, emails, materials</li>
-                        <li>• <strong>Control integrations</strong> for the entire organization</li>
-                        <li>• <strong>Share materials</strong> organization-wide or with specific users</li>
-                      </ul>
+                      <h4 className="text-sm font-semibold text-blue-900 mb-3">📨 Invite Team Member</h4>
+                      
+                      {inviteMessage && (
+                        <div className={`mb-3 p-3 rounded-lg text-xs font-medium ${
+                          inviteMessage.startsWith('✅') 
+                            ? 'bg-green-100 text-green-800 border border-green-200' 
+                            : 'bg-red-100 text-red-800 border border-red-200'
+                        }`}>
+                          <div className="whitespace-pre-wrap">{inviteMessage}</div>
+                        </div>
+                      )}
+                      
+                      <div className="space-y-3">
+                        <div>
+                          <label className="block text-xs font-medium text-gray-700 mb-1">Email Address</label>
+                          <input
+                            type="email"
+                            value={inviteEmail}
+                            onChange={(e) => setInviteEmail(e.target.value)}
+                            placeholder="teammate@company.com"
+                            className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none"
+                            disabled={inviteLoading}
+                          />
+                        </div>
+                        
+                        <div>
+                          <label className="block text-xs font-medium text-gray-700 mb-1">Role</label>
+                          <select 
+                            value={inviteRole}
+                            onChange={(e) => setInviteRole(e.target.value as 'member' | 'org_admin')}
+                            className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none bg-white"
+                            disabled={inviteLoading}
+                          >
+                            <option value="member">Team Member (Standard Access)</option>
+                            <option value="org_admin">Admin (Full Access)</option>
+                          </select>
+                        </div>
+                        
+                        <button
+                          onClick={handleSendInvitation}
+                          disabled={inviteLoading || !inviteEmail}
+                          className="w-full bg-blue-600 text-white px-4 py-2.5 rounded-lg text-sm font-semibold hover:bg-blue-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                        >
+                          {inviteLoading ? 'Sending...' : '✉️ Send Invitation'}
+                        </button>
+                        
+                        <p className="text-xs text-blue-700 italic">
+                          They'll get an invitation link to join your organization.
+                        </p>
+                      </div>
                     </div>
 
+                    {/* Quick Stats */}
+                    <div className="grid grid-cols-2 gap-3 mb-4">
+                      <div className="bg-white border border-gray-200 rounded-lg p-3 text-center">
+                        <div className="text-2xl font-bold text-[#667eea]">
+                          {salesMaterials.filter(m => m.visibility === 'organization').length}
+                        </div>
+                        <div className="text-xs text-gray-600 mt-1">Shared Materials</div>
+                      </div>
+                      <div className="bg-white border border-gray-200 rounded-lg p-3 text-center">
+                        <div className="text-2xl font-bold text-[#667eea]">
+                          {salesMaterials.filter(m => !m.is_owner).length}
+                        </div>
+                        <div className="text-xs text-gray-600 mt-1">Team Materials</div>
+                      </div>
+                    </div>
+
+                    {/* Link to Full Dashboard */}
                     <button
                       onClick={() => router.push('/admin/organization')}
-                      className="w-full bg-[#667eea] text-white px-4 py-3 rounded-lg text-sm font-semibold hover:bg-[#5568d3] transition-colors flex items-center justify-center space-x-2"
+                      className="w-full bg-gray-100 text-gray-700 px-4 py-2 rounded-lg text-sm font-medium hover:bg-gray-200 transition-colors flex items-center justify-center space-x-2"
                     >
-                      <span>🚀 Open Organization Dashboard</span>
+                      <span>View Full Organization Dashboard</span>
                       <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 8l4 4m0 0l-4 4m4-4H3" />
                       </svg>
                     </button>
-
-                    <div className="mt-4 pt-4 border-t border-gray-200">
-                      <div className="grid grid-cols-2 gap-2">
-                        <div className="bg-white border border-gray-200 rounded-lg p-3 text-center">
-                          <div className="text-2xl font-bold text-[#667eea]">
-                            {salesMaterials.filter(m => m.visibility === 'organization').length}
-                          </div>
-                          <div className="text-xs text-gray-600 mt-1">Shared Materials</div>
-                        </div>
-                        <div className="bg-white border border-gray-200 rounded-lg p-3 text-center">
-                          <div className="text-2xl font-bold text-[#667eea]">—</div>
-                          <div className="text-xs text-gray-600 mt-1">
-                            <button
-                              onClick={() => router.push('/admin/organization')}
-                              className="text-blue-600 hover:text-blue-800 font-medium"
-                            >
-                              View Team →
-                            </button>
-                          </div>
-                        </div>
-                      </div>
-                    </div>
                   </div>
                 ) : (
                   <div>

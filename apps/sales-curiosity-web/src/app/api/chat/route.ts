@@ -204,7 +204,7 @@ export async function POST(req: NextRequest) {
       );
     }
 
-    const { message, conversationHistory = [], userContext, calendarEvents = [] } = await req.json();
+    const { message, conversationHistory = [], userContext, calendarEvents = [], model } = await req.json();
 
     if (!message) {
       return new Response(
@@ -212,6 +212,10 @@ export async function POST(req: NextRequest) {
         { status: 400, headers: { 'Content-Type': 'application/json' } }
       );
     }
+
+    // Use provided model or default to DeepSeek-R1-0528
+    const selectedModel = model || 'DeepSeek-R1-0528';
+    console.log('🤖 [Chat API] Using SambaNova model:', selectedModel);
 
     // Get user profile with company info
     const { data: user } = await supabase
@@ -395,9 +399,10 @@ export async function POST(req: NextRequest) {
     const stream = new ReadableStream({
       async start(controller) {
         try {
-          // Call OpenAI with streaming and tools
+          // Call SambaNova with streaming and tools
+          console.log('🚀 [Chat API] Calling SambaNova Cloud with model:', selectedModel);
           const completion = await openai.chat.completions.create({
-            model: 'gpt-4o',
+            model: selectedModel,
             messages,
             tools: availableTools.length > 0 ? availableTools : undefined,
             tool_choice: availableTools.length > 0 ? 'auto' : undefined,
@@ -511,8 +516,9 @@ export async function POST(req: NextRequest) {
               }
 
               // Make another completion call with tool results
+              console.log('🔄 [Chat API] Follow-up call with model:', selectedModel);
               const followUpCompletion = await openai.chat.completions.create({
-                model: 'gpt-4o',
+                model: selectedModel,
                 messages,
                 stream: true,
                 max_tokens: 1500,

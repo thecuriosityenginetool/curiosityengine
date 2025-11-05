@@ -70,6 +70,19 @@ export default function DashboardPage() {
   const [showEventMenu, setShowEventMenu] = useState(false);
   const chatEndRef = useRef<HTMLDivElement>(null);
   
+  // AI Model selection state
+  const [selectedModel, setSelectedModel] = useState('DeepSeek-R1-0528');
+  const [showModelInfo, setShowModelInfo] = useState(false);
+  
+  // Available models from SambaNova Cloud
+  const availableModels = [
+    { id: 'DeepSeek-R1-0528', name: 'DeepSeek R1 (671B)', provider: 'SambaNova', description: 'Most powerful - Best for complex reasoning' },
+    { id: 'Meta-Llama-3.3-70B-Instruct', name: 'Llama 3.3 70B', provider: 'SambaNova', description: 'Fast and efficient - Great balance' },
+    { id: 'Meta-Llama-3.1-405B-Instruct', name: 'Llama 3.1 405B', provider: 'SambaNova', description: 'Very powerful - Detailed responses' },
+    { id: 'Meta-Llama-3.1-70B-Instruct', name: 'Llama 3.1 70B', provider: 'SambaNova', description: 'Quick responses' },
+    { id: 'Meta-Llama-3.1-8B-Instruct', name: 'Llama 3.1 8B', provider: 'SambaNova', description: 'Ultra-fast - Simple tasks' },
+  ];
+  
   // Leads state
   const [leads, setLeads] = useState<Lead[]>([]);
   const [selectedLead, setSelectedLead] = useState<Lead | null>(null);
@@ -428,6 +441,8 @@ export default function DashboardPage() {
         });
       }
 
+      console.log('🤖 Sending message to SambaNova Cloud:', { model: selectedModel });
+      
       const response = await fetch('/api/chat', {
         method: 'POST',
         headers: {
@@ -437,7 +452,8 @@ export default function DashboardPage() {
           message: messageContent,
           conversationHistory: chatMessages,
           userContext: userData?.user_context,
-          calendarEvents
+          calendarEvents,
+          model: selectedModel // Pass selected model to API
         }),
       });
 
@@ -695,6 +711,8 @@ Please provide:
       };
       setChatMessages([userMessage]);
 
+      console.log('🤖 Meeting Insights - Using SambaNova model:', selectedModel);
+      
       const response = await fetch('/api/chat', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -702,6 +720,7 @@ Please provide:
           message: prompt,
           conversationHistory: [],
           userContext: userData?.user_context,
+          model: selectedModel // Pass selected model
         }),
       });
 
@@ -1667,6 +1686,53 @@ The draft is now in your Outlook Drafts folder and ready to send.`);
 
                 {/* Chat Input */}
                 <div className="p-4 border-t border-gray-200">
+                  {/* Model Selector */}
+                  <div className="mb-3 flex items-center justify-between">
+                    <div className="flex items-center space-x-2 flex-1">
+                      <label className="text-xs font-medium text-gray-600">AI Model:</label>
+                      <select
+                        value={selectedModel}
+                        onChange={(e) => setSelectedModel(e.target.value)}
+                        className="text-xs border border-gray-300 rounded-lg px-3 py-1.5 focus:ring-2 focus:ring-[#F95B14] focus:border-transparent outline-none bg-white"
+                      >
+                        {availableModels.map((model) => (
+                          <option key={model.id} value={model.id}>
+                            {model.name} - {model.description}
+                          </option>
+                        ))}
+                      </select>
+                      <button
+                        onClick={() => setShowModelInfo(!showModelInfo)}
+                        className="text-gray-400 hover:text-gray-600 transition-colors"
+                        title="Model information"
+                      >
+                        <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                        </svg>
+                      </button>
+                    </div>
+                    <div className="flex items-center space-x-2">
+                      <span className="text-xs text-gray-500">via</span>
+                      <span className="text-xs font-semibold text-[#F95B14] bg-orange-50 px-2 py-1 rounded">SambaNova Cloud</span>
+                    </div>
+                  </div>
+
+                  {/* Model Info Panel */}
+                  {showModelInfo && (
+                    <div className="mb-3 p-3 bg-blue-50 border border-blue-200 rounded-lg text-xs">
+                      <div className="font-semibold text-blue-900 mb-2">
+                        {availableModels.find(m => m.id === selectedModel)?.name}
+                      </div>
+                      <div className="text-blue-800 mb-2">
+                        {availableModels.find(m => m.id === selectedModel)?.description}
+                      </div>
+                      <div className="text-blue-700">
+                        <strong>Provider:</strong> SambaNova Cloud<br />
+                        <strong>Model ID:</strong> <code className="bg-blue-100 px-1 py-0.5 rounded">{selectedModel}</code>
+                      </div>
+                    </div>
+                  )}
+
                   <div className="flex space-x-2">
                     <input
                       type="text"

@@ -398,37 +398,41 @@ ${profileData.name || 'This professional'} is ${profileData.headline || 'a profe
 *Note: This is a MOCK response generated for testing. To use real AI analysis, add OpenAI credits and set USE_MOCK_AI=0 in your .env.local file.*`;
       }
     } else {
-      console.log('Sending to OpenAI for analysis...');
-      console.log('OpenAI API Key present:', !!process.env.OPENAI_API_KEY);
-      console.log('OpenAI API Key prefix:', process.env.OPENAI_API_KEY?.substring(0, 10));
+      console.log('Sending to SambaNova (DeepSeek) for analysis...');
+      console.log('SambaNova API Key present:', !!process.env.SAMBANOVA_API_KEY);
+      console.log('SambaNova API Key prefix:', process.env.SAMBANOVA_API_KEY?.substring(0, 10));
       console.log('Context text length:', contextText.length);
 
-      // Call OpenAI for analysis
+      // Call SambaNova (DeepSeek) for analysis
       let completion;
       try {
-        completion = await openai.responses.create({
-          model: 'gpt-5-mini',
-          input: prompt + '\n\nIMPORTANT: Format your response using HTML tags instead of markdown. Use <h3> for section headers, <p> for paragraphs, <ul> and <li> for bullet points, and <strong> for bold text.',
-          reasoning: {
-            effort: "low"
-          },
-          text: {
-            verbosity: "medium"
-          },
-          max_output_tokens: 1500,
+        completion = await openai.chat.completions.create({
+          model: 'DeepSeek-R1-0528',
+          messages: [
+            {
+              role: 'system',
+              content: 'You are an expert sales intelligence assistant. Format your response using HTML tags instead of markdown. Use <h3> for section headers, <p> for paragraphs, <ul> and <li> for bullet points, and <strong> for bold text.'
+            },
+            {
+              role: 'user',
+              content: prompt
+            }
+          ],
+          max_tokens: 1500,
+          temperature: 0.7,
         });
-      } catch (openaiError: any) {
-        console.error('OpenAI API Error:', {
-          message: openaiError.message,
-          type: openaiError.type,
-          code: openaiError.code,
-          status: openaiError.status,
-          error: openaiError.error,
+      } catch (apiError: any) {
+        console.error('SambaNova API Error:', {
+          message: apiError.message,
+          type: apiError.type,
+          code: apiError.code,
+          status: apiError.status,
+          error: apiError.error,
         });
-        throw new Error(`OpenAI API failed: ${openaiError.message || openaiError.toString()}`);
+        throw new Error(`SambaNova API failed: ${apiError.message || apiError.toString()}`);
       }
 
-      analysis = completion.output_text || 'No analysis generated';
+      analysis = completion.choices[0]?.message?.content || 'No analysis generated';
       console.log('Analysis complete, length:', analysis.length);
     }
 

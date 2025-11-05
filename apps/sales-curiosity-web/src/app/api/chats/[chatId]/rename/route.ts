@@ -31,9 +31,9 @@ export async function POST(
       return NextResponse.json({ error: 'Message required' }, { status: 400 });
     }
 
-    // Generate title using OpenAI
+    // Generate title using SambaNova (DeepSeek)
     const completion = await openai.chat.completions.create({
-      model: 'gpt-4o-mini',
+      model: 'DeepSeek-R1-0528',
       messages: [
         {
           role: 'system',

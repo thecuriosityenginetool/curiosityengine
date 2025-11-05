@@ -3303,7 +3303,7 @@ The draft is now in your Outlook Drafts folder and ready to send.`);
             </div>
           </div>
         )}
-      </div>
+      </motion.div>
 
       {/* Connection Modal */}
       {showConnectionModal && (
@@ -3373,7 +3373,6 @@ The draft is now in your Outlook Drafts folder and ready to send.`);
           </div>
         </div>
       )}
-      </motion.div>
     </div>
   );
 }

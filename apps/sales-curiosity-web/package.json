@@ -9,10 +9,12 @@
     "lint": "eslint"
   },
   "dependencies": {
+    "@heroui/react": "^2.8.5",
     "@sparticuz/chromium": "^140.0.0",
     "@supabase/ssr": "^0.7.0",
     "@supabase/supabase-js": "^2.58.0",
     "docx": "^9.5.1",
+    "framer-motion": "^12.23.24",
     "gsap": "^3.13.0",
     "mammoth": "^1.11.0",
     "marked": "^16.4.0",

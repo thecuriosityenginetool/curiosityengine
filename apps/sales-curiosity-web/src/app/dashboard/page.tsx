@@ -5,6 +5,7 @@ import { useRouter } from 'next/navigation';
 import { useSession, signOut } from 'next-auth/react';
 import { supabase } from '@/lib/supabase';
 import Image from 'next/image';
+import { motion, AnimatePresence } from 'framer-motion';
 import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
 import { marked } from 'marked';
@@ -110,6 +111,7 @@ export default function DashboardPage() {
   const [inviteRole, setInviteRole] = useState<'member' | 'org_admin'>('member');
   const [inviteLoading, setInviteLoading] = useState(false);
   const [inviteMessage, setInviteMessage] = useState('');
+  const [showAccountMenu, setShowAccountMenu] = useState(false);
   const [uploadingFile, setUploadingFile] = useState(false);
   const [uploadMessage, setUploadMessage] = useState('');
   const [uploadMessageType, setUploadMessageType] = useState<'success' | 'error' | ''>('');
@@ -220,6 +222,21 @@ export default function DashboardPage() {
       return () => document.removeEventListener('click', handleClickOutside);
     }
   }, [showModelDropdown]);
+
+  // Close account menu when clicking outside
+  useEffect(() => {
+    const handleClickOutside = (e: MouseEvent) => {
+      const target = e.target as HTMLElement;
+      if (showAccountMenu && !target.closest('.account-menu-container')) {
+        setShowAccountMenu(false);
+      }
+    };
+    
+    if (showAccountMenu) {
+      document.addEventListener('click', handleClickOutside);
+      return () => document.removeEventListener('click', handleClickOutside);
+    }
+  }, [showAccountMenu]);
 
   async function checkAuth() {
     try {
@@ -1530,11 +1547,33 @@ The draft is now in your Outlook Drafts folder and ready to send.`);
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-white flex items-center justify-center">
-        <div className="text-center">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-[#F95B14] mx-auto mb-4"></div>
-          <div className="text-gray-600">Loading dashboard...</div>
-        </div>
+      <div className="min-h-screen bg-gradient-to-br from-gray-50 to-white flex items-center justify-center">
+        <motion.div 
+          initial={{ opacity: 0, scale: 0.9 }}
+          animate={{ opacity: 1, scale: 1 }}
+          className="text-center"
+        >
+          <div className="relative w-16 h-16 mx-auto mb-6">
+            <motion.div
+              className="absolute inset-0 rounded-full border-4 border-transparent border-t-[#F95B14] border-r-[#F95B14]"
+              animate={{ rotate: 360 }}
+              transition={{ duration: 1, repeat: Infinity, ease: "linear" }}
+            />
+            <motion.div
+              className="absolute inset-2 rounded-full border-4 border-transparent border-b-orange-300"
+              animate={{ rotate: -360 }}
+              transition={{ duration: 1.5, repeat: Infinity, ease: "linear" }}
+            />
+          </div>
+          <motion.div 
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            transition={{ delay: 0.2 }}
+            className="text-gray-600 font-medium"
+          >
+            Loading your workspace...
+          </motion.div>
+        </motion.div>
       </div>
     );
   }
@@ -1553,76 +1592,223 @@ The draft is now in your Outlook Drafts folder and ready to send.`);
   const isAdmin = userData.role === 'org_admin' || userData.role === 'super_admin';
 
   return (
-    <div className="min-h-screen bg-gray-50">
-      {/* Header */}
-      <div className="bg-white border-b border-gray-200">
-        <div className="max-w-7xl mx-auto px-6 py-4">
+    <div className="min-h-screen bg-white">
+      {/* Header - Modern minimalist style */}
+      <motion.div 
+        initial={{ y: -20, opacity: 0 }}
+        animate={{ y: 0, opacity: 1 }}
+        className="sticky top-0 z-50 bg-white/80 backdrop-blur-xl border-b border-gray-100"
+      >
+        <div className="max-w-7xl mx-auto px-8 py-4">
           <div className="flex justify-between items-center">
-            <div className="flex items-center space-x-4">
+            {/* Logo and Brand */}
+            <motion.div 
+              className="flex items-center space-x-3"
+              whileHover={{ scale: 1.02 }}
+              transition={{ type: "spring", stiffness: 400 }}
+            >
               <Image
                 src="/icononly_transparent_nobuffer.png"
                 alt="Curiosity Engine"
-                width={32}
-                height={32}
-                className="w-8 h-8"
+                width={40}
+                height={40}
+                className="w-10 h-10"
               />
               <div>
-                <h1 className="text-xl font-bold text-gray-900">Curiosity Engine</h1>
-                <p className="text-sm text-gray-600">AI Sales Assistant</p>
+                <h1 className="text-lg font-semibold text-gray-900">Curiosity Engine</h1>
+                <p className="text-xs text-gray-500">AI Sales Assistant</p>
               </div>
-            </div>
+            </motion.div>
             
-            <div className="flex items-center space-x-4">
-              {isAdmin && (
-                <button
-                  onClick={() => router.push('/admin/dashboard')}
-                  className="bg-gray-100 text-gray-700 px-4 py-2 rounded-lg hover:bg-gray-200 transition-colors"
-                >
-                  Admin Dashboard
-                </button>
-              )}
-              <button
-                onClick={handleLogout}
-                className="text-gray-600 hover:text-gray-900 transition-colors"
+            {/* Account Menu */}
+            <div className="relative account-menu-container">
+              <motion.button
+                whileHover={{ scale: 1.05 }}
+                whileTap={{ scale: 0.95 }}
+                onClick={(e) => {
+                  e.stopPropagation();
+                  setShowAccountMenu(!showAccountMenu);
+                }}
+                className="flex items-center space-x-3 px-4 py-2 rounded-full hover:bg-gray-50 transition-all duration-200"
               >
-                Logout
-              </button>
+                <div className="text-right hidden sm:block">
+                  <div className="text-sm font-medium text-gray-900">{userData?.full_name || 'User'}</div>
+                  <div className="text-xs text-gray-500">{userData?.email}</div>
+                </div>
+                <div className="w-9 h-9 rounded-full bg-gradient-to-br from-[#F95B14] to-orange-600 flex items-center justify-center text-white font-semibold text-sm">
+                  {(userData?.full_name || userData?.email || 'U')[0].toUpperCase()}
+                </div>
+                <svg 
+                  className={`w-4 h-4 text-gray-400 transition-transform ${showAccountMenu ? 'rotate-180' : ''}`}
+                  fill="none" 
+                  stroke="currentColor" 
+                  viewBox="0 0 24 24"
+                >
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+                </svg>
+              </motion.button>
+
+              {/* Account Dropdown */}
+              <AnimatePresence>
+                {showAccountMenu && (
+                  <motion.div
+                    initial={{ opacity: 0, y: -10, scale: 0.95 }}
+                    animate={{ opacity: 1, y: 0, scale: 1 }}
+                    exit={{ opacity: 0, y: -10, scale: 0.95 }}
+                    transition={{ duration: 0.15 }}
+                    className="absolute right-0 mt-2 w-72 bg-white rounded-xl shadow-2xl border border-gray-100 overflow-hidden"
+                  >
+                    {/* User Info */}
+                    <div className="px-4 py-4 border-b border-gray-100 bg-gradient-to-r from-gray-50 to-white">
+                      <div className="flex items-center space-x-3">
+                        <div className="w-12 h-12 rounded-full bg-gradient-to-br from-[#F95B14] to-orange-600 flex items-center justify-center text-white font-bold text-lg">
+                          {(userData?.full_name || userData?.email || 'U')[0].toUpperCase()}
+                        </div>
+                        <div className="flex-1">
+                          <div className="text-sm font-semibold text-gray-900">{userData?.full_name || 'User'}</div>
+                          <div className="text-xs text-gray-500">{userData?.email}</div>
+                          {userData?.role && (
+                            <div className="mt-1">
+                              <span className="text-xs px-2 py-0.5 rounded-full bg-blue-100 text-blue-700 font-medium">
+                                {userData.role === 'org_admin' ? '👑 Admin' : '👤 Member'}
+                              </span>
+                            </div>
+                          )}
+                        </div>
+                      </div>
+                    </div>
+
+                    {/* Menu Items */}
+                    <div className="py-2">
+                      {isAdmin && (
+                        <button
+                          onClick={() => {
+                            setShowAccountMenu(false);
+                            router.push('/admin/organization');
+                          }}
+                          className="w-full px-4 py-3 text-left hover:bg-gray-50 transition-colors flex items-center space-x-3"
+                        >
+                          <svg className="w-5 h-5 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10" />
+                          </svg>
+                          <div>
+                            <div className="text-sm font-medium text-gray-900">Organization</div>
+                            <div className="text-xs text-gray-500">Manage team & settings</div>
+                          </div>
+                        </button>
+                      )}
+                      
+                      <button
+                        onClick={() => {
+                          setShowAccountMenu(false);
+                          setActiveTab('context');
+                        }}
+                        className="w-full px-4 py-3 text-left hover:bg-gray-50 transition-colors flex items-center space-x-3"
+                      >
+                        <svg className="w-5 h-5 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z" />
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+                        </svg>
+                        <div>
+                          <div className="text-sm font-medium text-gray-900">Settings</div>
+                          <div className="text-xs text-gray-500">Profile & preferences</div>
+                        </div>
+                      </button>
+
+                      <div className="my-2 border-t border-gray-100"></div>
+
+                      <button
+                        onClick={() => {
+                          setShowAccountMenu(false);
+                          handleLogout();
+                        }}
+                        className="w-full px-4 py-3 text-left hover:bg-red-50 transition-colors flex items-center space-x-3 text-red-600"
+                      >
+                        <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />
+                        </svg>
+                        <div>
+                          <div className="text-sm font-medium">Log out</div>
+                          <div className="text-xs">Sign out of your account</div>
+                        </div>
+                      </button>
+                    </div>
+                  </motion.div>
+                )}
+              </AnimatePresence>
             </div>
           </div>
         </div>
-      </div>
+      </motion.div>
 
-      {/* Navigation Tabs */}
-      <div className="bg-white border-b border-gray-200">
-        <div className="max-w-7xl mx-auto px-6">
-          <div className="flex space-x-8">
+      {/* Navigation Tabs - Modern style */}
+      <div className="bg-white/50 backdrop-blur-sm border-b border-gray-100">
+        <div className="max-w-7xl mx-auto px-8">
+          <div className="flex space-x-1">
             {[
-              { id: 'dashboard', label: '📊 Dashboard', icon: '📊' },
-              { id: 'leads', label: '👥 Leads', icon: '👥' },
-              { id: 'context', label: '⚙️ Settings', icon: '⚙️' },
-              { id: 'integrations', label: '🔌 Connectors', icon: '🔌' },
-              { id: 'logs', label: '📋 Activity Logs', icon: '📋' },
+              { id: 'dashboard', label: 'Dashboard', icon: (
+                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6" />
+                </svg>
+              )},
+              { id: 'leads', label: 'Leads', icon: (
+                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z" />
+                </svg>
+              )},
+              { id: 'context', label: 'Settings', icon: (
+                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z" />
+                </svg>
+              )},
+              { id: 'integrations', label: 'Connectors', icon: (
+                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 10V3L4 14h7v7l9-11h-7z" />
+                </svg>
+              )},
+              { id: 'logs', label: 'Activity', icon: (
+                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" />
+                </svg>
+              )},
             ].map((tab) => (
-              <button
+              <motion.button
                 key={tab.id}
                 onClick={() => setActiveTab(tab.id as any)}
-                className={`py-4 px-1 border-b-2 font-medium text-sm transition-colors ${
+                whileHover={{ y: -2 }}
+                whileTap={{ scale: 0.98 }}
+                className={`relative py-3 px-4 font-medium text-sm transition-all duration-200 flex items-center space-x-2 ${
                   activeTab === tab.id
-                    ? 'border-[#F95B14] text-[#F95B14]'
-                    : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
+                    ? 'text-[#F95B14]'
+                    : 'text-gray-600 hover:text-gray-900'
                 }`}
               >
-                {tab.label}
-              </button>
+                <span className={activeTab === tab.id ? 'text-[#F95B14]' : 'text-gray-400'}>
+                  {tab.icon}
+                </span>
+                <span>{tab.label}</span>
+                {activeTab === tab.id && (
+                  <motion.div
+                    layoutId="activeTab"
+                    className="absolute bottom-0 left-0 right-0 h-0.5 bg-gradient-to-r from-[#F95B14] to-orange-500"
+                    transition={{ type: "spring", stiffness: 500, damping: 30 }}
+                  />
+                )}
+              </motion.button>
             ))}
           </div>
         </div>
       </div>
 
       {/* Main Content */}
-      <div className="max-w-7xl mx-auto py-8 px-0">
+      <motion.div 
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.3 }}
+        className="max-w-7xl mx-auto py-6 px-0"
+      >
         {activeTab === 'dashboard' && (
-          <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 relative px-6" style={{ overflow: 'visible' }}>
+          <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 relative px-8" style={{ overflow: 'visible' }}>
             {/* Floating sidebar toggle when collapsed */}
             {!showChatSidebar && (
               <button

@@ -69,7 +69,6 @@ export default function DashboardPage() {
   const [isSendingMessage, setIsSendingMessage] = useState(false);
   const [currentChatId, setCurrentChatId] = useState<string | null>(null);
   const [chatHistory, setChatHistory] = useState<any[]>([]);
-  const [showChatSidebar, setShowChatSidebar] = useState(true);
   const [selectedEvent, setSelectedEvent] = useState<CalendarEvent | null>(null);
   const [showEventMenu, setShowEventMenu] = useState(false);
   const chatEndRef = useRef<HTMLDivElement>(null);
@@ -1729,23 +1728,9 @@ The draft is now in your Outlook Drafts folder and ready to send.`);
       <div className="relative">
         {activeTab === 'dashboard' && (
           <div className="grid grid-cols-1 lg:grid-cols-12 gap-0 relative" style={{ overflow: 'visible' }}>
-            {/* Floating sidebar toggle when collapsed */}
-            {!showChatSidebar && (
-              <button
-                onClick={() => setShowChatSidebar(true)}
-                className="fixed left-6 top-1/2 -translate-y-1/2 bg-[#F95B14] text-white p-3 rounded-r-lg shadow-lg hover:bg-orange-600 transition-all duration-300 z-40"
-                title="Show chat history"
-              >
-                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
-                </svg>
-              </button>
-            )}
-
-            {/* Chat History Sidebar - White On-Brand Style */}
-            {showChatSidebar && (
-              <div className="lg:col-span-2 transition-all duration-300 ease-in-out">
-                <div className="bg-white border-r border-gray-100 h-full flex flex-col w-64">
+            {/* Chat History Sidebar - Always Visible */}
+            <div className="lg:col-span-2">
+              <div className="bg-white border-r border-gray-100 h-full flex flex-col w-64">
                   <div className="p-3">
                     <motion.button
                       whileHover={{ scale: 1.01, y: -1 }}
@@ -1803,26 +1788,11 @@ The draft is now in your Outlook Drafts folder and ready to send.`);
                       ))}
                     </div>
                   </div>
-                  {/* Collapse Button - ChatGPT Style */}
-                  <div className="p-3">
-                    <motion.button
-                      whileHover={{ scale: 1.05 }}
-                      whileTap={{ scale: 0.95 }}
-                      onClick={() => setShowChatSidebar(false)}
-                      className="p-2 rounded-md hover:bg-gray-100 transition-colors"
-                      title="Close sidebar"
-                    >
-                      <svg className="w-5 h-5 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 19l-7-7 7-7m8 14l-7-7 7-7" />
-                      </svg>
-                    </motion.button>
-                  </div>
                 </div>
               </div>
-            )}
 
-            {/* AI Chat - Expand to fill available space */}
-            <div className={`${showChatSidebar ? 'lg:col-span-10' : 'lg:col-span-12'} transition-all duration-300 relative px-6`}>
+            {/* AI Chat - Takes remaining 10 columns */}
+            <div className="lg:col-span-10 relative px-6">
               {/* Calendar Toggle Button (top-right of chat) */}
               <button
                 onClick={() => setShowCalendarPanel(!showCalendarPanel)}

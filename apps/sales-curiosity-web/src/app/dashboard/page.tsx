@@ -2375,32 +2375,88 @@ The draft is now in your Outlook Drafts folder and ready to send.`);
                 </div>
               </div>
 
-              {/* Upgrade Section */}
-              <div className="bg-gradient-to-r from-orange-50 to-orange-100 border-2 border-[#F95B14] rounded-lg p-6">
-                <div className="flex items-start justify-between">
-                  <div>
-                    <h3 className="text-lg font-semibold text-gray-900 mb-2">🚀 Upgrade to Company Plan</h3>
-                    <p className="text-sm text-gray-700 mb-4">
-                      Get advanced features including:
+              {/* Team Management Section (for org admins) */}
+              {isAdmin && (
+                <div className="bg-white rounded-lg border border-gray-200 shadow-sm p-6">
+                  <h3 className="text-lg font-semibold text-gray-900 mb-4">👥 Team Management</h3>
+                  
+                  <div className="mb-6">
+                    <p className="text-sm text-gray-600 mb-4">
+                      Invite team members to collaborate on sales materials and share insights.
                     </p>
-                    <ul className="text-sm text-gray-700 space-y-1 mb-4">
-                      <li>✓ Team collaboration & shared context</li>
-                      <li>✓ Unlimited sales material storage</li>
-                      <li>✓ Advanced CRM integrations</li>
-                      <li>✓ Custom AI training on your data</li>
-                      <li>✓ Priority support</li>
-                    </ul>
+                    
+                    <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
+                      <h4 className="text-sm font-semibold text-blue-900 mb-3">📨 Send Invitation</h4>
+                      
+                      <div className="space-y-3">
+                        <div>
+                          <label className="block text-xs font-medium text-gray-700 mb-1">Email Address</label>
+                          <input
+                            type="email"
+                            placeholder="teammate@company.com"
+                            className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none"
+                          />
+                        </div>
+                        
+                        <div>
+                          <label className="block text-xs font-medium text-gray-700 mb-1">Role</label>
+                          <select className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none">
+                            <option value="member">Member</option>
+                            <option value="org_admin">Admin</option>
+                          </select>
+                        </div>
+                        
+                        <button
+                          onClick={() => {
+                            alert('Please use the Organization Dashboard for full team management features.\n\nClick "Admin Dashboard" button above to access invitations with custom permissions.');
+                          }}
+                          className="w-full bg-blue-600 text-white px-4 py-2 rounded-lg text-sm font-medium hover:bg-blue-700 transition-colors"
+                        >
+                          Send Invitation
+                        </button>
+                      </div>
+                      
+                      <div className="mt-4 pt-4 border-t border-blue-200">
+                        <button
+                          onClick={() => router.push('/admin/organization')}
+                          className="text-sm text-blue-600 hover:text-blue-800 font-medium"
+                        >
+                          → Go to Organization Dashboard for full team management
+                        </button>
+                      </div>
+                    </div>
                   </div>
                 </div>
-                <button
-                  onClick={() => {
-                    window.location.href = `mailto:hello@curiosityengine.io?subject=Upgrade to Company Plan&body=Hi,%0A%0AI would like to upgrade to the Company Plan.%0A%0AName: ${userData.full_name}%0AEmail: ${userData.email}%0A%0APlease send me more information.%0A%0AThanks!`;
-                  }}
-                  className="bg-[#F95B14] text-white px-6 py-3 rounded-lg font-semibold hover:bg-orange-600 transition-colors"
-                >
-                  📧 Request Upgrade
-                </button>
-              </div>
+              )}
+
+              {/* Upgrade Section */}
+              {!isAdmin && (
+                <div className="bg-gradient-to-r from-orange-50 to-orange-100 border-2 border-[#F95B14] rounded-lg p-6">
+                  <div className="flex items-start justify-between">
+                    <div>
+                      <h3 className="text-lg font-semibold text-gray-900 mb-2">🚀 Upgrade to Company Plan</h3>
+                      <p className="text-sm text-gray-700 mb-4">
+                        Get advanced features including:
+                      </p>
+                      <ul className="text-sm text-gray-700 space-y-1 mb-4">
+                        <li>✓ Team collaboration & shared context</li>
+                        <li>✓ Unlimited sales material storage</li>
+                        <li>✓ Advanced CRM integrations</li>
+                        <li>✓ Custom AI training on your data</li>
+                        <li>✓ Priority support</li>
+                      </ul>
+                    </div>
+                  </div>
+                  <button
+                    onClick={() => {
+                      window.location.href = `mailto:hello@curiosityengine.io?subject=Upgrade to Company Plan&body=Hi,%0A%0AI would like to upgrade to the Company Plan.%0A%0AName: ${userData.full_name}%0AEmail: ${userData.email}%0A%0APlease send me more information.%0A%0AThanks!`;
+                    }}
+                    className="bg-[#F95B14] text-white px-6 py-3 rounded-lg font-semibold hover:bg-orange-600 transition-colors"
+                  >
+                    📧 Request Upgrade
+                  </button>
+                </div>
+              )}
             </div>
           </div>
         )}

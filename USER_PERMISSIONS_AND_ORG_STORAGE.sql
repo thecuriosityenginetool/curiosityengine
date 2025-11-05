@@ -589,9 +589,9 @@ AND NOT EXISTS (
 -- 14. UPDATE STORAGE BUCKET CONFIGURATION
 -- ===========================================
 
--- Update the sales-materials bucket to be private
+-- Keep the sales-materials bucket public for now (private buckets need more configuration)
 UPDATE storage.buckets
-SET public = false
+SET public = true
 WHERE id = 'sales-materials';
 
 -- Drop old storage policies

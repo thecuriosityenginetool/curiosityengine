@@ -193,13 +193,18 @@ export async function POST(req: NextRequest) {
 
     if (uploadError) {
       console.error('Error uploading file:', uploadError);
-      return NextResponse.json({ error: 'Failed to upload file' }, { status: 500, headers: corsHeaders(origin) });
+      return NextResponse.json({ error: 'Failed to upload file: ' + uploadError.message }, { status: 500, headers: corsHeaders(origin) });
     }
 
-    // Get signed URL (private bucket)
+    // Get public URL (bucket is public for now)
     const { data: urlData } = supabase.storage
       .from('sales-materials')
-      .createSignedUrl(fileName, 365 * 24 * 60 * 60); // 1 year expiry
+      .getPublicUrl(fileName);
+    
+    if (!urlData?.publicUrl) {
+      console.error('Failed to get file URL');
+      return NextResponse.json({ error: 'Failed to get file URL' }, { status: 500, headers: corsHeaders(origin) });
+    }
 
     // Extract text from file based on file type
     let fileText = '';
@@ -252,7 +257,7 @@ export async function POST(req: NextRequest) {
         file_name: file.name,
         file_type: fileType === 'doc' ? 'docx' : fileType, // Store .doc as .docx in database
         file_size: file.size,
-        file_url: urlData.signedUrl,
+        file_url: urlData.publicUrl,
         extracted_text: fileText.substring(0, 50000), // Limit to 50k chars
         description: description || null,
         category: category || 'other',

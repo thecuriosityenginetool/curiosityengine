@@ -1745,7 +1745,7 @@ The draft is now in your Outlook Drafts folder and ready to send.`);
             {/* Chat History Sidebar - White On-Brand Style */}
             {showChatSidebar && (
               <div className="lg:col-span-2 transition-all duration-300 ease-in-out">
-                <div className="bg-white border-r border-gray-100 h-[700px] flex flex-col w-64">
+                <div className="bg-white border-r border-gray-100 h-full flex flex-col w-64">
                   <div className="p-3">
                     <motion.button
                       whileHover={{ scale: 1.01, y: -1 }}
@@ -1803,17 +1803,18 @@ The draft is now in your Outlook Drafts folder and ready to send.`);
                       ))}
                     </div>
                   </div>
-                  <div className="p-3 border-t border-gray-100">
+                  {/* Collapse Button - ChatGPT Style */}
+                  <div className="p-3">
                     <motion.button
-                      whileHover={{ x: -2 }}
-                      whileTap={{ scale: 0.98 }}
+                      whileHover={{ scale: 1.05 }}
+                      whileTap={{ scale: 0.95 }}
                       onClick={() => setShowChatSidebar(false)}
-                      className="w-full px-3 py-2 rounded-lg hover:bg-gray-100 active:bg-gray-200 transition-all duration-150 flex items-center gap-2 text-sm text-gray-600 font-medium"
+                      className="p-2 rounded-md hover:bg-gray-100 transition-colors"
+                      title="Close sidebar"
                     >
-                      <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
+                      <svg className="w-5 h-5 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 19l-7-7 7-7m8 14l-7-7 7-7" />
                       </svg>
-                      Close sidebar
                     </motion.button>
                   </div>
                 </div>
@@ -1833,7 +1834,7 @@ The draft is now in your Outlook Drafts folder and ready to send.`);
                 </svg>
               </button>
 
-              <div className="bg-white h-[700px] flex flex-col">
+              <div className="bg-white h-full flex flex-col">
 
                 {/* Chat Messages */}
                 <div className="flex-1 overflow-y-auto p-4 space-y-4">
@@ -1997,8 +1998,8 @@ The draft is now in your Outlook Drafts folder and ready to send.`);
                   <div ref={chatEndRef} />
                 </div>
 
-                {/* Chat Input */}
-                <div className="p-4 border-t border-gray-200">
+                {/* Chat Input - Fixed at Bottom */}
+                <div className="sticky bottom-0 bg-white border-t border-gray-100 p-4">
                   {/* Model Switch Notification */}
                   {modelSwitchNotification && (
                     <div className="mb-2 p-2 bg-green-50 border border-green-200 rounded-lg text-xs text-green-700 flex items-center gap-2 animate-fade-in">

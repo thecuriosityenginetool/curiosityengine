@@ -1769,6 +1769,11 @@ The draft is now in your Outlook Drafts folder and ready to send.`);
 
                   {/* Chat History Section */}
                   <div className="flex-1 overflow-y-auto px-2">
+                    {/* Section Title */}
+                    <div className="px-3 pt-4 pb-2">
+                      <h3 className="text-xs font-semibold text-gray-500 uppercase tracking-wider">Conversations</h3>
+                    </div>
+                    
                     {chatHistory.length === 0 && (
                       <div className="p-8 text-center">
                         <svg className="w-8 h-8 mx-auto mb-2 text-gray-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">

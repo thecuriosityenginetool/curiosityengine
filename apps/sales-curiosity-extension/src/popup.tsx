@@ -810,45 +810,89 @@ function Popup() {
                 border: "1px solid #e5e7eb",
                 color: "#374151"
               }}>
-                {response.split('\n').map((line, i) => {
-                  // Strip HTML tags and render clean
-                  let cleanLine = line
-                    .replace(/<h3>/g, '')
-                    .replace(/<\/h3>/g, '')
-                    .replace(/<h4>/g, '')
-                    .replace(/<\/h4>/g, '')
-                    .replace(/<p>/g, '')
-                    .replace(/<\/p>/g, '')
-                    .replace(/<strong>/g, '')
-                    .replace(/<\/strong>/g, '')
-                    .replace(/<ul>/g, '')
-                    .replace(/<\/ul>/g, '')
-                    .replace(/<li>/g, '• ')
-                    .replace(/<\/li>/g, '')
-                    .replace(/<br\s*\/?>/g, '')
-                    .trim();
+                {(() => {
+                  // Strip thinking tags completely from response
+                  let cleanedResponse = response.replace(/<think>[\s\S]*?<\/think>/g, '').trim();
                   
-                  if (!cleanLine) return null;
+                  // Also handle incomplete thinking tags
+                  cleanedResponse = cleanedResponse.replace(/<think>.*$/g, '').trim();
                   
-                  // Check if it was a heading (h3/h4)
-                  const wasHeading = line.includes('<h3>') || line.includes('<h4>');
-                  const wasBold = line.includes('<strong>');
-                  const wasBullet = line.includes('<li>');
-                  
-                  if (wasHeading || (line.startsWith('**') && line.endsWith('**'))) {
-                    return <div key={i} style={{ fontWeight: 700, marginTop: i > 0 ? 12 : 0, marginBottom: 6, color: "#F95B14", fontSize: 14 }}>{cleanLine.replace(/\*\*/g, '')}</div>;
-                  }
-                  if (wasBold || (line.includes('**') && !line.startsWith('**'))) {
-                    return <div key={i} style={{ fontWeight: 600, marginTop: 4, color: "#111827" }}>{cleanLine.replace(/\*\*/g, '')}</div>;
-                  }
-                  if (wasBullet || line.trim().startsWith('•') || line.trim().startsWith('-')) {
-                    return <div key={i} style={{ paddingLeft: 12, marginTop: 2, color: "#374151" }}>{cleanLine}</div>;
-                  }
-                  if (line.startsWith('🔗') || line.startsWith('➕')) {
-                    return <div key={i} style={{ background: '#fef3c7', padding: 8, borderRadius: 6, marginTop: 8, marginBottom: 8, color: '#92400e', fontSize: 12 }}>{cleanLine}</div>;
-                  }
-                  return <div key={i} style={{ marginTop: 2 }}>{cleanLine}</div>;
-                })}
+                  return cleanedResponse.split('\n').map((line, i) => {
+                    // Strip HTML tags and render clean
+                    let cleanLine = line
+                      .replace(/<h3>/g, '')
+                      .replace(/<\/h3>/g, '')
+                      .replace(/<h4>/g, '')
+                      .replace(/<\/h4>/g, '')
+                      .replace(/<p>/g, '')
+                      .replace(/<\/p>/g, '')
+                      .replace(/<strong>/g, '')
+                      .replace(/<\/strong>/g, '')
+                      .replace(/<ul>/g, '')
+                      .replace(/<\/ul>/g, '')
+                      .replace(/<li>/g, '• ')
+                      .replace(/<\/li>/g, '')
+                      .replace(/<br\s*\/?>/g, '')
+                      .trim();
+                    
+                    if (!cleanLine) return null;
+                    
+                    // Check if it was a heading (h3/h4)
+                    const wasHeading = line.includes('<h3>') || line.includes('<h4>');
+                    const wasBold = line.includes('<strong>');
+                    const wasBullet = line.includes('<li>');
+                    
+                    // Handle markdown headers (###, ##, #)
+                    if (cleanLine.startsWith('###')) {
+                      return <div key={i} style={{ fontWeight: 700, marginTop: i > 0 ? 16 : 0, marginBottom: 8, color: "#F95B14", fontSize: 15 }}>{cleanLine.replace(/^###\s*/, '')}</div>;
+                    }
+                    if (cleanLine.startsWith('##')) {
+                      return <div key={i} style={{ fontWeight: 700, marginTop: i > 0 ? 14 : 0, marginBottom: 6, color: "#F95B14", fontSize: 14 }}>{cleanLine.replace(/^##\s*/, '')}</div>;
+                    }
+                    if (cleanLine.startsWith('#')) {
+                      return <div key={i} style={{ fontWeight: 700, marginTop: i > 0 ? 12 : 0, marginBottom: 6, color: "#F95B14", fontSize: 14 }}>{cleanLine.replace(/^#\s*/, '')}</div>;
+                    }
+                    
+                    if (wasHeading || (line.startsWith('**') && line.endsWith('**'))) {
+                      return <div key={i} style={{ fontWeight: 700, marginTop: i > 0 ? 12 : 0, marginBottom: 6, color: "#F95B14", fontSize: 14 }}>{cleanLine.replace(/\*\*/g, '')}</div>;
+                    }
+                    
+                    // Handle bold text within lines
+                    if (cleanLine.includes('**')) {
+                      const parts = cleanLine.split('**');
+                      return (
+                        <div key={i} style={{ marginTop: 4, color: "#374151" }}>
+                          {parts.map((part, idx) => 
+                            idx % 2 === 1 ? 
+                              <strong key={idx} style={{ fontWeight: 600, color: "#111827" }}>{part}</strong> : 
+                              <span key={idx}>{part}</span>
+                          )}
+                        </div>
+                      );
+                    }
+                    
+                    if (wasBold) {
+                      return <div key={i} style={{ fontWeight: 600, marginTop: 4, color: "#111827" }}>{cleanLine}</div>;
+                    }
+                    
+                    // Handle bullets
+                    if (wasBullet || cleanLine.startsWith('• ') || cleanLine.startsWith('- ')) {
+                      return <div key={i} style={{ paddingLeft: 12, marginTop: 2, color: "#374151" }}>{cleanLine.startsWith('- ') ? '• ' + cleanLine.substring(2) : cleanLine}</div>;
+                    }
+                    
+                    // Handle Salesforce status
+                    if (line.startsWith('🔗') || line.startsWith('➕')) {
+                      return <div key={i} style={{ background: '#fef3c7', padding: 8, borderRadius: 6, marginTop: 8, marginBottom: 8, color: '#92400e', fontSize: 12, fontWeight: 600 }}>{cleanLine}</div>;
+                    }
+                    
+                    // Handle emojis at start of line (section indicators)
+                    if (/^[🎯📧💡🔍✨📊⚡️]/.test(cleanLine)) {
+                      return <div key={i} style={{ marginTop: 8, marginBottom: 4, color: "#111827", fontWeight: 600 }}>{cleanLine}</div>;
+                    }
+                    
+                    return <div key={i} style={{ marginTop: 2, color: "#374151" }}>{cleanLine}</div>;
+                  });
+                })()}
               </div>
             )}
 

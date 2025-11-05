@@ -1726,9 +1726,9 @@ The draft is now in your Outlook Drafts folder and ready to send.`);
       </div>
 
       {/* Main Content */}
-      <div className="max-w-7xl mx-auto py-8 px-0">
+      <div className="relative">
         {activeTab === 'dashboard' && (
-          <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 relative px-6" style={{ overflow: 'visible' }}>
+          <div className="grid grid-cols-1 lg:grid-cols-12 gap-0 relative" style={{ overflow: 'visible' }}>
             {/* Floating sidebar toggle when collapsed */}
             {!showChatSidebar && (
               <button
@@ -1744,8 +1744,8 @@ The draft is now in your Outlook Drafts folder and ready to send.`);
 
             {/* Chat History Sidebar - White On-Brand Style */}
             {showChatSidebar && (
-              <div className="lg:col-span-2 transition-all duration-300 ease-in-out -ml-6 pl-6">
-                <div className="bg-white border-r border-gray-100 h-[700px] flex flex-col w-64 -ml-6">
+              <div className="lg:col-span-2 transition-all duration-300 ease-in-out">
+                <div className="bg-white border-r border-gray-100 h-[700px] flex flex-col w-64">
                   <div className="p-3">
                     <motion.button
                       whileHover={{ scale: 1.01, y: -1 }}
@@ -1821,7 +1821,7 @@ The draft is now in your Outlook Drafts folder and ready to send.`);
             )}
 
             {/* AI Chat - Expand to fill available space */}
-            <div className={`${showChatSidebar ? 'lg:col-span-10' : 'lg:col-span-12'} transition-all duration-300 relative`}>
+            <div className={`${showChatSidebar ? 'lg:col-span-10' : 'lg:col-span-12'} transition-all duration-300 relative px-6`}>
               {/* Calendar Toggle Button (top-right of chat) */}
               <button
                 onClick={() => setShowCalendarPanel(!showCalendarPanel)}

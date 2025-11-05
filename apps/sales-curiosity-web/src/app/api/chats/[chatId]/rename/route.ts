@@ -27,13 +27,14 @@ export async function POST(
       return NextResponse.json({ error: 'Message required' }, { status: 400 });
     }
 
-    // Generate title using SambaNova (DeepSeek)
+    // Generate title using SambaNova (use fast Llama model for simple task)
+    console.log('🏷️ Generating chat title via SambaNova Cloud');
     const completion = await openai.chat.completions.create({
-      model: 'DeepSeek-R1-0528',
+      model: 'Meta-Llama-3.1-8B-Instruct', // Fast model for simple title generation
       messages: [
         {
           role: 'system',
-          content: 'Generate a short, descriptive title (max 50 chars) for this conversation. Be concise and specific.'
+          content: 'Generate a short, descriptive title (max 50 chars) for this conversation. Output ONLY the title, no explanations, no thinking tags, no quotes. Be concise and specific.'
         },
         {
           role: 'user',
@@ -44,7 +45,25 @@ export async function POST(
       temperature: 0.7,
     });
 
-    const title = completion.choices[0]?.message?.content?.trim() || 'New Conversation';
+    let title = completion.choices[0]?.message?.content?.trim() || 'New Conversation';
+    
+    // Strip any thinking tags that might appear
+    title = title.replace(/<think>[\s\S]*?<\/think>/g, '').trim();
+    
+    // Remove any remaining XML-like tags
+    title = title.replace(/<[^>]+>/g, '').trim();
+    
+    // If title is empty after stripping, use default
+    if (!title) {
+      title = 'New Conversation';
+    }
+    
+    // Ensure max 50 chars
+    if (title.length > 50) {
+      title = title.substring(0, 47) + '...';
+    }
+    
+    console.log('✅ Generated title:', title);
 
     // Update chat title
     const { error } = await supabase

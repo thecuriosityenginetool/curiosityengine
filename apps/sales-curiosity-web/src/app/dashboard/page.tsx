@@ -77,6 +77,7 @@ export default function DashboardPage() {
   const [selectedModel, setSelectedModel] = useState('DeepSeek-R1-0528');
   const [showModelInfo, setShowModelInfo] = useState(false);
   const [modelSwitchNotification, setModelSwitchNotification] = useState('');
+  const [showModelDropdown, setShowModelDropdown] = useState(false);
   
   // Available models from SambaNova Cloud (only models that support tool/function calling)
   const availableModels = [
@@ -198,6 +199,21 @@ export default function DashboardPage() {
       return () => document.removeEventListener('click', handleClickOutside);
     }
   }, [showEventMenu]);
+
+  // Close model dropdown when clicking outside
+  useEffect(() => {
+    const handleClickOutside = (e: MouseEvent) => {
+      const target = e.target as HTMLElement;
+      if (showModelDropdown && !target.closest('.model-dropdown-container')) {
+        setShowModelDropdown(false);
+      }
+    };
+    
+    if (showModelDropdown) {
+      document.addEventListener('click', handleClickOutside);
+      return () => document.removeEventListener('click', handleClickOutside);
+    }
+  }, [showModelDropdown]);
 
   async function checkAuth() {
     try {
@@ -1801,28 +1817,84 @@ The draft is now in your Outlook Drafts folder and ready to send.`);
                     </div>
                   )}
                   
-                  {/* Model Selector */}
+                  {/* Model Selector - Custom Dropdown */}
                   <div className="mb-3 flex items-center justify-between">
                     <div className="flex items-center space-x-2 flex-1">
                       <label className="text-xs font-medium text-gray-600">AI Model:</label>
-                      <select
-                        value={selectedModel}
-                        onChange={(e) => {
-                          const newModel = e.target.value;
-                          const modelName = availableModels.find(m => m.id === newModel)?.name || newModel;
-                          setSelectedModel(newModel);
-                          setModelSwitchNotification(`✓ Switched to ${modelName}`);
-                          setTimeout(() => setModelSwitchNotification(''), 3000);
-                          console.log('🔄 Model switched to:', newModel);
-                        }}
-                        className="text-xs border border-gray-300 rounded-lg px-3 py-1.5 focus:ring-2 focus:ring-[#F95B14] focus:border-transparent outline-none bg-white"
-                      >
-                        {availableModels.map((model) => (
-                          <option key={model.id} value={model.id}>
-                            {model.name} - {model.description}
-                          </option>
-                        ))}
-                      </select>
+                      
+                      {/* Custom Dropdown */}
+                      <div className="relative flex-1 max-w-md model-dropdown-container">
+                        <button
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            setShowModelDropdown(!showModelDropdown);
+                          }}
+                          className="w-full text-xs border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-[#F95B14] focus:border-transparent outline-none bg-white hover:bg-gray-50 transition-colors flex items-center justify-between"
+                        >
+                          <div className="flex items-center space-x-2">
+                            <span className="font-medium text-gray-900">
+                              {availableModels.find(m => m.id === selectedModel)?.name}
+                            </span>
+                            <span className="text-gray-500">•</span>
+                            <span className="text-gray-600">
+                              {availableModels.find(m => m.id === selectedModel)?.description}
+                            </span>
+                          </div>
+                          <svg 
+                            className={`w-4 h-4 text-gray-400 transition-transform ${showModelDropdown ? 'rotate-180' : ''}`} 
+                            fill="none" 
+                            stroke="currentColor" 
+                            viewBox="0 0 24 24"
+                          >
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+                          </svg>
+                        </button>
+
+                        {/* Dropdown Menu */}
+                        {showModelDropdown && (
+                          <div className="absolute z-50 mt-1 w-full bg-white border border-gray-200 rounded-lg shadow-lg overflow-hidden">
+                            {availableModels.map((model, index) => (
+                              <button
+                                key={model.id}
+                                onClick={() => {
+                                  setSelectedModel(model.id);
+                                  setShowModelDropdown(false);
+                                  setModelSwitchNotification(`✓ Switched to ${model.name}`);
+                                  setTimeout(() => setModelSwitchNotification(''), 3000);
+                                  console.log('🔄 Model switched to:', model.id);
+                                }}
+                                className={`w-full text-left px-4 py-3 hover:bg-gray-50 transition-colors border-b border-gray-100 last:border-b-0 ${
+                                  selectedModel === model.id ? 'bg-orange-50' : ''
+                                }`}
+                              >
+                                <div className="flex items-start justify-between">
+                                  <div className="flex-1">
+                                    <div className="flex items-center space-x-2 mb-1">
+                                      <span className={`text-sm font-semibold ${
+                                        selectedModel === model.id ? 'text-[#F95B14]' : 'text-gray-900'
+                                      }`}>
+                                        {model.name}
+                                      </span>
+                                      {selectedModel === model.id && (
+                                        <svg className="w-4 h-4 text-[#F95B14]" fill="currentColor" viewBox="0 0 20 20">
+                                          <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
+                                        </svg>
+                                      )}
+                                    </div>
+                                    <div className="text-xs text-gray-600">
+                                      {model.description}
+                                    </div>
+                                    <div className="text-xs text-gray-400 mt-1">
+                                      {model.provider}
+                                    </div>
+                                  </div>
+                                </div>
+                              </button>
+                            ))}
+                          </div>
+                        )}
+                      </div>
+
                       <button
                         onClick={() => setShowModelInfo(!showModelInfo)}
                         className="text-gray-400 hover:text-gray-600 transition-colors"

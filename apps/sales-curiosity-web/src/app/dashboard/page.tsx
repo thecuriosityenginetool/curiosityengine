@@ -37,6 +37,7 @@ interface ChatMessage {
   timestamp: string;
   thinking?: string; // Reasoning/thinking content from DeepSeek-R1
   showThinking?: boolean; // Whether thinking section is expanded
+  model?: string; // Which model generated this message
 }
 
 interface Lead {
@@ -75,6 +76,7 @@ export default function DashboardPage() {
   // AI Model selection state
   const [selectedModel, setSelectedModel] = useState('DeepSeek-R1-0528');
   const [showModelInfo, setShowModelInfo] = useState(false);
+  const [modelSwitchNotification, setModelSwitchNotification] = useState('');
   
   // Available models from SambaNova Cloud
   const availableModels = [
@@ -513,7 +515,8 @@ export default function DashboardPage() {
                       ...newMessages[newMessages.length - 1],
                       content: final,
                       thinking,
-                      showThinking: false // Collapsed by default
+                      showThinking: false, // Collapsed by default
+                      model: selectedModel // Track which model generated this
                     };
                     return newMessages;
                   });
@@ -1688,8 +1691,13 @@ The draft is now in your Outlook Drafts folder and ready to send.`);
                             {msg.content}
                           </ReactMarkdown>
                         </div>
-                        <div className="text-xs opacity-70 mt-1">
-                          {new Date(msg.timestamp).toLocaleTimeString()}
+                        <div className="flex items-center justify-between text-xs opacity-70 mt-1">
+                          <span>{new Date(msg.timestamp).toLocaleTimeString()}</span>
+                          {msg.role === 'assistant' && msg.model && (
+                            <span className="text-[10px] bg-blue-100 text-blue-700 px-2 py-0.5 rounded ml-2">
+                              {availableModels.find(m => m.id === msg.model)?.name || msg.model}
+                            </span>
+                          )}
                         </div>
                         </div>
                         {/* Action buttons for assistant messages */}
@@ -1760,13 +1768,30 @@ The draft is now in your Outlook Drafts folder and ready to send.`);
 
                 {/* Chat Input */}
                 <div className="p-4 border-t border-gray-200">
+                  {/* Model Switch Notification */}
+                  {modelSwitchNotification && (
+                    <div className="mb-2 p-2 bg-green-50 border border-green-200 rounded-lg text-xs text-green-700 flex items-center gap-2 animate-fade-in">
+                      <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                      </svg>
+                      {modelSwitchNotification}
+                    </div>
+                  )}
+                  
                   {/* Model Selector */}
                   <div className="mb-3 flex items-center justify-between">
                     <div className="flex items-center space-x-2 flex-1">
                       <label className="text-xs font-medium text-gray-600">AI Model:</label>
                       <select
                         value={selectedModel}
-                        onChange={(e) => setSelectedModel(e.target.value)}
+                        onChange={(e) => {
+                          const newModel = e.target.value;
+                          const modelName = availableModels.find(m => m.id === newModel)?.name || newModel;
+                          setSelectedModel(newModel);
+                          setModelSwitchNotification(`✓ Switched to ${modelName}`);
+                          setTimeout(() => setModelSwitchNotification(''), 3000);
+                          console.log('🔄 Model switched to:', newModel);
+                        }}
                         className="text-xs border border-gray-300 rounded-lg px-3 py-1.5 focus:ring-2 focus:ring-[#F95B14] focus:border-transparent outline-none bg-white"
                       >
                         {availableModels.map((model) => (

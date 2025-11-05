@@ -1522,8 +1522,59 @@ export default function Home() {
                     ✕
                   </button>
                 </div>
-                <div className="p-4 sm:p-6 text-gray-300 whitespace-pre-wrap text-xs sm:text-sm leading-relaxed max-h-96 overflow-y-auto">
-                  {result.analysis}
+                <div className="p-4 sm:p-6 text-gray-300 text-xs sm:text-sm leading-relaxed max-h-96 overflow-y-auto">
+                  {(() => {
+                    // Strip thinking tags from analysis before displaying
+                    let cleanedAnalysis = result.analysis
+                      .replace(/<think>[\s\S]*?<\/think>/g, '') // Remove complete thinking tags
+                      .replace(/<think>.*$/g, '') // Remove incomplete thinking tags
+                      .trim();
+                    
+                    // Split and format with better structure
+                    return cleanedAnalysis.split('\n').map((line: string, i: number) => {
+                      const trimmedLine = line.trim();
+                      if (!trimmedLine) return <br key={i} />;
+                      
+                      // Headers with markdown
+                      if (trimmedLine.startsWith('###')) {
+                        return <div key={i} className="text-[#F95B14] font-bold text-base mt-4 mb-2">{trimmedLine.replace(/^###\s*/, '')}</div>;
+                      }
+                      if (trimmedLine.startsWith('##')) {
+                        return <div key={i} className="text-[#F95B14] font-bold text-sm mt-3 mb-2">{trimmedLine.replace(/^##\s*/, '')}</div>;
+                      }
+                      
+                      // Bold sections with **
+                      if (trimmedLine.startsWith('**') && trimmedLine.endsWith('**')) {
+                        return <div key={i} className="text-white font-semibold mt-3 mb-1">{trimmedLine.replace(/\*\*/g, '')}</div>;
+                      }
+                      
+                      // Bullet points
+                      if (trimmedLine.startsWith('- ') || trimmedLine.startsWith('• ')) {
+                        return <div key={i} className="text-gray-300 ml-4 mt-1">• {trimmedLine.replace(/^[-•]\s*/, '')}</div>;
+                      }
+                      
+                      // Emoji section headers
+                      if (/^[🎯📧💡🔍✨📊⚡️🔗➕]/.test(trimmedLine)) {
+                        return <div key={i} className="text-white font-semibold mt-3 mb-1">{trimmedLine}</div>;
+                      }
+                      
+                      // Regular text with inline bold support
+                      if (trimmedLine.includes('**')) {
+                        const parts = trimmedLine.split('**');
+                        return (
+                          <div key={i} className="text-gray-300 mt-1">
+                            {parts.map((part, idx) => 
+                              idx % 2 === 1 ? 
+                                <strong key={idx} className="text-white font-semibold">{part}</strong> : 
+                                <span key={idx}>{part}</span>
+                            )}
+                          </div>
+                        );
+                      }
+                      
+                      return <div key={i} className="text-gray-300 mt-1">{trimmedLine}</div>;
+                    });
+                  })()}
                 </div>
               </div>
             )}

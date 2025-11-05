@@ -36,7 +36,7 @@ export async function OPTIONS(req: NextRequest) {
   return NextResponse.json({}, { status: 200, headers: corsHeaders(origin) });
 }
 
-// GET - Get user's sales materials
+// GET - Get user's sales materials (including shared org materials)
 export async function GET(req: NextRequest) {
   try {
     const origin = req.headers.get('origin');
@@ -54,10 +54,10 @@ export async function GET(req: NextRequest) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401, headers: corsHeaders(origin) });
     }
 
-    // Get user ID
+    // Get user ID and organization
     const { data: user } = await supabase
       .from('users')
-      .select('id')
+      .select('id, organization_id, role')
       .eq('email', session.user.email)
       .maybeSingle();
 
@@ -65,11 +65,27 @@ export async function GET(req: NextRequest) {
       return NextResponse.json({ error: 'User not found' }, { status: 404, headers: corsHeaders(origin) });
     }
 
-    // Get materials
-    const { data: materials, error } = await supabase
-      .from('sales_materials')
+    // Get user permissions
+    const { data: permissions } = await supabase
+      .from('user_permissions')
       .select('*')
       .eq('user_id', user.id)
+      .eq('organization_id', user.organization_id)
+      .maybeSingle();
+
+    // Get materials - RLS will handle filtering based on visibility and permissions
+    // This includes:
+    // 1. User's own materials
+    // 2. Organization-wide materials
+    // 3. Team materials shared with the user
+    const { data: materials, error } = await supabase
+      .from('sales_materials')
+      .select(`
+        *,
+        owner:users!sales_materials_user_id_fkey(id, full_name, email),
+        material_permissions(user_id, can_view, can_edit, can_delete, can_share)
+      `)
+      .order('is_pinned', { ascending: false })
       .order('created_at', { ascending: false });
 
     if (error) {
@@ -77,7 +93,19 @@ export async function GET(req: NextRequest) {
       return NextResponse.json({ error: error.message }, { status: 500, headers: corsHeaders(origin) });
     }
 
-    return NextResponse.json({ materials: materials || [] }, { headers: corsHeaders(origin) });
+    // Enrich materials with access info
+    const enrichedMaterials = (materials || []).map(mat => ({
+      ...mat,
+      is_owner: mat.user_id === user.id,
+      can_edit: mat.user_id === user.id || mat.material_permissions?.some((p: any) => p.user_id === user.id && p.can_edit),
+      can_delete: mat.user_id === user.id || (permissions?.can_delete_org_materials && user.role === 'org_admin'),
+      can_share: mat.user_id === user.id || mat.material_permissions?.some((p: any) => p.user_id === user.id && p.can_share),
+    }));
+
+    return NextResponse.json({ 
+      materials: enrichedMaterials,
+      permissions: permissions 
+    }, { headers: corsHeaders(origin) });
   } catch (error) {
     console.error('Error in GET /api/sales-materials:', error);
     return NextResponse.json({ error: 'Internal server error' }, { status: 500, headers: corsHeaders() });
@@ -129,10 +157,10 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: 'File size exceeds 50MB limit. Please use a smaller file.' }, { status: 413, headers: corsHeaders(origin) });
     }
 
-    // Get user
+    // Get user and check permissions
     const { data: user } = await supabase
       .from('users')
-      .select('id, organization_id')
+      .select('id, organization_id, role')
       .eq('email', session.user.email)
       .maybeSingle();
 
@@ -140,7 +168,21 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: 'User not found' }, { status: 404, headers: corsHeaders(origin) });
     }
 
-    // Upload file to Supabase Storage
+    // Check upload permission
+    const { data: permissions } = await supabase
+      .from('user_permissions')
+      .select('can_upload_materials')
+      .eq('user_id', user.id)
+      .eq('organization_id', user.organization_id)
+      .maybeSingle();
+
+    if (!permissions?.can_upload_materials && user.role !== 'org_admin' && user.role !== 'super_admin') {
+      return NextResponse.json({ 
+        error: 'You do not have permission to upload materials' 
+      }, { status: 403, headers: corsHeaders(origin) });
+    }
+
+    // Upload file to Supabase Storage (in user's folder)
     const fileName = `${user.id}/${Date.now()}-${file.name}`;
     const { data: uploadData, error: uploadError } = await supabase.storage
       .from('sales-materials')
@@ -154,10 +196,10 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: 'Failed to upload file' }, { status: 500, headers: corsHeaders(origin) });
     }
 
-    // Get public URL
+    // Get signed URL (private bucket)
     const { data: urlData } = supabase.storage
       .from('sales-materials')
-      .getPublicUrl(fileName);
+      .createSignedUrl(fileName, 365 * 24 * 60 * 60); // 1 year expiry
 
     // Extract text from file based on file type
     let fileText = '';
@@ -201,7 +243,7 @@ export async function POST(req: NextRequest) {
       fileText = 'Error extracting text from file.';
     }
 
-    // Save to database
+    // Save to database with default visibility as private
     const { data: material, error: dbError } = await supabase
       .from('sales_materials')
       .insert({
@@ -210,10 +252,12 @@ export async function POST(req: NextRequest) {
         file_name: file.name,
         file_type: fileType === 'doc' ? 'docx' : fileType, // Store .doc as .docx in database
         file_size: file.size,
-        file_url: urlData.publicUrl,
+        file_url: urlData.signedUrl,
         extracted_text: fileText.substring(0, 50000), // Limit to 50k chars
         description: description || null,
-        category: category || 'other'
+        category: category || 'other',
+        visibility: 'private', // Default to private
+        tags: []
       })
       .select()
       .single();
@@ -255,10 +299,10 @@ export async function DELETE(req: NextRequest) {
       return NextResponse.json({ error: 'Material ID required' }, { status: 400, headers: corsHeaders(origin) });
     }
 
-    // Get user
+    // Get user and permissions
     const { data: user } = await supabase
       .from('users')
-      .select('id')
+      .select('id, organization_id, role')
       .eq('email', session.user.email)
       .maybeSingle();
 
@@ -266,16 +310,54 @@ export async function DELETE(req: NextRequest) {
       return NextResponse.json({ error: 'User not found' }, { status: 404, headers: corsHeaders(origin) });
     }
 
-    // Delete from database
+    // Check if user has permission to delete this material
+    const { data: material } = await supabase
+      .from('sales_materials')
+      .select('user_id, file_url')
+      .eq('id', materialId)
+      .maybeSingle();
+
+    if (!material) {
+      return NextResponse.json({ error: 'Material not found' }, { status: 404, headers: corsHeaders(origin) });
+    }
+
+    const isOwner = material.user_id === user.id;
+    const { data: permissions } = await supabase
+      .from('user_permissions')
+      .select('can_delete_own_materials, can_delete_org_materials')
+      .eq('user_id', user.id)
+      .eq('organization_id', user.organization_id)
+      .maybeSingle();
+
+    const canDelete = isOwner && permissions?.can_delete_own_materials ||
+                      !isOwner && permissions?.can_delete_org_materials && (user.role === 'org_admin' || user.role === 'super_admin');
+
+    if (!canDelete) {
+      return NextResponse.json({ 
+        error: 'You do not have permission to delete this material' 
+      }, { status: 403, headers: corsHeaders(origin) });
+    }
+
+    // Delete from database (RLS will handle additional checks)
     const { error } = await supabase
       .from('sales_materials')
       .delete()
-      .eq('id', materialId)
-      .eq('user_id', user.id);
+      .eq('id', materialId);
 
     if (error) {
       console.error('Error deleting material:', error);
       return NextResponse.json({ error: error.message }, { status: 500, headers: corsHeaders(origin) });
+    }
+
+    // Delete from storage
+    try {
+      const filePath = material.file_url.split('/').slice(-2).join('/'); // Extract path from URL
+      await supabase.storage
+        .from('sales-materials')
+        .remove([filePath]);
+    } catch (storageError) {
+      console.error('Error deleting from storage:', storageError);
+      // Don't fail the request if storage deletion fails
     }
 
     return NextResponse.json({ success: true }, { headers: corsHeaders(origin) });

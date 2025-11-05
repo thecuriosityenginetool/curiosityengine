@@ -102,6 +102,7 @@ export default function DashboardPage() {
     company_url: ''
   });
   const [salesMaterials, setSalesMaterials] = useState<any[]>([]);
+  const [userPermissions, setUserPermissions] = useState<any>(null);
   const [uploadingFile, setUploadingFile] = useState(false);
   const [uploadMessage, setUploadMessage] = useState('');
   const [uploadMessageType, setUploadMessageType] = useState<'success' | 'error' | ''>('');
@@ -1359,9 +1360,31 @@ The draft is now in your Outlook Drafts folder and ready to send.`);
       if (response.ok) {
         const data = await response.json();
         setSalesMaterials(data.materials || []);
+        setUserPermissions(data.permissions || null);
       }
     } catch (error) {
       console.error('Error loading materials:', error);
+    }
+  }
+
+  async function shareMaterial(materialId: string, visibility: 'private' | 'team' | 'organization') {
+    try {
+      const response = await fetch('/api/sales-materials/share', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ materialId, visibility }),
+      });
+
+      if (response.ok) {
+        alert(`✅ Material ${visibility === 'private' ? 'is now private' : 'shared with ' + visibility}`);
+        loadSalesMaterials();
+      } else {
+        const error = await response.json();
+        alert(`❌ Failed to share: ${error.error || 'Unknown error'}`);
+      }
+    } catch (error) {
+      console.error('Error sharing material:', error);
+      alert('❌ Error sharing material');
     }
   }
 
@@ -2204,27 +2227,151 @@ The draft is now in your Outlook Drafts folder and ready to send.`);
                   </div>
                 )}
                 
-                {/* Uploaded files list */}
-                <div className="mt-4 space-y-2">
-                  {salesMaterials.length > 0 && (
-                    <h4 className="text-sm font-medium text-gray-700 mb-2">Uploaded Materials ({salesMaterials.length})</h4>
-                  )}
-                  {salesMaterials.map((material) => (
-                    <div key={material.id} className="flex items-center justify-between p-3 bg-gray-50 rounded-lg border border-gray-200">
-                      <div className="flex-1">
-                        <p className="text-sm font-medium text-gray-900">{material.file_name}</p>
-                        <p className="text-xs text-gray-500 mt-1">
-                          {material.category} • {(material.file_size / 1024).toFixed(1)} KB • {new Date(material.created_at).toLocaleDateString()}
-                        </p>
+                {/* My Permissions (if available) */}
+                {userPermissions && (
+                  <div className="mb-4 p-3 bg-blue-50 border border-blue-200 rounded-lg">
+                    <h4 className="text-sm font-semibold text-blue-900 mb-2">📋 Your Permissions</h4>
+                    <div className="grid grid-cols-2 gap-2 text-xs">
+                      <div className="flex items-center">
+                        <span className={userPermissions.can_upload_materials ? 'text-green-600' : 'text-gray-400'}>
+                          {userPermissions.can_upload_materials ? '✓' : '✗'}
+                        </span>
+                        <span className="ml-1">Upload materials</span>
                       </div>
-                      <button
-                        onClick={() => deleteMaterial(material.id)}
-                        className="text-red-600 hover:text-red-800 transition-colors ml-4"
-                      >
-                        🗑️
-                      </button>
+                      <div className="flex items-center">
+                        <span className={userPermissions.can_share_materials ? 'text-green-600' : 'text-gray-400'}>
+                          {userPermissions.can_share_materials ? '✓' : '✗'}
+                        </span>
+                        <span className="ml-1">Share materials</span>
+                      </div>
+                      <div className="flex items-center">
+                        <span className={userPermissions.can_view_org_materials ? 'text-green-600' : 'text-gray-400'}>
+                          {userPermissions.can_view_org_materials ? '✓' : '✗'}
+                        </span>
+                        <span className="ml-1">View team materials</span>
+                      </div>
+                      <div className="flex items-center">
+                        <span className={userPermissions.can_delete_own_materials ? 'text-green-600' : 'text-gray-400'}>
+                          {userPermissions.can_delete_own_materials ? '✓' : '✗'}
+                        </span>
+                        <span className="ml-1">Delete own materials</span>
+                      </div>
                     </div>
-                  ))}
+                  </div>
+                )}
+
+                {/* Uploaded files list */}
+                <div className="mt-4 space-y-4">
+                  {/* My Materials */}
+                  {salesMaterials.filter(m => m.is_owner).length > 0 && (
+                    <div>
+                      <h4 className="text-sm font-medium text-gray-700 mb-2">
+                        📁 My Materials ({salesMaterials.filter(m => m.is_owner).length})
+                      </h4>
+                      <div className="space-y-2">
+                        {salesMaterials.filter(m => m.is_owner).map((material) => (
+                          <div key={material.id} className="p-3 bg-gray-50 rounded-lg border border-gray-200">
+                            <div className="flex items-start justify-between">
+                              <div className="flex-1">
+                                <div className="flex items-center gap-2 mb-1">
+                                  <p className="text-sm font-medium text-gray-900">{material.file_name}</p>
+                                  <span className={`text-xs px-2 py-0.5 rounded-full font-medium ${
+                                    material.visibility === 'organization' ? 'bg-green-100 text-green-700' :
+                                    material.visibility === 'team' ? 'bg-blue-100 text-blue-700' :
+                                    'bg-gray-100 text-gray-700'
+                                  }`}>
+                                    {material.visibility === 'organization' ? '🌐 Org' :
+                                     material.visibility === 'team' ? '👥 Team' :
+                                     '🔒 Private'}
+                                  </span>
+                                </div>
+                                <p className="text-xs text-gray-500">
+                                  {material.category} • {(material.file_size / 1024).toFixed(1)} KB • {new Date(material.created_at).toLocaleDateString()}
+                                </p>
+                                {material.shared_at && (
+                                  <p className="text-xs text-gray-400 mt-1">
+                                    Shared {new Date(material.shared_at).toLocaleDateString()}
+                                  </p>
+                                )}
+                              </div>
+                              <div className="flex items-center gap-2 ml-4">
+                                {/* Share dropdown */}
+                                {material.can_share && userPermissions?.can_share_materials && (
+                                  <div className="relative group">
+                                    <button className="text-blue-600 hover:text-blue-800 transition-colors text-sm">
+                                      🔄
+                                    </button>
+                                    <div className="hidden group-hover:block absolute right-0 mt-1 w-48 bg-white border border-gray-200 rounded-lg shadow-lg z-10">
+                                      <button
+                                        onClick={() => shareMaterial(material.id, 'private')}
+                                        className="block w-full text-left px-4 py-2 text-sm hover:bg-gray-50"
+                                      >
+                                        🔒 Make Private
+                                      </button>
+                                      <button
+                                        onClick={() => shareMaterial(material.id, 'organization')}
+                                        className="block w-full text-left px-4 py-2 text-sm hover:bg-gray-50"
+                                      >
+                                        🌐 Share with Organization
+                                      </button>
+                                    </div>
+                                  </div>
+                                )}
+                                {/* Delete button */}
+                                {material.can_delete && (
+                                  <button
+                                    onClick={() => deleteMaterial(material.id)}
+                                    className="text-red-600 hover:text-red-800 transition-colors"
+                                  >
+                                    🗑️
+                                  </button>
+                                )}
+                              </div>
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  )}
+
+                  {/* Team Materials */}
+                  {salesMaterials.filter(m => !m.is_owner).length > 0 && (
+                    <div>
+                      <h4 className="text-sm font-medium text-gray-700 mb-2">
+                        👥 Team Materials ({salesMaterials.filter(m => !m.is_owner).length})
+                      </h4>
+                      <div className="space-y-2">
+                        {salesMaterials.filter(m => !m.is_owner).map((material) => (
+                          <div key={material.id} className="p-3 bg-blue-50 rounded-lg border border-blue-200">
+                            <div className="flex items-start justify-between">
+                              <div className="flex-1">
+                                <div className="flex items-center gap-2 mb-1">
+                                  <p className="text-sm font-medium text-gray-900">{material.file_name}</p>
+                                  <span className="text-xs px-2 py-0.5 rounded-full font-medium bg-blue-100 text-blue-700">
+                                    {material.visibility === 'organization' ? '🌐 Shared' : '👥 Team'}
+                                  </span>
+                                </div>
+                                <p className="text-xs text-gray-500">
+                                  {material.category} • {(material.file_size / 1024).toFixed(1)} KB
+                                </p>
+                                {material.owner && (
+                                  <p className="text-xs text-gray-400 mt-1">
+                                    By: {material.owner.full_name || material.owner.email}
+                                  </p>
+                                )}
+                              </div>
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  )}
+
+                  {salesMaterials.length === 0 && (
+                    <p className="text-sm text-gray-500 text-center py-4">
+                      No materials uploaded yet. Upload your first sales material above!
+                    </p>
+                  )}
                 </div>
               </div>
 

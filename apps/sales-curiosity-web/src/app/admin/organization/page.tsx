@@ -60,7 +60,7 @@ interface Integration {
   enabled_at: string;
 }
 
-type TabType = 'overview' | 'users' | 'analyses' | 'emails' | 'integrations' | 'context';
+type TabType = 'overview' | 'users' | 'invitations' | 'analyses' | 'emails' | 'integrations' | 'context';
 
 export default function OrganizationDashboard() {
   // Use NextAuth session
@@ -83,6 +83,16 @@ export default function OrganizationDashboard() {
   const [inviteRole, setInviteRole] = useState<'org_admin' | 'member'>('member');
   const [inviteLoading, setInviteLoading] = useState(false);
   const [inviteSuccess, setInviteSuccess] = useState('');
+  const [inviteMessage, setInviteMessage] = useState('');
+  const [invitations, setInvitations] = useState<any[]>([]);
+  const [invitePermissions, setInvitePermissions] = useState({
+    can_view_org_materials: true,
+    can_upload_materials: true,
+    can_delete_own_materials: true,
+    can_share_materials: false,
+    can_view_team_analyses: true,
+    can_view_team_emails: false,
+  });
   const router = useRouter();
   
   // Organization context state
@@ -203,11 +213,9 @@ export default function OrganizationDashboard() {
   }
 
   async function handleInviteUser() {
-    console.log('Add user clicked:', { 
+    console.log('Sending invitation:', { 
       organization: !!organization, 
       email: inviteEmail, 
-      password: !!invitePassword, 
-      fullName: inviteFullName,
       role: inviteRole 
     });
     
@@ -216,59 +224,95 @@ export default function OrganizationDashboard() {
       return;
     }
     
-    if (!inviteEmail || !invitePassword || !inviteFullName) {
-      alert(`Please fill in all fields:\nEmail: ${inviteEmail ? '✓' : '✗'}\nPassword: ${invitePassword ? '✓' : '✗'}\nFull Name: ${inviteFullName ? '✓' : '✗'}`);
+    if (!inviteEmail) {
+      alert('Please enter an email address');
       return;
     }
 
     setInviteLoading(true);
     try {
-      console.log('Creating user account for:', inviteEmail);
+      console.log('Sending invitation to:', inviteEmail);
 
-      // Use admin API to create user and link to organization
-      const response = await fetch('/api/admin/add-user', {
+      // Use new invitation API
+      const response = await fetch('/api/invitations', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
         },
         body: JSON.stringify({
           email: inviteEmail,
-          password: invitePassword,
-          fullName: inviteFullName,
           role: inviteRole,
-          organizationId: organization.id,
-          createdBy: currentUser?.id,
+          message: inviteMessage || null,
+          permissions: invitePermissions,
         }),
       });
 
       const data = await response.json();
 
-      if (!response.ok || !data.ok) {
-        throw new Error(data.error || 'Failed to create user');
+      if (!response.ok || !data.success) {
+        throw new Error(data.error || 'Failed to send invitation');
       }
 
-      console.log('✅ User created and linked:', data.user.id);
+      console.log('✅ Invitation sent:', data.invitation.id);
 
-      // Show success message in modal
-      setInviteSuccess(`✅ ${inviteFullName} has been added to your organization! They can now log in with ${inviteEmail}.`);
+      // Show success message in modal with invitation link
+      setInviteSuccess(`✅ Invitation sent to ${inviteEmail}!\n\nShare this link:\n${data.invitationLink}`);
       setInviteEmail('');
-      setInvitePassword('');
-      setInviteFullName('');
+      setInviteMessage('');
       setInviteRole('member');
+      setInvitePermissions({
+        can_view_org_materials: true,
+        can_upload_materials: true,
+        can_delete_own_materials: true,
+        can_share_materials: false,
+        can_view_team_analyses: true,
+        can_view_team_emails: false,
+      });
       
-      // Close modal after 3 seconds
+      // Close modal after 5 seconds
       setTimeout(() => {
         setShowInviteModal(false);
         setInviteSuccess('');
-      }, 3000);
+      }, 5000);
       
-      // Reload users list
-      loadData(organization.id);
+      // Reload invitations list
+      loadInvitations();
     } catch (err: any) {
-      console.error('Create user error:', err);
-      alert('Failed to create user: ' + err.message);
+      console.error('Invitation error:', err);
+      alert('Failed to send invitation: ' + err.message);
     } finally {
       setInviteLoading(false);
+    }
+  }
+
+  async function loadInvitations() {
+    try {
+      const response = await fetch('/api/invitations');
+      const data = await response.json();
+      if (response.ok) {
+        setInvitations(data.invitations || []);
+      }
+    } catch (error) {
+      console.error('Error loading invitations:', error);
+    }
+  }
+
+  async function handleRevokeInvitation(invitationId: string) {
+    if (!confirm('Revoke this invitation?')) return;
+    
+    try {
+      const response = await fetch(`/api/invitations?id=${invitationId}`, {
+        method: 'DELETE',
+      });
+
+      if (!response.ok) {
+        throw new Error('Failed to revoke invitation');
+      }
+
+      alert('✅ Invitation revoked');
+      loadInvitations();
+    } catch (err: any) {
+      alert('Failed to revoke invitation: ' + err.message);
     }
   }
 
@@ -510,10 +554,13 @@ export default function OrganizationDashboard() {
           display: 'flex',
           gap: '32px'
         }}>
-          {(['overview', 'users', 'analyses', 'emails', 'context', 'integrations'] as TabType[]).map(tab => (
+          {(['overview', 'users', 'invitations', 'analyses', 'emails', 'context', 'integrations'] as TabType[]).map(tab => (
             <button
               key={tab}
-              onClick={() => setActiveTab(tab)}
+              onClick={() => {
+                setActiveTab(tab);
+                if (tab === 'invitations') loadInvitations();
+              }}
               style={{
                 padding: '16px 0',
                 background: 'none',
@@ -527,6 +574,19 @@ export default function OrganizationDashboard() {
               }}
             >
               {tab}
+              {tab === 'invitations' && invitations.filter(i => i.status === 'pending').length > 0 && (
+                <span style={{
+                  marginLeft: '6px',
+                  padding: '2px 6px',
+                  background: '#f59e0b',
+                  color: 'white',
+                  fontSize: '10px',
+                  borderRadius: '10px',
+                  fontWeight: '700'
+                }}>
+                  {invitations.filter(i => i.status === 'pending').length}
+                </span>
+              )}
             </button>
           ))}
         </div>
@@ -850,6 +910,140 @@ export default function OrganizationDashboard() {
                   </div>
                 </div>
               ))}
+            </div>
+          </div>
+        )}
+
+        {/* Invitations Tab */}
+        {activeTab === 'invitations' && (
+          <div>
+            <div style={{
+              display: 'flex',
+              justifyContent: 'space-between',
+              alignItems: 'center',
+              marginBottom: '24px'
+            }}>
+              <h2 style={{ fontSize: '20px', fontWeight: '600', color: '#1a202c' }}>
+                User Invitations
+              </h2>
+              <button
+                onClick={() => setShowInviteModal(true)}
+                style={{
+                  padding: '10px 20px',
+                  background: '#667eea',
+                  color: 'white',
+                  border: 'none',
+                  borderRadius: '8px',
+                  fontSize: '14px',
+                  fontWeight: '600',
+                  cursor: 'pointer'
+                }}
+              >
+                + Send Invitation
+              </button>
+            </div>
+
+            <div style={{
+              background: 'white',
+              borderRadius: '12px',
+              boxShadow: '0 1px 3px rgba(0,0,0,0.1)',
+              overflow: 'hidden'
+            }}>
+              {invitations.length === 0 ? (
+                <div style={{
+                  padding: '40px',
+                  textAlign: 'center',
+                  color: '#718096'
+                }}>
+                  No invitations sent yet. Click "+ Send Invitation" to invite team members.
+                </div>
+              ) : (
+                invitations.map((invitation, index) => (
+                  <div
+                    key={invitation.id}
+                    style={{
+                      padding: '20px',
+                      borderBottom: index < invitations.length - 1 ? '1px solid #f7fafc' : 'none'
+                    }}
+                  >
+                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'start' }}>
+                      <div style={{ flex: 1 }}>
+                        <div style={{
+                          fontWeight: '600',
+                          fontSize: '14px',
+                          color: '#1a202c',
+                          marginBottom: '4px'
+                        }}>
+                          {invitation.email}
+                          <span style={{
+                            marginLeft: '8px',
+                            padding: '2px 8px',
+                            background: invitation.status === 'pending' ? '#f59e0b' : 
+                                       invitation.status === 'accepted' ? '#10b981' : '#ef4444',
+                            color: 'white',
+                            fontSize: '10px',
+                            borderRadius: '4px',
+                            fontWeight: '600'
+                          }}>
+                            {invitation.status.toUpperCase()}
+                          </span>
+                          {invitation.role === 'org_admin' && (
+                            <span style={{
+                              marginLeft: '8px',
+                              padding: '2px 8px',
+                              background: '#667eea',
+                              color: 'white',
+                              fontSize: '10px',
+                              borderRadius: '4px',
+                              fontWeight: '600'
+                            }}>
+                              ADMIN
+                            </span>
+                          )}
+                        </div>
+                        <div style={{ fontSize: '13px', color: '#718096', marginBottom: '4px' }}>
+                          Invited by: {invitation.inviter?.full_name || invitation.inviter?.email || 'Unknown'}
+                        </div>
+                        <div style={{ fontSize: '12px', color: '#a0aec0' }}>
+                          Sent: {new Date(invitation.created_at).toLocaleDateString()} • 
+                          Expires: {new Date(invitation.expires_at).toLocaleDateString()}
+                        </div>
+                        {invitation.invitation_message && (
+                          <div style={{
+                            marginTop: '8px',
+                            padding: '8px',
+                            background: '#f7fafc',
+                            borderRadius: '4px',
+                            fontSize: '12px',
+                            color: '#4a5568'
+                          }}>
+                            Message: {invitation.invitation_message}
+                          </div>
+                        )}
+                      </div>
+                      <div>
+                        {invitation.status === 'pending' && (
+                          <button
+                            onClick={() => handleRevokeInvitation(invitation.id)}
+                            style={{
+                              padding: '6px 12px',
+                              background: '#ef4444',
+                              color: 'white',
+                              border: 'none',
+                              borderRadius: '6px',
+                              fontSize: '12px',
+                              fontWeight: '600',
+                              cursor: 'pointer'
+                            }}
+                          >
+                            Revoke
+                          </button>
+                        )}
+                      </div>
+                    </div>
+                  </div>
+                ))
+              )}
             </div>
           </div>
         )}
@@ -1395,14 +1589,14 @@ export default function OrganizationDashboard() {
               marginBottom: '8px',
               color: '#1a202c'
             }}>
-              Add User to Organization
+              Send User Invitation
             </h2>
             <p style={{
               fontSize: '14px',
               color: '#4a5568',
               marginBottom: '24px'
             }}>
-              Create a new user account and add them to your organization.
+              Invite someone to join your organization. They'll receive an invitation link to create their account.
             </p>
 
             {inviteSuccess && (
@@ -1413,9 +1607,11 @@ export default function OrganizationDashboard() {
                 borderRadius: '8px',
                 marginBottom: '20px',
                 color: '#065f46',
-                fontSize: '14px',
-                fontWeight: '600',
-                textAlign: 'center'
+                fontSize: '12px',
+                fontWeight: '500',
+                whiteSpace: 'pre-wrap',
+                maxHeight: '150px',
+                overflowY: 'auto'
               }}>
                 {inviteSuccess}
               </div>
@@ -1429,34 +1625,7 @@ export default function OrganizationDashboard() {
                 marginBottom: '8px',
                 color: '#2d3748'
               }}>
-                Full Name
-              </label>
-              <input
-                type="text"
-                value={inviteFullName}
-                onChange={(e) => setInviteFullName(e.target.value)}
-                placeholder="John Doe"
-                style={{
-                  width: '100%',
-                  padding: '12px',
-                  border: '1px solid #e2e8f0',
-                  borderRadius: '8px',
-                  fontSize: '14px',
-                  outline: 'none',
-                  color: '#1a202c'
-                }}
-              />
-            </div>
-
-            <div style={{ marginBottom: '16px' }}>
-              <label style={{
-                display: 'block',
-                fontSize: '14px',
-                fontWeight: '600',
-                marginBottom: '8px',
-                color: '#2d3748'
-              }}>
-                Email Address
+                Email Address *
               </label>
               <input
                 type="email"
@@ -1483,14 +1652,13 @@ export default function OrganizationDashboard() {
                 marginBottom: '8px',
                 color: '#2d3748'
               }}>
-                Password
+                Personal Message (Optional)
               </label>
-              <input
-                type="password"
-                value={invitePassword}
-                onChange={(e) => setInvitePassword(e.target.value)}
-                placeholder="••••••••"
-                minLength={6}
+              <textarea
+                value={inviteMessage}
+                onChange={(e) => setInviteMessage(e.target.value)}
+                placeholder="Add a personal message to the invitation..."
+                rows={2}
                 style={{
                   width: '100%',
                   padding: '12px',
@@ -1498,15 +1666,14 @@ export default function OrganizationDashboard() {
                   borderRadius: '8px',
                   fontSize: '14px',
                   outline: 'none',
-                  color: '#1a202c'
+                  color: '#1a202c',
+                  fontFamily: 'inherit',
+                  resize: 'vertical'
                 }}
               />
-              <p style={{ fontSize: '12px', color: '#64748b', marginTop: '4px' }}>
-                At least 6 characters
-              </p>
             </div>
 
-            <div style={{ marginBottom: '24px' }}>
+            <div style={{ marginBottom: '16px' }}>
               <label style={{
                 display: 'block',
                 fontSize: '14px',
@@ -1514,11 +1681,25 @@ export default function OrganizationDashboard() {
                 marginBottom: '8px',
                 color: '#2d3748'
               }}>
-                Role
+                Role *
               </label>
               <select
                 value={inviteRole}
-                onChange={(e) => setInviteRole(e.target.value as 'org_admin' | 'member')}
+                onChange={(e) => {
+                  const newRole = e.target.value as 'org_admin' | 'member';
+                  setInviteRole(newRole);
+                  // Auto-set permissions based on role
+                  if (newRole === 'org_admin') {
+                    setInvitePermissions({
+                      can_view_org_materials: true,
+                      can_upload_materials: true,
+                      can_delete_own_materials: true,
+                      can_share_materials: true,
+                      can_view_team_analyses: true,
+                      can_view_team_emails: true,
+                    });
+                  }
+                }}
                 style={{
                   width: '100%',
                   padding: '12px',
@@ -1536,15 +1717,97 @@ export default function OrganizationDashboard() {
               </select>
             </div>
 
+            <div style={{ marginBottom: '24px' }}>
+              <label style={{
+                display: 'block',
+                fontSize: '14px',
+                fontWeight: '600',
+                marginBottom: '12px',
+                color: '#2d3748'
+              }}>
+                Permissions
+              </label>
+              <div style={{
+                background: '#f7fafc',
+                padding: '12px',
+                borderRadius: '8px',
+                border: '1px solid #e2e8f0',
+                fontSize: '13px'
+              }}>
+                {inviteRole === 'org_admin' && (
+                  <p style={{ color: '#718096', marginBottom: '12px', fontStyle: 'italic' }}>
+                    Organization Admins get all permissions by default
+                  </p>
+                )}
+                <label style={{ display: 'flex', alignItems: 'center', marginBottom: '8px', cursor: 'pointer' }}>
+                  <input
+                    type="checkbox"
+                    checked={invitePermissions.can_view_org_materials}
+                    onChange={(e) => setInvitePermissions({...invitePermissions, can_view_org_materials: e.target.checked})}
+                    disabled={inviteRole === 'org_admin'}
+                    style={{ marginRight: '8px' }}
+                  />
+                  <span style={{ color: '#2d3748' }}>View organization materials</span>
+                </label>
+                <label style={{ display: 'flex', alignItems: 'center', marginBottom: '8px', cursor: 'pointer' }}>
+                  <input
+                    type="checkbox"
+                    checked={invitePermissions.can_upload_materials}
+                    onChange={(e) => setInvitePermissions({...invitePermissions, can_upload_materials: e.target.checked})}
+                    disabled={inviteRole === 'org_admin'}
+                    style={{ marginRight: '8px' }}
+                  />
+                  <span style={{ color: '#2d3748' }}>Upload sales materials</span>
+                </label>
+                <label style={{ display: 'flex', alignItems: 'center', marginBottom: '8px', cursor: 'pointer' }}>
+                  <input
+                    type="checkbox"
+                    checked={invitePermissions.can_share_materials}
+                    onChange={(e) => setInvitePermissions({...invitePermissions, can_share_materials: e.target.checked})}
+                    disabled={inviteRole === 'org_admin'}
+                    style={{ marginRight: '8px' }}
+                  />
+                  <span style={{ color: '#2d3748' }}>Share materials with team</span>
+                </label>
+                <label style={{ display: 'flex', alignItems: 'center', marginBottom: '8px', cursor: 'pointer' }}>
+                  <input
+                    type="checkbox"
+                    checked={invitePermissions.can_view_team_analyses}
+                    onChange={(e) => setInvitePermissions({...invitePermissions, can_view_team_analyses: e.target.checked})}
+                    disabled={inviteRole === 'org_admin'}
+                    style={{ marginRight: '8px' }}
+                  />
+                  <span style={{ color: '#2d3748' }}>View team profile analyses</span>
+                </label>
+                <label style={{ display: 'flex', alignItems: 'center', cursor: 'pointer' }}>
+                  <input
+                    type="checkbox"
+                    checked={invitePermissions.can_view_team_emails}
+                    onChange={(e) => setInvitePermissions({...invitePermissions, can_view_team_emails: e.target.checked})}
+                    disabled={inviteRole === 'org_admin'}
+                    style={{ marginRight: '8px' }}
+                  />
+                  <span style={{ color: '#2d3748' }}>View team email generations</span>
+                </label>
+              </div>
+            </div>
+
             <div style={{ display: 'flex', gap: '12px' }}>
               <button
                 onClick={() => {
                   setShowInviteModal(false);
                   setInviteEmail('');
-                  setInvitePassword('');
-                  setInviteFullName('');
+                  setInviteMessage('');
                   setInviteRole('member');
                   setInviteSuccess('');
+                  setInvitePermissions({
+                    can_view_org_materials: true,
+                    can_upload_materials: true,
+                    can_delete_own_materials: true,
+                    can_share_materials: false,
+                    can_view_team_analyses: true,
+                    can_view_team_emails: false,
+                  });
                 }}
                 disabled={inviteLoading || !!inviteSuccess}
                 style={{
@@ -1563,20 +1826,20 @@ export default function OrganizationDashboard() {
               </button>
               <button
                 onClick={handleInviteUser}
-                disabled={inviteLoading || inviteSuccess || !inviteEmail || !invitePassword || !inviteFullName}
+                disabled={inviteLoading || !!inviteSuccess || !inviteEmail}
                 style={{
                   flex: 1,
                   padding: '12px',
-                  background: (inviteLoading || inviteSuccess || !inviteEmail || !invitePassword || !inviteFullName) ? '#a0aec0' : '#667eea',
+                  background: (inviteLoading || !!inviteSuccess || !inviteEmail) ? '#a0aec0' : '#667eea',
                   color: 'white',
                   border: 'none',
                   borderRadius: '8px',
                   fontSize: '14px',
                   fontWeight: '600',
-                  cursor: (inviteLoading || inviteSuccess || !inviteEmail || !invitePassword || !inviteFullName) ? 'not-allowed' : 'pointer'
+                  cursor: (inviteLoading || !!inviteSuccess || !inviteEmail) ? 'not-allowed' : 'pointer'
                 }}
               >
-                {inviteLoading ? 'Creating...' : inviteSuccess ? '✓ Created' : 'Create User'}
+                {inviteLoading ? 'Sending...' : inviteSuccess ? '✓ Sent' : 'Send Invitation'}
               </button>
             </div>
           </div>

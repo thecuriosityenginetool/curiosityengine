@@ -306,15 +306,29 @@ function Popup() {
       });
 
       if (res.ok && res.data?.analysis) {
-        // Parse thinking tags from response
-        const analysisText = res.data.analysis;
-        const thinkMatch = analysisText.match(/<think>([\s\S]*?)<\/think>/);
+        // Parse thinking tags from response - more robust parsing
+        let analysisText = res.data.analysis;
+        let thinkingContent = '';
+        let finalContent = '';
         
-        if (thinkMatch) {
-          // Has thinking content - separate it
-          setThinking(thinkMatch[1].trim());
-          const finalAnswer = analysisText.split('</think>')[1]?.trim() || '';
-          setResponse(finalAnswer);
+        // Check for thinking tags (complete or incomplete)
+        if (analysisText.includes('<think>')) {
+          // Extract thinking content (handle both complete and incomplete tags)
+          const thinkStart = analysisText.indexOf('<think>');
+          const thinkEnd = analysisText.indexOf('</think>');
+          
+          if (thinkEnd > thinkStart) {
+            // Complete thinking tag found
+            thinkingContent = analysisText.substring(thinkStart + 7, thinkEnd).trim();
+            finalContent = analysisText.substring(thinkEnd + 8).trim();
+          } else {
+            // Incomplete tag - take everything after <think> as thinking
+            thinkingContent = analysisText.substring(thinkStart + 7).trim();
+            finalContent = '';
+          }
+          
+          setThinking(thinkingContent);
+          setResponse(finalContent || 'Processing...');
         } else {
           // No thinking tags - use full content
           setThinking('');

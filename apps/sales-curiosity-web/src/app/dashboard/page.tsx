@@ -1727,9 +1727,9 @@ The draft is now in your Outlook Drafts folder and ready to send.`);
       {/* Main Content */}
       <div className="relative">
         {activeTab === 'dashboard' && (
-          <div className="grid grid-cols-1 lg:grid-cols-12 gap-0 relative" style={{ overflow: 'visible' }}>
+          <div className="grid grid-cols-1 lg:grid-cols-12 gap-0 h-[calc(100vh-130px)]" style={{ overflow: 'visible' }}>
             {/* Chat History Sidebar - Always Visible */}
-            <div className="lg:col-span-2">
+            <div className="lg:col-span-2 h-full overflow-hidden">
               <div className="bg-white border-r border-gray-100 h-full flex flex-col w-64">
                   <div className="p-3">
                     <motion.button
@@ -1792,11 +1792,11 @@ The draft is now in your Outlook Drafts folder and ready to send.`);
               </div>
 
             {/* AI Chat - Takes remaining 10 columns */}
-            <div className="lg:col-span-10 relative px-6">
+            <div className="lg:col-span-10 h-full overflow-hidden flex flex-col relative">
               {/* Calendar Toggle Button (top-right of chat) */}
               <button
                 onClick={() => setShowCalendarPanel(!showCalendarPanel)}
-                className="absolute top-4 right-4 z-20 bg-white border border-gray-200 p-2.5 rounded-lg shadow-sm hover:shadow-md transition-all duration-200"
+                className="absolute top-4 right-10 z-20 bg-white border border-gray-200 p-2.5 rounded-lg shadow-sm hover:shadow-md transition-all duration-200"
                 title="Toggle calendar"
               >
                 <svg className="w-5 h-5 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -1804,7 +1804,7 @@ The draft is now in your Outlook Drafts folder and ready to send.`);
                 </svg>
               </button>
 
-              <div className="bg-white h-full flex flex-col">
+              <div className="bg-white h-full flex flex-col px-6">
 
                 {/* Chat Messages */}
                 <div className="flex-1 overflow-y-auto p-4 space-y-4">
@@ -2013,9 +2013,9 @@ The draft is now in your Outlook Drafts folder and ready to send.`);
                           </svg>
                         </button>
 
-                        {/* Dropdown Menu */}
+                        {/* Dropdown Menu - Opens Upward */}
                         {showModelDropdown && (
-                          <div className="absolute z-50 mt-1 w-full bg-white border border-gray-200 rounded-lg shadow-lg overflow-hidden">
+                          <div className="absolute z-50 bottom-full mb-2 w-full bg-white border border-gray-200 rounded-lg shadow-lg overflow-hidden">
                             {availableModels.map((model, index) => (
                               <button
                                 key={model.id}

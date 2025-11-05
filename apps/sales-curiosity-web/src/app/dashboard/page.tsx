@@ -2447,59 +2447,108 @@ The draft is now in your Outlook Drafts folder and ready to send.`);
                 </div>
               </div>
 
-              {/* Team Management Section (for org admins) */}
-              {isAdmin && (
-                <div className="bg-white rounded-lg border border-gray-200 shadow-sm p-6">
-                  <h3 className="text-lg font-semibold text-gray-900 mb-4">👥 Team Management</h3>
-                  
-                  <div className="mb-6">
+              {/* Team Management Section - Always Show */}
+              <div className="bg-white rounded-lg border border-gray-200 shadow-sm p-6">
+                <div className="flex items-center justify-between mb-4">
+                  <h3 className="text-lg font-semibold text-gray-900">👥 Team Collaboration</h3>
+                  {isAdmin && (
+                    <button
+                      onClick={() => router.push('/admin/organization')}
+                      className="text-xs bg-[#667eea] text-white px-3 py-1.5 rounded-lg hover:bg-[#5568d3] transition-colors font-medium"
+                    >
+                      Admin Dashboard →
+                    </button>
+                  )}
+                </div>
+                
+                {isAdmin ? (
+                  <div>
                     <p className="text-sm text-gray-600 mb-4">
-                      Invite team members to collaborate on sales materials and share insights.
+                      Manage your team, send invitations, and control permissions from the Organization Dashboard.
                     </p>
                     
-                    <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
-                      <h4 className="text-sm font-semibold text-blue-900 mb-3">📨 Send Invitation</h4>
-                      
-                      <div className="space-y-3">
-                        <div>
-                          <label className="block text-xs font-medium text-gray-700 mb-1">Email Address</label>
-                          <input
-                            type="email"
-                            placeholder="teammate@company.com"
-                            className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none"
-                          />
+                    <div className="bg-gradient-to-r from-blue-50 to-indigo-50 border border-blue-200 rounded-lg p-4 mb-4">
+                      <h4 className="text-sm font-semibold text-blue-900 mb-2">✨ Admin Features Available:</h4>
+                      <ul className="text-xs text-blue-800 space-y-1.5">
+                        <li>• <strong>Send invitations</strong> with custom permissions per user</li>
+                        <li>• <strong>View all team members</strong> and their activity</li>
+                        <li>• <strong>Manage permissions</strong> for what users can do</li>
+                        <li>• <strong>Track team analytics</strong> - analyses, emails, materials</li>
+                        <li>• <strong>Control integrations</strong> for the entire organization</li>
+                        <li>• <strong>Share materials</strong> organization-wide or with specific users</li>
+                      </ul>
+                    </div>
+
+                    <button
+                      onClick={() => router.push('/admin/organization')}
+                      className="w-full bg-[#667eea] text-white px-4 py-3 rounded-lg text-sm font-semibold hover:bg-[#5568d3] transition-colors flex items-center justify-center space-x-2"
+                    >
+                      <span>🚀 Open Organization Dashboard</span>
+                      <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 8l4 4m0 0l-4 4m4-4H3" />
+                      </svg>
+                    </button>
+
+                    <div className="mt-4 pt-4 border-t border-gray-200">
+                      <div className="grid grid-cols-2 gap-2">
+                        <div className="bg-white border border-gray-200 rounded-lg p-3 text-center">
+                          <div className="text-2xl font-bold text-[#667eea]">
+                            {salesMaterials.filter(m => m.visibility === 'organization').length}
+                          </div>
+                          <div className="text-xs text-gray-600 mt-1">Shared Materials</div>
                         </div>
-                        
-                        <div>
-                          <label className="block text-xs font-medium text-gray-700 mb-1">Role</label>
-                          <select className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none">
-                            <option value="member">Member</option>
-                            <option value="org_admin">Admin</option>
-                          </select>
+                        <div className="bg-white border border-gray-200 rounded-lg p-3 text-center">
+                          <div className="text-2xl font-bold text-[#667eea]">—</div>
+                          <div className="text-xs text-gray-600 mt-1">
+                            <button
+                              onClick={() => router.push('/admin/organization')}
+                              className="text-blue-600 hover:text-blue-800 font-medium"
+                            >
+                              View Team →
+                            </button>
+                          </div>
                         </div>
-                        
-                        <button
-                          onClick={() => {
-                            alert('Please use the Organization Dashboard for full team management features.\n\nClick "Admin Dashboard" button above to access invitations with custom permissions.');
-                          }}
-                          className="w-full bg-blue-600 text-white px-4 py-2 rounded-lg text-sm font-medium hover:bg-blue-700 transition-colors"
-                        >
-                          Send Invitation
-                        </button>
-                      </div>
-                      
-                      <div className="mt-4 pt-4 border-t border-blue-200">
-                        <button
-                          onClick={() => router.push('/admin/organization')}
-                          className="text-sm text-blue-600 hover:text-blue-800 font-medium"
-                        >
-                          → Go to Organization Dashboard for full team management
-                        </button>
                       </div>
                     </div>
                   </div>
-                </div>
-              )}
+                ) : (
+                  <div>
+                    {userData?.organization_id ? (
+                      <div>
+                        <p className="text-sm text-gray-600 mb-3">
+                          You're part of a team! Share your sales materials and collaborate with teammates.
+                        </p>
+                        
+                        <div className="bg-gray-50 border border-gray-200 rounded-lg p-4">
+                          <h4 className="text-sm font-semibold text-gray-700 mb-2">💡 Team Features:</h4>
+                          <ul className="text-xs text-gray-600 space-y-1.5">
+                            <li>• Share your materials with the team using the 🔄 button above</li>
+                            <li>• Access materials shared by your teammates</li>
+                            <li>• Collaborate on sales strategies and insights</li>
+                          </ul>
+                          <p className="text-xs text-gray-500 mt-3 italic">
+                            Need to invite someone? Contact your organization admin.
+                          </p>
+                        </div>
+                      </div>
+                    ) : (
+                      <div>
+                        <p className="text-sm text-gray-600 mb-3">
+                          Individual account - Upgrade to enable team collaboration features.
+                        </p>
+                        <button
+                          onClick={() => {
+                            window.location.href = `mailto:hello@curiosityengine.io?subject=Upgrade to Organization Account&body=Hi,%0A%0AI would like to upgrade to an Organization account to enable team features.%0A%0AName: ${userData?.full_name}%0AEmail: ${userData?.email}%0A%0APlease send me more information.%0A%0AThanks!`;
+                          }}
+                          className="w-full bg-[#F95B14] text-white px-4 py-2 rounded-lg text-sm font-medium hover:bg-orange-600 transition-colors"
+                        >
+                          📧 Request Organization Upgrade
+                        </button>
+                      </div>
+                    )}
+                  </div>
+                )}
+              </div>
 
               {/* Upgrade Section */}
               {!isAdmin && (

@@ -102,6 +102,17 @@ export default function Home() {
   const [result, setResult] = useState<any>(null);
   const [error, setError] = useState('');
   
+  // AI Model selection (verified from docs.sambanova.ai)
+  const [selectedModel, setSelectedModel] = useState('DeepSeek-R1-0528');
+  const availableModels = [
+    { id: 'DeepSeek-R1-0528', name: 'DeepSeek R1 (671B)', description: 'Most powerful - Best for complex reasoning' },
+    { id: 'DeepSeek-V3-0324', name: 'DeepSeek V3', description: 'Powerful general-purpose model' },
+    { id: 'DeepSeek-V3.1', name: 'DeepSeek V3.1', description: 'Latest DeepSeek version' },
+    { id: 'DeepSeek-R1-Distill-Llama-70B', name: 'DeepSeek R1 Distill (70B)', description: 'Efficient reasoning model' },
+    { id: 'Meta-Llama-3.3-70B-Instruct', name: 'Llama 3.3 70B', description: 'Fast and efficient - Great balance' },
+    { id: 'Meta-Llama-3.1-8B-Instruct', name: 'Llama 3.1 8B', description: 'Ultra-fast - Simple tasks' },
+  ];
+  
   // Context state
   const [aboutMe, setAboutMe] = useState('');
   const [objectives, setObjectives] = useState('');

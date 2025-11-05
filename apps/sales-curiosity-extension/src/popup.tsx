@@ -19,6 +19,8 @@ function Popup() {
   const [currentUrl, setCurrentUrl] = useState<string>("");
   const [isLinkedIn, setIsLinkedIn] = useState<boolean>(false);
   const [response, setResponse] = useState<string>("");
+  const [thinking, setThinking] = useState<string>("");
+  const [showThinking, setShowThinking] = useState<boolean>(false);
   const [loading, setLoading] = useState<boolean>(false);
   const [profileData, setProfileData] = useState<any>(null);
   
@@ -304,8 +306,23 @@ function Popup() {
       });
 
       if (res.ok && res.data?.analysis) {
-        setResponse(res.data.analysis);
+        // Parse thinking tags from response
+        const analysisText = res.data.analysis;
+        const thinkMatch = analysisText.match(/<think>([\s\S]*?)<\/think>/);
+        
+        if (thinkMatch) {
+          // Has thinking content - separate it
+          setThinking(thinkMatch[1].trim());
+          const finalAnswer = analysisText.split('</think>')[1]?.trim() || '';
+          setResponse(finalAnswer);
+        } else {
+          // No thinking tags - use full content
+          setThinking('');
+          setResponse(analysisText);
+        }
+        
         setProfileData(res.data.profileData || extractResponse.data);
+        setShowThinking(false); // Start collapsed
         
         // Save to local storage for persistence
         await chrome.storage.local.set({
@@ -796,6 +813,86 @@ function Popup() {
               </>
             )}
 
+            {/* Thinking Section - Collapsible */}
+            {thinking && (
+              <div style={{ marginTop: 16 }}>
+                <button
+                  onClick={() => setShowThinking(!showThinking)}
+                  style={{
+                    width: "100%",
+                    padding: "10px 12px",
+                    background: "#eff6ff",
+                    border: "1px solid #bfdbfe",
+                    borderRadius: 8,
+                    fontSize: 12,
+                    fontWeight: 600,
+                    color: "#1e40af",
+                    cursor: "pointer",
+                    display: "flex",
+                    alignItems: "center",
+                    gap: 8,
+                    transition: "all 0.2s ease"
+                  }}
+                  onMouseOver={(e) => {
+                    e.currentTarget.style.background = "#dbeafe";
+                  }}
+                  onMouseOut={(e) => {
+                    e.currentTarget.style.background = "#eff6ff";
+                  }}
+                >
+                  <svg 
+                    style={{
+                      width: 12,
+                      height: 12,
+                      transform: showThinking ? 'rotate(90deg)' : 'rotate(0deg)',
+                      transition: 'transform 0.2s ease'
+                    }}
+                    fill="none" 
+                    stroke="currentColor" 
+                    viewBox="0 0 24 24"
+                  >
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+                  </svg>
+                  <svg style={{ width: 14, height: 14 }} fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z" />
+                  </svg>
+                  {showThinking ? 'Hide' : 'View'} Thinking Process
+                </button>
+                
+                {showThinking && (
+                  <div style={{
+                    marginTop: 8,
+                    padding: 12,
+                    background: "#eff6ff",
+                    border: "1px solid #bfdbfe",
+                    borderRadius: 8,
+                    fontSize: 11,
+                    lineHeight: 1.5,
+                    color: "#1e40af",
+                    maxHeight: 200,
+                    overflowY: "auto"
+                  }}>
+                    <div style={{
+                      display: "flex",
+                      alignItems: "center",
+                      gap: 6,
+                      marginBottom: 8,
+                      fontWeight: 600,
+                      color: "#1e3a8a"
+                    }}>
+                      <svg style={{ width: 14, height: 14 }} fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z" />
+                      </svg>
+                      AI Reasoning
+                    </div>
+                    <div style={{ whiteSpace: "pre-wrap", paddingLeft: 20 }}>
+                      {thinking}
+                    </div>
+                  </div>
+                )}
+              </div>
+            )}
+
             {/* Response */}
             {response && (
               <div style={{
@@ -811,13 +908,8 @@ function Popup() {
                 color: "#374151"
               }}>
                 {(() => {
-                  // Strip thinking tags completely from response
-                  let cleanedResponse = response.replace(/<think>[\s\S]*?<\/think>/g, '').trim();
-                  
-                  // Also handle incomplete thinking tags
-                  cleanedResponse = cleanedResponse.replace(/<think>.*$/g, '').trim();
-                  
-                  return cleanedResponse.split('\n').map((line, i) => {
+                  // Response is already cleaned (thinking stripped in analyzeProfile)
+                  return response.split('\n').map((line, i) => {
                     // Strip HTML tags and render clean
                     let cleanLine = line
                       .replace(/<h3>/g, '')

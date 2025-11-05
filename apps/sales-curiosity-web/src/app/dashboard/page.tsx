@@ -1581,9 +1581,9 @@ The draft is now in your Outlook Drafts folder and ready to send.`);
               <Image
                 src="/fulllogo_transparent_nobuffer.png"
                 alt="Curiosity Engine"
-                width={180}
-                height={48}
-                className="h-8 w-auto"
+                width={270}
+                height={72}
+                className="h-12 w-auto"
               />
             </div>
             

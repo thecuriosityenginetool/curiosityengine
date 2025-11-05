@@ -116,6 +116,11 @@ ALTER TABLE public.material_permissions ENABLE ROW LEVEL SECURITY;
 -- 7. RLS POLICIES FOR USER_PERMISSIONS
 -- ===========================================
 
+-- Drop existing policies if they exist
+DROP POLICY IF EXISTS "Users can view their own permissions" ON public.user_permissions;
+DROP POLICY IF EXISTS "Org admins can view org permissions" ON public.user_permissions;
+DROP POLICY IF EXISTS "Org admins can manage permissions" ON public.user_permissions;
+
 -- Users can view their own permissions
 CREATE POLICY "Users can view their own permissions"
   ON public.user_permissions FOR SELECT
@@ -144,6 +149,11 @@ CREATE POLICY "Org admins can manage permissions"
 -- ===========================================
 -- 8. RLS POLICIES FOR MATERIAL_PERMISSIONS
 -- ===========================================
+
+-- Drop existing policies if they exist
+DROP POLICY IF EXISTS "Users can view their material permissions" ON public.material_permissions;
+DROP POLICY IF EXISTS "Users can manage their material permissions" ON public.material_permissions;
+DROP POLICY IF EXISTS "Org admins can view all material permissions" ON public.material_permissions;
 
 -- Users can view permissions for materials they own
 CREATE POLICY "Users can view their material permissions"
@@ -183,6 +193,15 @@ DROP POLICY IF EXISTS "Users can create their own sales materials" ON public.sal
 DROP POLICY IF EXISTS "Users can update their own sales materials" ON public.sales_materials;
 DROP POLICY IF EXISTS "Users can delete their own sales materials" ON public.sales_materials;
 DROP POLICY IF EXISTS "Org members can view shared sales materials" ON public.sales_materials;
+
+-- Drop new policies if they exist (for idempotency)
+DROP POLICY IF EXISTS "Users can view their own materials" ON public.sales_materials;
+DROP POLICY IF EXISTS "Users can view organization materials" ON public.sales_materials;
+DROP POLICY IF EXISTS "Users can view team materials" ON public.sales_materials;
+DROP POLICY IF EXISTS "Users can create materials with permission" ON public.sales_materials;
+DROP POLICY IF EXISTS "Users can update their own materials" ON public.sales_materials;
+DROP POLICY IF EXISTS "Users can delete their own materials" ON public.sales_materials;
+DROP POLICY IF EXISTS "Admins can delete org materials" ON public.sales_materials;
 
 -- New policies: Users can view their own materials
 CREATE POLICY "Users can view their own materials"
@@ -579,6 +598,12 @@ WHERE id = 'sales-materials';
 DROP POLICY IF EXISTS "Users can upload their own sales materials" ON storage.objects;
 DROP POLICY IF EXISTS "Users can view their own sales materials" ON storage.objects;
 DROP POLICY IF EXISTS "Users can delete their own sales materials" ON storage.objects;
+
+-- Drop new policies if they exist (for idempotency)
+DROP POLICY IF EXISTS "Users can upload materials to their org folder" ON storage.objects;
+DROP POLICY IF EXISTS "Users can view their accessible materials" ON storage.objects;
+DROP POLICY IF EXISTS "Users can delete their own materials" ON storage.objects;
+DROP POLICY IF EXISTS "Admins can delete org materials" ON storage.objects;
 
 -- New storage policies with organization support
 CREATE POLICY "Users can upload materials to their org folder"

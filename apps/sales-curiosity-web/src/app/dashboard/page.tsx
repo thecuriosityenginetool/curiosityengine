@@ -1934,8 +1934,8 @@ The draft is now in your Outlook Drafts folder and ready to send.`);
                               />
                               {/* Outlook Icon */}
                               <img
-                                src="/icons8-outlook-calendar-480.svg"
-                                alt="Outlook Calendar"
+                                src="/Outlook_icon.svg"
+                                alt="Outlook"
                                 className="w-7 h-7"
                               />
                             </div>

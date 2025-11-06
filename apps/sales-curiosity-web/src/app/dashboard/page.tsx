@@ -1586,12 +1586,9 @@ The draft is now in your Outlook Drafts folder and ready to send.`);
   if (loading) {
     return (
       <div className="min-h-screen bg-white flex items-center justify-center">
-        <div className="text-center">
-          <div className="relative w-24 h-24 mx-auto mb-4">
-            <div className="absolute top-0 left-0 w-full h-full rounded-full border-8 border-gray-200"></div>
-            <div className="absolute top-0 left-0 w-full h-full rounded-full border-8 border-transparent border-t-[#F95B14] animate-spin"></div>
-          </div>
-          <div className="text-gray-600 text-sm">Loading...</div>
+        <div className="relative w-24 h-24">
+          <div className="absolute top-0 left-0 w-full h-full rounded-full border-8 border-gray-200"></div>
+          <div className="absolute top-0 left-0 w-full h-full rounded-full border-8 border-transparent border-t-[#F95B14] animate-spin"></div>
         </div>
       </div>
     );

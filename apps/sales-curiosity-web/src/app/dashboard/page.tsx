@@ -1861,13 +1861,13 @@ The draft is now in your Outlook Drafts folder and ready to send.`);
                             <div className="flex items-center gap-2">
                               {/* Google Calendar Icon */}
                               <img
-                                src="/google_cal_logo.svg"
+                                src="/Google_Calendar_icon_(2020) .svg"
                                 alt="Google Calendar"
                                 className="w-7 h-7"
                               />
                               {/* Outlook Icon */}
                               <img
-                                src="/outlook.svg"
+                                src="/Outlook_icon.svg"
                                 alt="Outlook"
                                 className="w-7 h-7"
                               />
@@ -1917,13 +1917,13 @@ The draft is now in your Outlook Drafts folder and ready to send.`);
                             <div className="flex items-center gap-2">
                               {/* Gmail Icon */}
                               <img
-                                src="/gmail_logo_2.svg"
+                                src="/Gmail Icon.svg"
                                 alt="Gmail"
                                 className="w-7 h-7"
                               />
                               {/* Outlook Icon */}
                               <img
-                                src="/outlook.svg"
+                                src="/Outlook_icon.svg"
                                 alt="Outlook"
                                 className="w-7 h-7"
                               />
@@ -1948,7 +1948,7 @@ The draft is now in your Outlook Drafts folder and ready to send.`);
                           <div className="flex items-center gap-3 mb-3">
                             {/* LinkedIn Icon */}
                             <img
-                              src="/linkedinlogo.svg"
+                              src="/linkedin-svgrepo-com (2).svg"
                               alt="LinkedIn"
                               className="w-7 h-7"
                             />

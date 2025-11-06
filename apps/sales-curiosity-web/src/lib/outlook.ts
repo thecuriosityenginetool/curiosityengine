@@ -440,3 +440,69 @@ export async function createOutlookCalendarEvent(
   }
 }
 
+/**
+ * Get recent emails from Outlook
+ */
+export async function getRecentEmails(
+  organizationId: string,
+  userId: string,
+  limit: number = 10
+): Promise<any[]> {
+  try {
+    console.log('📧 Fetching recent emails from Outlook...');
+    
+    const params = new URLSearchParams({
+      '$top': limit.toString(),
+      '$select': 'subject,from,receivedDateTime,bodyPreview,toRecipients,isRead',
+      '$orderby': 'receivedDateTime desc'
+    });
+
+    const result = await graphApiRequest(
+      organizationId,
+      `/me/messages?${params.toString()}`,
+      {},
+      userId
+    );
+
+    console.log('✅ Fetched', result.value?.length || 0, 'recent emails');
+    return result.value || [];
+  } catch (error) {
+    console.error('Error fetching recent emails:', error);
+    throw error;
+  }
+}
+
+/**
+ * Search emails in Outlook
+ */
+export async function searchEmails(
+  organizationId: string,
+  query: string,
+  userId: string,
+  limit: number = 5
+): Promise<any[]> {
+  try {
+    console.log('🔍 Searching emails for:', query);
+    
+    const params = new URLSearchParams({
+      '$search': `"${query}"`,
+      '$top': limit.toString(),
+      '$select': 'subject,from,receivedDateTime,bodyPreview,toRecipients',
+      '$orderby': 'receivedDateTime desc'
+    });
+
+    const result = await graphApiRequest(
+      organizationId,
+      `/me/messages?${params.toString()}`,
+      {},
+      userId
+    );
+
+    console.log('✅ Found', result.value?.length || 0, 'emails matching query');
+    return result.value || [];
+  } catch (error) {
+    console.error('Error searching emails:', error);
+    throw error;
+  }
+}
+

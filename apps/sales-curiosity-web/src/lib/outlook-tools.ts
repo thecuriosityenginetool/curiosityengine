@@ -93,6 +93,27 @@ export const outlookTools: ChatCompletionTool[] = [
         required: ["title", "start", "end"]
       }
     }
+  },
+  {
+    type: "function",
+    function: {
+      name: "search_emails",
+      description: "Search the user's Outlook emails for specific content, people, subjects, or keywords. Use this to find information about past conversations, specific prospects, or email exchanges. Very useful when user mentions 'latest prospect', 'that person', or references a specific topic.",
+      parameters: {
+        type: "object",
+        properties: {
+          query: {
+            type: "string",
+            description: "Search term for email subject, body content, sender name, or keywords"
+          },
+          limit: {
+            type: "number",
+            description: "Maximum number of results to return (default 5)"
+          }
+        },
+        required: ["query"]
+      }
+    }
   }
 ];
 
@@ -118,5 +139,10 @@ export interface CreateCalendarEventArgs {
   description?: string;
   attendees?: string[];
   location?: string;
+}
+
+export interface SearchEmailsArgs {
+  query: string;
+  limit?: number;
 }
 

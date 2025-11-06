@@ -18,7 +18,9 @@ import {
 import {
   createOutlookDraft,
   sendOutlookEmail,
-  createOutlookCalendarEvent
+  createOutlookCalendarEvent,
+  getRecentEmails,
+  searchEmails
 } from '@/lib/outlook';
 import { matchCalendarEventsToSalesforce, buildCalendarContext } from '@/lib/calendar-matcher';
 
@@ -182,6 +184,28 @@ ${args.attendees ? `Attendees: ${args.attendees.join(', ')}` : ''}
 Event ID: ${result.id}`;
       }
 
+      case 'search_emails': {
+        const emails = await searchEmails(organizationId, args.query, userId, args.limit || 5);
+        if (emails.length === 0) {
+          return `No emails found matching "${args.query}"`;
+        }
+        
+        let response = `Found ${emails.length} email(s) matching "${args.query}":\n\n`;
+        emails.forEach((email: any, index: number) => {
+          const from = email.from?.emailAddress?.name || email.from?.emailAddress?.address || 'Unknown';
+          const subject = email.subject || '(No subject)';
+          const date = new Date(email.receivedDateTime).toLocaleString();
+          const preview = email.bodyPreview?.substring(0, 150) || '';
+          
+          response += `${index + 1}. From: ${from}\n`;
+          response += `   Subject: ${subject}\n`;
+          response += `   Date: ${date}\n`;
+          response += `   Preview: ${preview}...\n\n`;
+        });
+        
+        return response;
+      }
+
       default:
         return `Unknown tool: ${toolName}`;
     }
@@ -320,6 +344,33 @@ export async function POST(req: NextRequest) {
       ).join('\n')}`;
     }
 
+    // Get recent emails if Outlook is connected
+    let emailContext = '';
+    if (hasOutlook) {
+      try {
+        const recentEmails = await getRecentEmails(user.organization_id, user.id, 10);
+        if (recentEmails.length > 0) {
+          emailContext = '\n\n**RECENT EMAIL EXCHANGES (Last 10):**\n';
+          recentEmails.forEach((email: any, index: number) => {
+            const from = email.from?.emailAddress?.name || email.from?.emailAddress?.address || 'Unknown';
+            const fromEmail = email.from?.emailAddress?.address || '';
+            const subject = email.subject || '(No subject)';
+            const date = new Date(email.receivedDateTime).toLocaleDateString();
+            const preview = email.bodyPreview?.substring(0, 100) || '';
+            
+            emailContext += `\n${index + 1}. From: ${from} <${fromEmail}>\n`;
+            emailContext += `   Subject: ${subject}\n`;
+            emailContext += `   Date: ${date}\n`;
+            emailContext += `   Preview: ${preview}...\n`;
+          });
+          console.log('📧 Added recent emails to context:', recentEmails.length);
+        }
+      } catch (error) {
+        console.error('Error fetching recent emails for context:', error);
+        // Don't fail the whole request if email fetch fails
+      }
+    }
+
     // Build system prompt with context - ONLY mention connected integrations
     let systemPrompt = `You are Curiosity Engine, an AI sales assistant working specifically for ${user.full_name || 'the user'}. You help them by using their personal context, company materials, and specific offerings to provide highly personalized sales assistance.`;
 
@@ -338,7 +389,9 @@ export async function POST(req: NextRequest) {
 - Create email drafts in Outlook (ALWAYS use create_email_draft tool when user asks for email drafts)
 - Send emails via Outlook
 - Create calendar events in Outlook
-- View calendar events (calendar events are provided in the context below - just reference them directly)`;
+- View calendar events (calendar events are provided in the context below - just reference them directly)
+- View recent email exchanges (recent emails are provided in the context below - check them for "latest prospect" queries)
+- Search specific emails using the search_emails tool when you need to find specific conversations or people`;
     }
 
     if (!hasSalesforce && !hasOutlook) {
@@ -347,6 +400,33 @@ export async function POST(req: NextRequest) {
     }
 
     systemPrompt += `
+
+## DATA PRIORITIZATION (CRITICAL):
+When the user mentions vague references like "latest prospect", "that person", "my call", etc:
+
+**Step 1 - Check ALL Data Sources FIRST (in this order):**
+1. Recent email exchanges (check FROM field and receivedDateTime) - **PRIORITIZE for "latest prospect"**
+2. Calendar events (check for recent/upcoming meetings)
+3. Salesforce CRM (check for recent contact/lead activity)
+
+**Step 2 - Use Most Recent Interaction:**
+- Compare timestamps across all sources
+- Use the MOST RECENT interaction to identify the person
+- Example: If most recent email is from "John Smith <john@acme.com>" 2 hours ago, that's the latest prospect
+
+**Step 3 - Only Ask for Clarification If:**
+- No recent activity found in ANY data source
+- Multiple recent people with equal recency (e.g., 3 emails in last hour from different people)
+- User request is truly ambiguous even with data
+
+**Common Patterns to Handle Intuitively:**
+- "latest prospect" = Check recent emails FIRST (most recent sender/recipient)
+- "that person I met" = Check calendar for recent meetings
+- "my call yesterday" = Check calendar for yesterday's events  
+- "the lead from [Company]" = Search Salesforce by company name
+- "draft email to latest" = Use most recent email exchange to determine recipient
+
+**ALWAYS check data sources before making assumptions or asking questions!**
 
 ## Response Formatting Guidelines:
 - Use **bold** for emphasis and important points
@@ -372,6 +452,10 @@ export async function POST(req: NextRequest) {
 
     if (salesMaterials) {
       systemPrompt += `\n\nYOUR COMPANY MATERIALS & OFFERINGS:${salesMaterials}`;
+    }
+
+    if (emailContext) {
+      systemPrompt += emailContext;
     }
 
     if (calendarContext) {

@@ -552,14 +552,23 @@ export default function DashboardPage() {
               try {
                 const parsed = JSON.parse(data);
 
-                if (parsed.type === 'content') {
+                if (parsed.type === 'context_loaded') {
+                  // Add context sources to agent steps
+                  if (parsed.sources && parsed.sources.length > 0) {
+                    agentSteps += '📊 **Context Loaded:**\n';
+                    parsed.sources.forEach((source: string) => {
+                      agentSteps += `  ✓ ${source}\n`;
+                    });
+                    agentSteps += '\n';
+                  }
+                } else if (parsed.type === 'content') {
                   accumulatedContent += parsed.content;
                   
                   // Parse thinking tags from DeepSeek-R1 response
                   const { thinking, final } = parseThinkingTags(accumulatedContent);
                   
                   // Combine AI reasoning with agent steps
-                  const fullThinking = agentSteps + (agentSteps && thinking ? '\n\n---\n\n**AI Reasoning:**\n' + thinking : thinking);
+                  const fullThinking = agentSteps + (agentSteps && thinking ? '\n---\n\n**AI Reasoning:**\n' + thinking : thinking);
                   
                   // Update the assistant message in real-time
                   setChatMessages(prev => {

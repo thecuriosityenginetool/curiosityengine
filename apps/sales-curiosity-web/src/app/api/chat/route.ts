@@ -484,6 +484,22 @@ When the user mentions vague references like "latest prospect", "that person", "
     const stream = new ReadableStream({
       async start(controller) {
         try {
+          // Send context info to frontend for thinking display
+          const contextSummary = [];
+          if (salesMaterials) contextSummary.push('Sales Materials');
+          if (emailContext) contextSummary.push('Recent Emails');
+          if (calendarContext) contextSummary.push('Calendar Events');
+          if (hasSalesforce) contextSummary.push('Salesforce CRM');
+          
+          if (contextSummary.length > 0) {
+            controller.enqueue(
+              encoder.encode(`data: ${JSON.stringify({
+                type: 'context_loaded',
+                sources: contextSummary
+              })}\n\n`)
+            );
+          }
+          
           // Call SambaNova with streaming and tools
           console.log('🚀 [Chat API] Calling SambaNova Cloud with model:', selectedModel);
           const completion = await openai.chat.completions.create({

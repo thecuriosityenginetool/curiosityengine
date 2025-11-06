@@ -1861,7 +1861,7 @@ The draft is now in your Outlook Drafts folder and ready to send.`);
                             <div className="flex items-center gap-2">
                               {/* Google Calendar Icon */}
                               <img
-                                src="/Google_Calendar_icon_(2020)%20.svg"
+                                src="/google-calendar.svg"
                                 alt="Google Calendar"
                                 className="w-7 h-7"
                               />
@@ -1917,7 +1917,7 @@ The draft is now in your Outlook Drafts folder and ready to send.`);
                             <div className="flex items-center gap-2">
                               {/* Gmail Icon */}
                               <img
-                                src="/Gmail%20Icon.svg"
+                                src="/gmail-icon.svg"
                                 alt="Gmail"
                                 className="w-7 h-7"
                               />

@@ -95,6 +95,7 @@ export default function DashboardPage() {
   
   // Activity logs state
   const [activityLogs, setActivityLogs] = useState<any[]>([]);
+  const [expandedLogId, setExpandedLogId] = useState<string | null>(null);
   
   // Settings state
   const [profileData, setProfileData] = useState({
@@ -3405,40 +3406,143 @@ The draft is now in your Outlook Drafts folder and ready to send.`);
                   </div>
                 )}
 
-                {activityLogs.map((log) => (
-                  <div key={log.id} className="p-4 hover:bg-gray-50 transition-colors">
-                    <div className="flex items-start justify-between">
-                      <div className="flex-1">
-                        <div className="flex items-center gap-2">
-                          <span className="text-lg">
-                            {log.action_type === 'email_draft_created' && '✉️'}
-                            {log.action_type === 'email_sent' && '📧'}
-                            {log.action_type === 'crm_lead_enriched' && '🎯'}
-                            {log.action_type === 'crm_note_added' && '📝'}
-                            {log.action_type === 'meeting_scheduled' && '📅'}
-                            {log.action_type === 'linkedin_analysis' && '💼'}
-                            {log.action_type === 'integration_connected' && '🔌'}
-                            {log.action_type === 'integration_disconnected' && '⚠️'}
-                          </span>
-                          <h3 className="font-medium text-gray-900">{log.action_title}</h3>
+                {activityLogs.map((log) => {
+                  const isExpanded = expandedLogId === log.id;
+                  
+                  // Modern icon mapping
+                  const getIcon = (type: string) => {
+                    switch(type) {
+                      case 'email_draft_created':
+                        return (
+                          <div className="w-10 h-10 rounded-full bg-blue-100 flex items-center justify-center">
+                            <svg className="w-5 h-5 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
+                            </svg>
+                          </div>
+                        );
+                      case 'email_sent':
+                        return (
+                          <div className="w-10 h-10 rounded-full bg-green-100 flex items-center justify-center">
+                            <svg className="w-5 h-5 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 19l9 2-9-18-9 18 9-2zm0 0v-8" />
+                            </svg>
+                          </div>
+                        );
+                      case 'crm_lead_enriched':
+                      case 'crm_note_added':
+                        return (
+                          <div className="w-10 h-10 rounded-full bg-purple-100 flex items-center justify-center">
+                            <svg className="w-5 h-5 text-purple-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                            </svg>
+                          </div>
+                        );
+                      case 'meeting_scheduled':
+                        return (
+                          <div className="w-10 h-10 rounded-full bg-orange-100 flex items-center justify-center">
+                            <svg className="w-5 h-5 text-orange-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                            </svg>
+                          </div>
+                        );
+                      case 'linkedin_analysis':
+                        return (
+                          <div className="w-10 h-10 rounded-full bg-blue-100 flex items-center justify-center">
+                            <svg className="w-5 h-5 text-blue-700" fill="currentColor" viewBox="0 0 24 24">
+                              <path d="M20.447 20.452h-3.554v-5.569c0-1.328-.027-3.037-1.852-3.037-1.853 0-2.136 1.445-2.136 2.939v5.667H9.351V9h3.414v1.561h.046c.477-.9 1.637-1.85 3.37-1.85 3.601 0 4.267 2.37 4.267 5.455v6.286zM5.337 7.433c-1.144 0-2.063-.926-2.063-2.065 0-1.138.92-2.063 2.063-2.063 1.14 0 2.064.925 2.064 2.063 0 1.139-.925 2.065-2.064 2.065zm1.782 13.019H3.555V9h3.564v11.452zM22.225 0H1.771C.792 0 0 .774 0 1.729v20.542C0 23.227.792 24 1.771 24h20.451C23.2 24 24 23.227 24 22.271V1.729C24 .774 23.2 0 22.222 0h.003z"/>
+                            </svg>
+                          </div>
+                        );
+                      case 'integration_connected':
+                        return (
+                          <div className="w-10 h-10 rounded-full bg-green-100 flex items-center justify-center">
+                            <svg className="w-5 h-5 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 10V3L4 14h7v7l9-11h-7z" />
+                            </svg>
+                          </div>
+                        );
+                      default:
+                        return (
+                          <div className="w-10 h-10 rounded-full bg-gray-100 flex items-center justify-center">
+                            <svg className="w-5 h-5 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                            </svg>
+                          </div>
+                        );
+                    }
+                  };
+                  
+                  return (
+                    <motion.div 
+                      key={log.id} 
+                      initial={{ opacity: 0, y: 20 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      className="bg-white border border-gray-200 rounded-xl overflow-hidden hover:shadow-md transition-all duration-200"
+                    >
+                      <button
+                        onClick={() => setExpandedLogId(isExpanded ? null : log.id)}
+                        className="w-full p-5 text-left"
+                      >
+                        <div className="flex items-start gap-4">
+                          {/* Icon */}
+                          {getIcon(log.action_type)}
+                          
+                          {/* Content */}
+                          <div className="flex-1 min-w-0">
+                            <div className="flex items-center justify-between mb-1">
+                              <h3 className="font-semibold text-gray-900 text-base">{log.action_title}</h3>
+                              <div className="flex items-center gap-2">
+                                <span className={`px-2.5 py-1 text-xs font-medium rounded-full ${
+                                  log.status === 'completed' ? 'bg-green-100 text-green-700' :
+                                  log.status === 'failed' ? 'bg-red-100 text-red-700' :
+                                  'bg-yellow-100 text-yellow-700'
+                                }`}>
+                                  {log.status}
+                                </span>
+                                <svg 
+                                  className={`w-5 h-5 text-gray-400 transition-transform ${isExpanded ? 'rotate-180' : ''}`}
+                                  fill="none" 
+                                  stroke="currentColor" 
+                                  viewBox="0 0 24 24"
+                                >
+                                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+                                </svg>
+                              </div>
+                            </div>
+                            {log.action_description && (
+                              <p className="text-sm text-gray-600 mb-2">{log.action_description}</p>
+                            )}
+                            <div className="flex items-center gap-3 text-xs text-gray-500">
+                              <span className="flex items-center gap-1">
+                                <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+                                </svg>
+                                {new Date(log.created_at).toLocaleString()}
+                              </span>
+                            </div>
+                          </div>
                         </div>
-                        {log.action_description && (
-                          <p className="text-sm text-gray-600 mt-1 ml-7">{log.action_description}</p>
-                        )}
-                        <p className="text-xs text-gray-500 mt-1 ml-7">
-                          {new Date(log.created_at).toLocaleString()}
-                        </p>
-                      </div>
-                      <span className={`px-2 py-1 text-xs rounded-full ${
-                        log.status === 'completed' ? 'bg-green-100 text-green-800' :
-                        log.status === 'failed' ? 'bg-red-100 text-red-800' :
-                        'bg-yellow-100 text-yellow-800'
-                      }`}>
-                        {log.status}
-                      </span>
-                    </div>
-                  </div>
-                ))}
+                      </button>
+                      
+                      {/* Expanded Details */}
+                      {isExpanded && log.metadata && (
+                        <div className="border-t border-gray-200 bg-gray-50 p-5">
+                          <h4 className="text-sm font-semibold text-gray-700 mb-3 flex items-center gap-2">
+                            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                            </svg>
+                            Details
+                          </h4>
+                          <div className="bg-white border border-gray-200 rounded-lg p-4">
+                            <pre className="text-xs text-gray-700 whitespace-pre-wrap overflow-auto max-h-64">
+                              {JSON.stringify(log.metadata, null, 2)}
+                            </pre>
+                          </div>
+                        </div>
+                      )}
+                    </motion.div>
+                  );
+                })}
               </div>
             </div>
           </div>

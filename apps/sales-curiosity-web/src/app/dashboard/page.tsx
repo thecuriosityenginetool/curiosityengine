@@ -427,17 +427,24 @@ export default function DashboardPage() {
 
   async function loadChat(chatId: string) {
     try {
+      console.log('📂 Loading chat:', chatId);
       const response = await fetch(`/api/chats/${chatId}/messages`);
       if (response.ok) {
         const data = await response.json();
+        console.log('📨 Received messages:', data.messages?.length || 0);
         const messages = data.messages.map((msg: any) => ({
           role: msg.role,
           content: msg.content,
-          timestamp: msg.created_at
+          timestamp: msg.created_at,
+          thinking: msg.metadata?.thinking || msg.thinking || '',
+          showThinking: false,
+          model: msg.metadata?.model || msg.model || ''
         }));
         setChatMessages(messages);
         setCurrentChatId(chatId);
-        setShowChatSidebar(false);
+        console.log('✅ Chat loaded with', messages.length, 'messages');
+      } else {
+        console.error('❌ Failed to load chat:', response.status);
       }
     } catch (error) {
       console.error('Error loading chat:', error);

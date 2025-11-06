@@ -107,6 +107,9 @@ export async function POST(
       return NextResponse.json({ error: 'Chat not found' }, { status: 404 });
     }
 
+    // Extract thinking and model from body if provided
+    const { thinking, model, ...restBody } = body;
+    
     // Add message
     const { data: message, error } = await supabase
       .from('chat_messages')
@@ -114,10 +117,16 @@ export async function POST(
         chat_id: chatId,
         role,
         content,
-        metadata: metadata || {},
+        metadata: {
+          ...(metadata || {}),
+          thinking: thinking || '',
+          model: model || ''
+        },
       })
       .select()
       .maybeSingle();
+    
+    console.log('💾 Saved message to database:', { chatId, role, hasThinking: !!thinking, model });
 
     if (error) {
       console.error('Error creating message:', error);

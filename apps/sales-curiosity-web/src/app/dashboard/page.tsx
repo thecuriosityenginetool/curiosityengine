@@ -3395,7 +3395,7 @@ The draft is now in your Outlook Drafts folder and ready to send.`);
               <div className="p-6 border-b border-gray-200">
                 <h2 className="text-2xl font-bold text-gray-900">📋 Activity Logs</h2>
                 <p className="text-gray-600 mt-2">Track all AI-powered actions and integrations</p>
-      </div>
+              </div>
 
               <div className="divide-y divide-gray-200">
                 {activityLogs.length === 0 && (

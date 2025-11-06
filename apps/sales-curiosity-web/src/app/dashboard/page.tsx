@@ -2037,7 +2037,7 @@ The draft is now in your Outlook Drafts folder and ready to send.`);
                                   <code className="bg-gray-200 px-1.5 py-0.5 rounded text-xs" style={{wordBreak: 'break-word'}} {...props} /> : 
                                   <code {...props} />,
                               pre: ({node, children, ...props}) => (
-                                <div className="my-3 rounded-lg overflow-hidden border border-gray-300">
+                                <div className="my-3 rounded-lg overflow-hidden border border-gray-300 max-w-full">
                                   <div className="bg-gray-800 px-3 py-2 flex items-center justify-between">
                                     <span className="text-xs text-gray-400">Code</span>
                                     <button
@@ -2050,7 +2050,7 @@ The draft is now in your Outlook Drafts folder and ready to send.`);
                                       Copy
                                     </button>
                                   </div>
-                                  <pre className="bg-gray-900 text-gray-100 p-4 overflow-x-auto text-xs" {...props}>{children}</pre>
+                                  <pre className="bg-gray-900 text-gray-100 p-4 overflow-x-auto text-xs max-w-full" style={{margin: 0}} {...props}>{children}</pre>
                                 </div>
                               ),
                               h1: ({node, ...props}) => <h1 className="text-base font-bold text-gray-900 mt-3 mb-2" {...props} />,

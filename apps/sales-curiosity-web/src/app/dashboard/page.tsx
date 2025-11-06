@@ -1860,17 +1860,20 @@ The draft is now in your Outlook Drafts folder and ready to send.`);
                           <div className="flex items-center gap-3 mb-3">
                             <div className="flex items-center gap-2">
                               {/* Google Calendar Icon */}
-                              <img
-                                src="/Google_Calendar_icon_(2020)%20.svg"
-                                alt="Google Calendar"
-                                className="w-7 h-7"
-                              />
+                              <svg className="w-7 h-7" viewBox="0 0 200 200" fill="none">
+                                <rect x="20" y="30" width="160" height="140" rx="15" fill="#4285F4"/>
+                                <rect x="30" y="20" width="15" height="25" rx="3" fill="#EA4335"/>
+                                <rect x="155" y="20" width="15" height="25" rx="3" fill="#EA4335"/>
+                                <rect x="20" y="60" width="160" height="30" fill="#1967D2"/>
+                                <circle cx="100" cy="120" r="25" fill="#FBBC04"/>
+                                <text x="100" y="132" fontSize="32" fontWeight="bold" fill="#1967D2" textAnchor="middle">31</text>
+                              </svg>
                               {/* Outlook Icon */}
-                              <img
-                                src="/Outlook_icon.svg"
-                                alt="Outlook"
-                                className="w-7 h-7"
-                              />
+                              <svg className="w-7 h-7" viewBox="0 0 48 48" fill="none">
+                                <rect width="48" height="48" rx="4" fill="#0078D4"/>
+                                <ellipse cx="24" cy="24" rx="12" ry="14" fill="white"/>
+                                <ellipse cx="24" cy="24" rx="8" ry="10" fill="#0078D4"/>
+                              </svg>
                             </div>
                           </div>
                           <h3 className="text-base font-semibold text-gray-900 mb-2 group-hover:text-blue-600 transition-colors">
@@ -1891,11 +1894,10 @@ The draft is now in your Outlook Drafts folder and ready to send.`);
                         >
                           <div className="flex items-center gap-3 mb-3">
                             {/* Salesforce Logo */}
-                            <img
-                              src="/salesforcelogo.svg"
-                              alt="Salesforce"
-                              className="h-7 w-auto"
-                            />
+                            <svg className="h-7 w-auto" viewBox="0 0 100 30" fill="none">
+                              <path d="M15 5c-2.5 0-4.7 1.2-6 3-0.8-0.3-1.7-0.5-2.6-0.5C3.5 7.5 1 10 1 13.2c0 1.5 0.6 2.9 1.6 3.9-0.3 0.7-0.4 1.4-0.4 2.2 0 3.3 2.7 6 6 6 0.7 0 1.4-0.1 2-0.4 0.8 1.4 2.3 2.3 4 2.3 1.6 0 3.1-0.9 3.9-2.3 0.6 0.3 1.3 0.4 2 0.4 3.3 0 6-2.7 6-6 0-0.8-0.2-1.5-0.4-2.2 1.4-1 2.3-2.6 2.3-4.4 0-3-2.4-5.4-5.4-5.4-1.7 0-3.2 0.8-4.2 2.1-0.7-0.4-1.5-0.6-2.4-0.6z" fill="#00A1E0"/>
+                              <text x="35" y="20" fontSize="14" fontWeight="600" fill="#00A1E0" fontFamily="Arial">Salesforce</text>
+                            </svg>
                           </div>
                           <h3 className="text-base font-semibold text-gray-900 mb-2 group-hover:text-blue-600 transition-colors">
                             Research my late stage leads
@@ -1916,17 +1918,17 @@ The draft is now in your Outlook Drafts folder and ready to send.`);
                           <div className="flex items-center gap-3 mb-3">
                             <div className="flex items-center gap-2">
                               {/* Gmail Icon */}
-                              <img
-                                src="/Gmail%20Icon.svg"
-                                alt="Gmail"
-                                className="w-7 h-7"
-                              />
+                              <svg className="w-7 h-7" viewBox="0 0 48 48" fill="none">
+                                <path d="M44 12v24c0 2.2-1.8 4-4 4H28V18l-4 3-4-3v22H8c-2.2 0-4-1.8-4-4V12c0-2.2 1.8-4 4-4h8l8 6 8-6h8c2.2 0 4 1.8 4 4z" fill="#EA4335"/>
+                                <path d="M8 40h12V18L8 8z" fill="#C5221F"/>
+                                <path d="M40 40H28V18l12-10z" fill="#C5221F"/>
+                              </svg>
                               {/* Outlook Icon */}
-                              <img
-                                src="/Outlook_icon.svg"
-                                alt="Outlook"
-                                className="w-7 h-7"
-                              />
+                              <svg className="w-7 h-7" viewBox="0 0 48 48" fill="none">
+                                <rect width="48" height="48" rx="4" fill="#0078D4"/>
+                                <ellipse cx="24" cy="24" rx="12" ry="14" fill="white"/>
+                                <ellipse cx="24" cy="24" rx="8" ry="10" fill="#0078D4"/>
+                              </svg>
                             </div>
                           </div>
                           <h3 className="text-base font-semibold text-gray-900 mb-2 group-hover:text-blue-600 transition-colors">
@@ -1947,11 +1949,10 @@ The draft is now in your Outlook Drafts folder and ready to send.`);
                         >
                           <div className="flex items-center gap-3 mb-3">
                             {/* LinkedIn Icon */}
-                            <img
-                              src="/linkedin-svgrepo-com%20(2).svg"
-                              alt="LinkedIn"
-                              className="w-7 h-7"
-                            />
+                            <svg className="w-7 h-7" viewBox="0 0 48 48" fill="none">
+                              <rect width="48" height="48" rx="6" fill="#0077B5"/>
+                              <path d="M14 19h-4v13h4V19zm-2-6c-1.1 0-2 0.9-2 2s0.9 2 2 2 2-0.9 2-2-0.9-2-2-2zm21 6h-4v6.5c0 1.4-0.5 2.5-1.8 2.5-1 0-1.5-0.7-1.8-1.3-0.1-0.2-0.1-0.5-0.1-0.8V19h-4s0.1 11 0 13h4v-2c0.5 0.8 1.4 2 3.5 2 2.5 0 4.4-1.6 4.4-5.2V19z" fill="white"/>
+                            </svg>
                           </div>
                           <h3 className="text-base font-semibold text-gray-900 mb-2 group-hover:text-blue-600 transition-colors">
                             Generate LinkedIn post

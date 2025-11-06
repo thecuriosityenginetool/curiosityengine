@@ -1860,19 +1860,15 @@ The draft is now in your Outlook Drafts folder and ready to send.`);
                           <div className="flex items-center gap-3 mb-3">
                             <div className="flex items-center gap-2">
                               {/* Google Calendar Icon */}
-                              <Image
-                                src="/Google_Calendar_icon_(2020) .svg"
+                              <img
+                                src="/google_cal_logo.svg"
                                 alt="Google Calendar"
-                                width={28}
-                                height={28}
                                 className="w-7 h-7"
                               />
                               {/* Outlook Icon */}
-                              <Image
-                                src="/Outlook_icon.svg"
+                              <img
+                                src="/outlook.svg"
                                 alt="Outlook"
-                                width={28}
-                                height={28}
                                 className="w-7 h-7"
                               />
                             </div>
@@ -1895,11 +1891,9 @@ The draft is now in your Outlook Drafts folder and ready to send.`);
                         >
                           <div className="flex items-center gap-3 mb-3">
                             {/* Salesforce Logo */}
-                            <Image
+                            <img
                               src="/salesforcelogo.svg"
                               alt="Salesforce"
-                              width={80}
-                              height={28}
                               className="h-7 w-auto"
                             />
                           </div>
@@ -1922,19 +1916,15 @@ The draft is now in your Outlook Drafts folder and ready to send.`);
                           <div className="flex items-center gap-3 mb-3">
                             <div className="flex items-center gap-2">
                               {/* Gmail Icon */}
-                              <Image
-                                src="/Gmail Icon.svg"
+                              <img
+                                src="/gmail_logo_2.svg"
                                 alt="Gmail"
-                                width={28}
-                                height={28}
                                 className="w-7 h-7"
                               />
                               {/* Outlook Icon */}
-                              <Image
-                                src="/Outlook_icon.svg"
+                              <img
+                                src="/outlook.svg"
                                 alt="Outlook"
-                                width={28}
-                                height={28}
                                 className="w-7 h-7"
                               />
                             </div>
@@ -1957,11 +1947,9 @@ The draft is now in your Outlook Drafts folder and ready to send.`);
                         >
                           <div className="flex items-center gap-3 mb-3">
                             {/* LinkedIn Icon */}
-                            <Image
-                              src="/linkedin-svgrepo-com (2).svg"
+                            <img
+                              src="/linkedinlogo.svg"
                               alt="LinkedIn"
-                              width={28}
-                              height={28}
                               className="w-7 h-7"
                             />
                           </div>

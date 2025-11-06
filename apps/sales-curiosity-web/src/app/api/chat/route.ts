@@ -376,22 +376,48 @@ export async function POST(req: NextRequest) {
 
     if (hasSalesforce) {
       systemPrompt += `
-✅ Salesforce CRM is connected. You can:
-- Search, create, update contacts and leads
-- Add notes and create tasks
-- View activity and CRM data
-- Analyze calendar events and match them to CRM records`;
+✅ Salesforce CRM is connected. You have these powerful capabilities:
+
+**SEARCH & FIND:**
+- search_salesforce: Find contacts/leads by name, email, or company
+- query_crm: Execute custom SOQL queries for complex searches
+- Examples: "Find John Smith", "Who do I know at Acme Corp?"
+
+**CREATE RECORDS:**
+- create_lead: Add new prospects (requires: first name, last name, company)
+- create_contact: Add established relationships (requires: first name, last name)
+- Examples: "Add this person as a lead", "Create a contact for Jane Doe"
+
+**UPDATE INFORMATION:**
+- update_record: Modify existing contact/lead fields (email, phone, title, status, etc.)
+- Examples: "Update John's email", "Change lead status to qualified"
+
+**LOG ACTIVITY:**
+- add_note: Add notes about interactions, meetings, conversations
+- create_task: Set follow-up tasks with due dates and priority
+- get_activity: View recent tasks, events, notes for a person
+- Examples: "Add a note about our call", "Remind me to follow up Friday"
+
+**USE THESE PROACTIVELY** to help users manage their pipeline and relationships!`;
     }
 
     if (hasOutlook) {
       systemPrompt += `
-✅ Outlook is connected. You can:
-- Create email drafts in Outlook (ALWAYS use create_email_draft tool when user asks for email drafts)
-- Send emails via Outlook
-- Create calendar events in Outlook
-- View calendar events (calendar events are provided in the context below - just reference them directly)
-- View recent email exchanges (recent emails are provided in the context below - check them for "latest prospect" queries)
-- Search specific emails using the search_emails tool when you need to find specific conversations or people`;
+✅ Outlook is connected. You have these powerful capabilities:
+
+**EMAIL FUNCTIONS:**
+- create_email_draft: Create draft emails (ALWAYS use this tool when user asks for drafts)
+- send_email: Send emails immediately
+- search_emails: Search email history for conversations, people, or topics
+- View recent emails: Last 10 emails are in context below (check for "latest prospect" queries)
+- Examples: "Draft email to latest prospect", "Find emails about [topic]"
+
+**CALENDAR FUNCTIONS:**
+- create_calendar_event: Schedule meetings with attendees, location, agenda
+- View calendar: Upcoming events are in context below (reference them directly)
+- Examples: "Schedule a call with John next Tuesday", "What meetings do I have?"
+
+**USE RECENT EMAILS to identify "latest prospect"** - the most recent email sender/recipient is likely who they mean!`;
     }
 
     if (!hasSalesforce && !hasOutlook) {

@@ -1878,8 +1878,8 @@ The draft is now in your Outlook Drafts folder and ready to send.`);
                               />
                               {/* Outlook Icon */}
                               <img
-                                src="/Outlook_icon.svg"
-                                alt="Outlook"
+                                src="/icons8-outlook-calendar-480.svg"
+                                alt="Outlook Calendar"
                                 className="w-7 h-7"
                               />
                             </div>
@@ -1934,8 +1934,8 @@ The draft is now in your Outlook Drafts folder and ready to send.`);
                               />
                               {/* Outlook Icon */}
                               <img
-                                src="/Outlook_icon.svg"
-                                alt="Outlook"
+                                src="/icons8-outlook-calendar-480.svg"
+                                alt="Outlook Calendar"
                                 className="w-7 h-7"
                               />
                             </div>

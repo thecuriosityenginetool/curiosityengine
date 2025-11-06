@@ -1948,7 +1948,7 @@ The draft is now in your Outlook Drafts folder and ready to send.`);
                           <div className="flex items-center gap-3 mb-3">
                             {/* LinkedIn Icon */}
                             <img
-                              src="/linkedin-svgrepo-com%20(2).svg"
+                              src="/linkedin-icon.svg"
                               alt="LinkedIn"
                               className="w-7 h-7"
                             />

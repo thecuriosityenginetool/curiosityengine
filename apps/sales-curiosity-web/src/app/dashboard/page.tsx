@@ -535,6 +535,7 @@ export default function DashboardPage() {
       let accumulatedContent = '';
       let thinkingContent = '';
       let finalContent = '';
+      let agentSteps = ''; // Track agent steps for thinking display
       let inThinkingTag = false;
 
       if (reader) {
@@ -557,46 +558,61 @@ export default function DashboardPage() {
                   // Parse thinking tags from DeepSeek-R1 response
                   const { thinking, final } = parseThinkingTags(accumulatedContent);
                   
+                  // Combine AI reasoning with agent steps
+                  const fullThinking = agentSteps + (agentSteps && thinking ? '\n\n---\n\n**AI Reasoning:**\n' + thinking : thinking);
+                  
                   // Update the assistant message in real-time
                   setChatMessages(prev => {
                     const newMessages = [...prev];
                     newMessages[newMessages.length - 1] = {
                       ...newMessages[newMessages.length - 1],
                       content: final,
-                      thinking,
+                      thinking: fullThinking,
                       showThinking: false, // Collapsed by default
                       model: selectedModel // Track which model generated this
                     };
                     return newMessages;
                   });
                 } else if (parsed.type === 'tool_start') {
-                  // Show tool indicator
+                  // Add to agent steps for thinking display
+                  const toolName = parsed.tool.replace(/_/g, ' ');
+                  const timestamp = new Date().toLocaleTimeString();
+                  agentSteps += `\n🔧 [${timestamp}] Calling tool: ${toolName}`;
+                  
+                  // Show brief indicator in main content
                   const toolIcon = parsed.tool === 'search_salesforce' ? '🔍' :
+                    parsed.tool === 'search_emails' ? '📧' :
                     parsed.tool === 'create_lead' || parsed.tool === 'create_contact' ? '✏️' :
                     parsed.tool === 'update_record' ? '📝' :
                     parsed.tool === 'create_task' ? '✅' :
                     parsed.tool === 'get_activity' ? '📊' :
                     parsed.tool === 'add_note' ? '📌' : '⚙️';
                   
-                  accumulatedContent += `\n\n${toolIcon} Executing ${parsed.tool.replace(/_/g, ' ')}...`;
+                  accumulatedContent += `\n\n${toolIcon} Calling ${toolName}...`;
                   setChatMessages(prev => {
                     const newMessages = [...prev];
                     newMessages[newMessages.length - 1] = {
                       ...newMessages[newMessages.length - 1],
-                      content: accumulatedContent
+                      content: accumulatedContent,
+                      thinking: agentSteps
                     };
                     return newMessages;
                   });
                 } else if (parsed.type === 'tool_result') {
-                  // Remove the "Executing..." text and let AI respond naturally
+                  // Add tool result to agent steps
+                  const resultPreview = parsed.result?.substring(0, 200) || 'Result received';
+                  agentSteps += `\n✅ Tool result: ${resultPreview}${parsed.result?.length > 200 ? '...' : ''}`;
+                  
+                  // Remove the "Executing..." text from main content
                   const lines = accumulatedContent.split('\n');
-                  const filtered = lines.filter(l => !l.includes('Executing'));
+                  const filtered = lines.filter(l => !l.includes('Calling'));
                   accumulatedContent = filtered.join('\n');
                   setChatMessages(prev => {
                     const newMessages = [...prev];
                     newMessages[newMessages.length - 1] = {
                       ...newMessages[newMessages.length - 1],
-                      content: accumulatedContent
+                      content: accumulatedContent,
+                      thinking: agentSteps
                     };
                     return newMessages;
                   });

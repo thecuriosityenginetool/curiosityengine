@@ -60,7 +60,7 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
                 id: crypto.randomUUID(), // Explicitly generate UUID
                 email: normalizedEmail,
                 full_name: user.name || user.email.split('@')[0] || 'User',
-                role: 'member',
+                role: 'org_admin', // OAuth signups are admins by default
                 user_context: { aboutMe: '', objectives: '' }
               })
               .select()

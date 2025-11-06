@@ -136,10 +136,10 @@ export async function POST(req: NextRequest) {
       );
     }
 
-    // Validate role
-    if (!['org_admin', 'member'].includes(role)) {
+    // Validate role - invited users can only be 'user' role
+    if (!['user'].includes(role)) {
       return NextResponse.json(
-        { error: 'Invalid role. Must be org_admin or member' },
+        { error: 'Invalid role. Invited users must have role: user' },
         { status: 400, headers: corsHeaders(origin) }
       );
     }
@@ -222,18 +222,18 @@ export async function POST(req: NextRequest) {
     // Generate invitation token
     const invitationToken = randomBytes(32).toString('hex');
 
-    // Set default permissions based on role
+    // Set default permissions for 'user' role (basic access)
     const defaultPermissions = customPermissions || {
-      can_view_org_materials: true,
-      can_upload_materials: true,
-      can_delete_own_materials: true,
-      can_share_materials: role === 'org_admin',
-      can_view_team_analyses: true,
-      can_view_team_emails: false,
-      can_manage_integrations: role === 'org_admin',
-      can_invite_users: role === 'org_admin',
-      can_manage_permissions: role === 'org_admin',
-      can_delete_org_materials: role === 'org_admin'
+      can_view_org_materials: true, // Can view shared materials
+      can_upload_materials: true, // Can upload their own materials
+      can_delete_own_materials: true, // Can delete their own
+      can_share_materials: false, // Cannot share to org (users are basic)
+      can_view_team_analyses: true, // Can see team activity
+      can_view_team_emails: false, // Cannot see others' emails
+      can_manage_integrations: false, // Cannot manage integrations
+      can_invite_users: false, // Cannot invite others
+      can_manage_permissions: false, // Cannot manage permissions
+      can_delete_org_materials: false // Cannot delete org materials
     };
 
     // Create invitation (expires in 7 days)

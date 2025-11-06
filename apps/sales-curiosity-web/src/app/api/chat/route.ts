@@ -337,7 +337,8 @@ export async function POST(req: NextRequest) {
 ✅ Outlook is connected. You can:
 - Create email drafts in Outlook (ALWAYS use create_email_draft tool when user asks for email drafts)
 - Send emails via Outlook
-- Create calendar events in Outlook`;
+- Create calendar events in Outlook
+- View calendar events (calendar events are provided in the context below - just reference them directly)`;
     }
 
     if (!hasSalesforce && !hasOutlook) {

@@ -1867,7 +1867,7 @@ The draft is now in your Outlook Drafts folder and ready to send.`);
                               setChatInput("I want to check my calendar but I haven't connected Outlook yet. Can you explain what calendar features are available and guide me to set it up?");
                               setTimeout(() => sendChatMessage(), 100);
                             } else {
-                              setChatInput("Check my calendar and tell me what meetings I have coming up");
+                              setChatInput("What meetings do I have coming up on my calendar?");
                               setTimeout(() => sendChatMessage(), 100);
                             }
                           }}

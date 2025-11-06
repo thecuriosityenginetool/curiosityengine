@@ -2015,15 +2015,21 @@ The draft is now in your Outlook Drafts folder and ready to send.`);
                           </div>
                         )}
                         
-                        <div className={`rounded-lg px-4 py-2 ${
+                        <div className={`rounded-lg px-4 py-2 overflow-hidden ${
                         msg.role === 'user' 
                           ? 'bg-[#F95B14] text-white' 
                           : 'bg-gray-100 text-gray-900'
-                      }`}>
+                      }`} style={{ wordBreak: 'break-word', overflowWrap: 'break-word' }}>
                         <div className="text-sm prose prose-sm max-w-none break-words overflow-wrap-anywhere prose-headings:font-bold prose-headings:text-gray-900 prose-h1:text-base prose-h2:text-base prose-h3:text-sm prose-headings:mt-3 prose-headings:mb-2 prose-p:my-2 prose-p:leading-relaxed prose-ul:my-2 prose-ul:space-y-1 prose-li:my-0.5 prose-strong:text-gray-900 prose-strong:font-semibold prose-code:text-xs prose-code:bg-gray-200 prose-code:px-1 prose-code:py-0.5 prose-code:rounded prose-code:break-all prose-pre:bg-gray-800 prose-pre:text-gray-100 prose-pre:p-3 prose-pre:rounded-lg prose-pre:overflow-x-auto prose-pre:max-w-full">
                           <ReactMarkdown 
                             remarkPlugins={[remarkGfm]}
+                            className="break-words"
                             components={{
+                              code: ({node, inline, ...props}) => 
+                                inline ? 
+                                  <code className="bg-gray-200 px-1.5 py-0.5 rounded text-xs break-all" {...props} /> : 
+                                  <code className="block bg-gray-800 text-gray-100 p-3 rounded-lg overflow-x-auto text-xs break-all whitespace-pre-wrap" {...props} />,
+                              pre: ({node, ...props}) => <pre className="overflow-x-auto max-w-full" {...props} />,
                               h1: ({node, ...props}) => <h1 className="text-base font-bold text-gray-900 mt-3 mb-2" {...props} />,
                               h2: ({node, ...props}) => <h2 className="text-base font-bold text-gray-900 mt-3 mb-2" {...props} />,
                               h3: ({node, ...props}) => <h3 className="text-sm font-bold text-gray-900 mt-3 mb-2" {...props} />,

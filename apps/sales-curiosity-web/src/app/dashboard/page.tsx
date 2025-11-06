@@ -593,16 +593,20 @@ export default function DashboardPage() {
                     return newMessages;
                   });
                 } else if (parsed.type === 'done') {
-                  // Save final assistant message
+                  // Save final assistant message with parsed thinking
                   if (currentChatId && accumulatedContent) {
+                    const { thinking, final } = parseThinkingTags(accumulatedContent);
                     await fetch(`/api/chats/${currentChatId}/messages`, {
                       method: 'POST',
                       headers: { 'Content-Type': 'application/json' },
                       body: JSON.stringify({
                         role: 'assistant',
-                        content: accumulatedContent
+                        content: final,
+                        thinking: thinking,
+                        model: selectedModel
                       }),
                     });
+                    console.log('💾 Saved assistant message to chat:', currentChatId);
                   }
                 } else if (parsed.type === 'error') {
                   accumulatedContent += `\n\n❌ Error: ${parsed.error}`;
@@ -2016,7 +2020,7 @@ The draft is now in your Outlook Drafts folder and ready to send.`);
                           ? 'bg-[#F95B14] text-white' 
                           : 'bg-gray-100 text-gray-900'
                       }`}>
-                        <div className="text-sm prose prose-sm max-w-none prose-headings:font-bold prose-headings:text-gray-900 prose-h1:text-base prose-h2:text-base prose-h3:text-sm prose-headings:mt-3 prose-headings:mb-2 prose-p:my-2 prose-p:leading-relaxed prose-ul:my-2 prose-ul:space-y-1 prose-li:my-0.5 prose-strong:text-gray-900 prose-strong:font-semibold">
+                        <div className="text-sm prose prose-sm max-w-none break-words overflow-wrap-anywhere prose-headings:font-bold prose-headings:text-gray-900 prose-h1:text-base prose-h2:text-base prose-h3:text-sm prose-headings:mt-3 prose-headings:mb-2 prose-p:my-2 prose-p:leading-relaxed prose-ul:my-2 prose-ul:space-y-1 prose-li:my-0.5 prose-strong:text-gray-900 prose-strong:font-semibold prose-code:text-xs prose-code:bg-gray-200 prose-code:px-1 prose-code:py-0.5 prose-code:rounded prose-code:break-all prose-pre:bg-gray-800 prose-pre:text-gray-100 prose-pre:p-3 prose-pre:rounded-lg prose-pre:overflow-x-auto prose-pre:max-w-full">
                           <ReactMarkdown 
                             remarkPlugins={[remarkGfm]}
                             components={{

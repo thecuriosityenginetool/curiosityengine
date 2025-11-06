@@ -8,6 +8,9 @@ import Image from 'next/image';
 import { motion, AnimatePresence } from 'framer-motion';
 import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
+import ProfileTab from '@/components/Settings/ProfileTab';
+import TeamTab from '@/components/Settings/TeamTab';
+import KnowledgeTab from '@/components/Settings/KnowledgeTab';
 import { marked } from 'marked';
 
 interface User {

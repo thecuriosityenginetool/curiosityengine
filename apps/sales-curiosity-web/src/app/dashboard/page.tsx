@@ -1863,8 +1863,19 @@ The draft is now in your Outlook Drafts folder and ready to send.`);
                         {/* Calendar Prompt */}
                         <button
                           onClick={() => {
-                            setChatInput("Check my calendar and tell me what meetings I have coming up");
-                            setTimeout(() => sendChatMessage(), 100);
+                            if (!hasOutlookConnection) {
+                              setChatInput("I want to check my calendar but I need to connect Outlook first. Can you tell me what I can do with calendar integration?");
+                              setTimeout(() => sendChatMessage(), 100);
+                              // Show message about connecting
+                              setTimeout(() => {
+                                if (confirm("You need to connect Outlook to access your calendar.\n\nWith Outlook Calendar connected you can:\n• View upcoming meetings\n• Create calendar events\n• Get meeting insights\n• Schedule follow-ups\n\nWould you like to go to Connectors to set it up?")) {
+                                  setActiveTab('integrations');
+                                }
+                              }, 500);
+                            } else {
+                              setChatInput("Check my calendar and tell me what meetings I have coming up");
+                              setTimeout(() => sendChatMessage(), 100);
+                            }
                           }}
                           className="group p-6 bg-white border-2 border-gray-200 rounded-xl hover:border-blue-500 hover:shadow-lg transition-all duration-200 text-left"
                         >
@@ -1895,8 +1906,19 @@ The draft is now in your Outlook Drafts folder and ready to send.`);
                         {/* CRM Prompt */}
                         <button
                           onClick={() => {
-                            setChatInput("Research my late stage leads and give me insights on next steps");
-                            setTimeout(() => sendChatMessage(), 100);
+                            if (!hasSalesforceConnection) {
+                              setChatInput("I want to research my leads but I need to connect Salesforce first. What can I do with Salesforce integration?");
+                              setTimeout(() => sendChatMessage(), 100);
+                              // Show message about connecting
+                              setTimeout(() => {
+                                if (confirm("You need to connect Salesforce to access your CRM data.\n\nWith Salesforce connected you can:\n• Search contacts and leads\n• Create and update records\n• Add notes and tasks\n• View activity history\n• Analyze your pipeline\n\nWould you like to go to Connectors to set it up?")) {
+                                  setActiveTab('integrations');
+                                }
+                              }, 500);
+                            } else {
+                              setChatInput("Research my late stage leads and give me insights on next steps");
+                              setTimeout(() => sendChatMessage(), 100);
+                            }
                           }}
                           className="group p-6 bg-white border-2 border-gray-200 rounded-xl hover:border-blue-500 hover:shadow-lg transition-all duration-200 text-left"
                         >
@@ -1919,8 +1941,19 @@ The draft is now in your Outlook Drafts folder and ready to send.`);
                         {/* Email Prompt */}
                         <button
                           onClick={() => {
-                            setChatInput("Help me draft a follow-up email to my latest prospect");
-                            setTimeout(() => sendChatMessage(), 100);
+                            if (!hasOutlookConnection) {
+                              setChatInput("I want to draft an email but I need to connect Outlook first. What can I do with Outlook email integration?");
+                              setTimeout(() => sendChatMessage(), 100);
+                              // Show message about connecting
+                              setTimeout(() => {
+                                if (confirm("You need to connect Outlook to send emails.\n\nWith Outlook connected you can:\n• Create email drafts\n• Send emails directly\n• Access your email history\n• Personalize outreach with AI\n\nWould you like to go to Connectors to set it up?")) {
+                                  setActiveTab('integrations');
+                                }
+                              }, 500);
+                            } else {
+                              setChatInput("Help me draft a follow-up email to my latest prospect");
+                              setTimeout(() => sendChatMessage(), 100);
+                            }
                           }}
                           className="group p-6 bg-white border-2 border-gray-200 rounded-xl hover:border-blue-500 hover:shadow-lg transition-all duration-200 text-left"
                         >

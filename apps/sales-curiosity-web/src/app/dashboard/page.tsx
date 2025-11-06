@@ -2034,9 +2034,25 @@ The draft is now in your Outlook Drafts folder and ready to send.`);
                             components={{
                               code: ({node, inline, ...props}) => 
                                 inline ? 
-                                  <code className="bg-gray-200 px-1.5 py-0.5 rounded text-xs break-all" {...props} /> : 
-                                  <code className="block bg-gray-800 text-gray-100 p-3 rounded-lg overflow-x-auto text-xs break-all whitespace-pre-wrap" {...props} />,
-                              pre: ({node, ...props}) => <pre className="overflow-x-auto max-w-full" {...props} />,
+                                  <code className="bg-gray-200 px-1.5 py-0.5 rounded text-xs" style={{wordBreak: 'break-word'}} {...props} /> : 
+                                  <code {...props} />,
+                              pre: ({node, children, ...props}) => (
+                                <div className="my-3 rounded-lg overflow-hidden border border-gray-300">
+                                  <div className="bg-gray-800 px-3 py-2 flex items-center justify-between">
+                                    <span className="text-xs text-gray-400">Code</span>
+                                    <button
+                                      onClick={() => {
+                                        const codeText = node?.children?.[0]?.children?.[0]?.value || '';
+                                        navigator.clipboard.writeText(codeText);
+                                      }}
+                                      className="text-xs text-gray-400 hover:text-white transition-colors px-2 py-1 rounded hover:bg-gray-700"
+                                    >
+                                      Copy
+                                    </button>
+                                  </div>
+                                  <pre className="bg-gray-900 text-gray-100 p-4 overflow-x-auto text-xs" {...props}>{children}</pre>
+                                </div>
+                              ),
                               h1: ({node, ...props}) => <h1 className="text-base font-bold text-gray-900 mt-3 mb-2" {...props} />,
                               h2: ({node, ...props}) => <h2 className="text-base font-bold text-gray-900 mt-3 mb-2" {...props} />,
                               h3: ({node, ...props}) => <h3 className="text-sm font-bold text-gray-900 mt-3 mb-2" {...props} />,

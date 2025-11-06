@@ -1860,16 +1860,21 @@ The draft is now in your Outlook Drafts folder and ready to send.`);
                           <div className="flex items-center gap-3 mb-3">
                             <div className="flex items-center gap-2">
                               {/* Google Calendar Icon */}
-                              <svg className="w-6 h-6" viewBox="0 0 24 24" fill="none">
-                                <rect x="3" y="4" width="18" height="18" rx="2" stroke="#1a73e8" strokeWidth="2"/>
-                                <path d="M16 2v4M8 2v4M3 10h18" stroke="#1a73e8" strokeWidth="2"/>
-                                <circle cx="12" cy="15" r="3" fill="#1a73e8"/>
-                              </svg>
+                              <Image
+                                src="/google_cal_logo.svg"
+                                alt="Google Calendar"
+                                width={28}
+                                height={28}
+                                className="w-7 h-7"
+                              />
                               {/* Outlook Icon */}
-                              <svg className="w-6 h-6" viewBox="0 0 24 24">
-                                <rect x="4" y="4" width="16" height="16" fill="#0078D4"/>
-                                <text x="12" y="16" fontSize="12" fill="white" textAnchor="middle" fontWeight="bold">O</text>
-                              </svg>
+                              <Image
+                                src="/Outlook_icon.svg"
+                                alt="Outlook"
+                                width={28}
+                                height={28}
+                                className="w-7 h-7"
+                              />
                             </div>
                           </div>
                           <h3 className="text-base font-semibold text-gray-900 mb-2 group-hover:text-blue-600 transition-colors">
@@ -1890,9 +1895,13 @@ The draft is now in your Outlook Drafts folder and ready to send.`);
                         >
                           <div className="flex items-center gap-3 mb-3">
                             {/* Salesforce Logo */}
-                            <svg className="w-6 h-6" viewBox="0 0 24 24">
-                              <path d="M10.5 2c-1.8 0-3.4.9-4.3 2.3C5.1 4.1 4 4 2.9 4 1.3 4 0 5.3 0 6.9c0 1.1.6 2.1 1.5 2.6-.2.4-.3.9-.3 1.4 0 2.2 1.8 4 4 4 .5 0 1-.1 1.4-.3.5.9 1.5 1.5 2.6 1.5 1.1 0 2.1-.6 2.6-1.5.4.2.9.3 1.4.3 2.2 0 4-1.8 4-4 0-.5-.1-1-.3-1.4.9-.5 1.5-1.5 1.5-2.6 0-1.6-1.3-2.9-2.9-2.9-1.1 0-2.1.6-2.6 1.5-.5-.2-1-.3-1.5-.3z" fill="#00A1E0"/>
-                            </svg>
+                            <Image
+                              src="/salesforcelogo.svg"
+                              alt="Salesforce"
+                              width={80}
+                              height={28}
+                              className="h-7 w-auto"
+                            />
                           </div>
                           <h3 className="text-base font-semibold text-gray-900 mb-2 group-hover:text-blue-600 transition-colors">
                             Research my late stage leads
@@ -1913,14 +1922,21 @@ The draft is now in your Outlook Drafts folder and ready to send.`);
                           <div className="flex items-center gap-3 mb-3">
                             <div className="flex items-center gap-2">
                               {/* Gmail Icon */}
-                              <svg className="w-6 h-6" viewBox="0 0 24 24">
-                                <path d="M24 5.457v13.909c0 .904-.732 1.636-1.636 1.636h-3.819V11.73L12 16.64l-6.545-4.91v9.273H1.636A1.636 1.636 0 0 1 0 19.366V5.457c0-2.023 2.309-3.178 3.927-1.964L5.455 4.64 12 9.548l6.545-4.91 1.528-1.145C21.69 2.28 24 3.434 24 5.457z" fill="#EA4335"/>
-                              </svg>
+                              <Image
+                                src="/Gmail Icon.svg"
+                                alt="Gmail"
+                                width={28}
+                                height={28}
+                                className="w-7 h-7"
+                              />
                               {/* Outlook Icon */}
-                              <svg className="w-6 h-6" viewBox="0 0 24 24">
-                                <rect x="4" y="4" width="16" height="16" fill="#0078D4"/>
-                                <text x="12" y="16" fontSize="12" fill="white" textAnchor="middle" fontWeight="bold">O</text>
-                              </svg>
+                              <Image
+                                src="/Outlook_icon.svg"
+                                alt="Outlook"
+                                width={28}
+                                height={28}
+                                className="w-7 h-7"
+                              />
                             </div>
                           </div>
                           <h3 className="text-base font-semibold text-gray-900 mb-2 group-hover:text-blue-600 transition-colors">
@@ -1941,9 +1957,13 @@ The draft is now in your Outlook Drafts folder and ready to send.`);
                         >
                           <div className="flex items-center gap-3 mb-3">
                             {/* LinkedIn Icon */}
-                            <svg className="w-6 h-6" viewBox="0 0 24 24" fill="#0077B5">
-                              <path d="M20.447 20.452h-3.554v-5.569c0-1.328-.027-3.037-1.852-3.037-1.853 0-2.136 1.445-2.136 2.939v5.667H9.351V9h3.414v1.561h.046c.477-.9 1.637-1.85 3.37-1.85 3.601 0 4.267 2.37 4.267 5.455v6.286zM5.337 7.433c-1.144 0-2.063-.926-2.063-2.065 0-1.138.92-2.063 2.063-2.063 1.14 0 2.064.925 2.064 2.063 0 1.139-.925 2.065-2.064 2.065zm1.782 13.019H3.555V9h3.564v11.452zM22.225 0H1.771C.792 0 0 .774 0 1.729v20.542C0 23.227.792 24 1.771 24h20.451C23.2 24 24 23.227 24 22.271V1.729C24 .774 23.2 0 22.222 0h.003z"/>
-                            </svg>
+                            <Image
+                              src="/linkedinlogo.svg"
+                              alt="LinkedIn"
+                              width={28}
+                              height={28}
+                              className="w-7 h-7"
+                            />
                           </div>
                           <h3 className="text-base font-semibold text-gray-900 mb-2 group-hover:text-blue-600 transition-colors">
                             Generate LinkedIn post

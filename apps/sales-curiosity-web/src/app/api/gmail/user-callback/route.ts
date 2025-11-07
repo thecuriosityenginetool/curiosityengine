@@ -37,7 +37,7 @@ export async function GET(req: NextRequest) {
       .select('id, configuration')
       .eq('organization_id', organizationId)
       .eq('integration_type', 'gmail_user')
-      .single();
+      .maybeSingle();
 
     const userTokens = {
       [userId]: tokens

@@ -451,6 +451,21 @@ export async function POST(req: NextRequest) {
       console.log('📚 Added sales materials to context:', materials.length, 'files');
     }
 
+    // Get current date and time FIRST (needed for calendar context)
+    const now = new Date();
+    const currentDateTime = now.toLocaleString('en-US', { 
+      weekday: 'long',
+      year: 'numeric',
+      month: 'long',
+      day: 'numeric',
+      hour: 'numeric',
+      minute: '2-digit',
+      hour12: true,
+      timeZone: 'America/New_York'
+    });
+    const currentDate = now.toISOString().split('T')[0]; // YYYY-MM-DD
+    const currentTime = now.toLocaleTimeString('en-US', { timeZone: 'America/New_York', hour12: true });
+
     // Match calendar events to Salesforce if available
     let calendarContext = '';
     if (hasSalesforce && calendarEvents.length > 0) {
@@ -505,21 +520,6 @@ When asked about events, reference these directly. Only search if user asks to f
         // Don't fail the whole request if email fetch fails
       }
     }
-
-    // Get current date and time
-    const now = new Date();
-    const currentDateTime = now.toLocaleString('en-US', { 
-      weekday: 'long',
-      year: 'numeric',
-      month: 'long',
-      day: 'numeric',
-      hour: 'numeric',
-      minute: '2-digit',
-      hour12: true,
-      timeZone: 'America/New_York'
-    });
-    const currentDate = now.toISOString().split('T')[0]; // YYYY-MM-DD
-    const currentTime = now.toLocaleTimeString('en-US', { timeZone: 'America/New_York', hour12: true });
 
     // Build system prompt with context - ONLY mention connected integrations
     let systemPrompt = `You are Curiosity Engine, an AI sales assistant for ${user.full_name || 'the user'}.

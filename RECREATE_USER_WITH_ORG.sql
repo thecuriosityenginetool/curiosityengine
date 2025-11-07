@@ -40,6 +40,7 @@ BEGIN
 
   -- Create user with organization
   INSERT INTO users (
+    id,
     email,
     full_name,
     role,
@@ -48,6 +49,7 @@ BEGIN
     created_at,
     updated_at
   ) VALUES (
+    gen_random_uuid(),
     'matthewbravo13@gmail.com',
     'Matthew Bravo',
     'org_admin',

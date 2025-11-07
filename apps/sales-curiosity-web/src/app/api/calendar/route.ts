@@ -82,9 +82,9 @@ export async function GET(req: NextRequest) {
 
         console.log(`✅ Fetched ${events.length} events from Outlook`);
       } catch (outlookError) {
-        console.error('Error fetching from Outlook, falling back to mock data:', outlookError);
-        // Fall back to mock data if Outlook fails
-        events = getMockEvents();
+        console.error('Error fetching from Outlook:', outlookError);
+        // Return empty array if Outlook fails
+        events = [];
       }
     } else if (gmailIntegration) {
       // Fetch real Google Calendar events
@@ -114,54 +114,22 @@ export async function GET(req: NextRequest) {
 
         console.log(`✅ Fetched ${events.length} events from Google Calendar`);
       } catch (gmailError) {
-        console.error('Error fetching from Google Calendar, falling back to mock data:', gmailError);
-        // Fall back to mock data if Google Calendar fails
-        events = getMockEvents();
+        console.error('Error fetching from Google Calendar:', gmailError);
+        // Return empty array if Google Calendar fails
+        events = [];
       }
     } else {
-      console.log('📅 No calendar provider connected, using mock data');
-      // Return mock events if neither provider is connected
-      events = getMockEvents();
+      console.log('📅 No calendar provider connected, returning empty events');
+      // Return empty array if neither provider is connected
+      events = [];
     }
 
     return NextResponse.json({ events });
 
   } catch (error) {
     console.error('Calendar API error:', error);
-    return NextResponse.json({ events: getMockEvents() });
+    return NextResponse.json({ events: [] });
   }
-}
-
-function getMockEvents() {
-  return [
-    {
-      id: '1',
-      title: 'Sales Team Standup',
-      start: new Date(Date.now() + 2 * 60 * 60 * 1000).toISOString(),
-      end: new Date(Date.now() + 2.5 * 60 * 60 * 1000).toISOString(),
-      description: 'Daily sync with sales team',
-      type: 'meeting',
-      attendees: ['team@example.com']
-    },
-    {
-      id: '2',
-      title: 'Demo with Acme Corp',
-      start: new Date(Date.now() + 24 * 60 * 60 * 1000).toISOString(),
-      end: new Date(Date.now() + 25 * 60 * 60 * 1000).toISOString(),
-      description: 'Product demo for new prospect',
-      type: 'demo',
-      attendees: ['john@acmecorp.com']
-    },
-    {
-      id: '3',
-      title: 'Follow-up: Jane Smith',
-      start: new Date(Date.now() + 3 * 24 * 60 * 60 * 1000).toISOString(),
-      end: new Date(Date.now() + 3 * 24 * 60 * 60 * 1000 + 30 * 60 * 1000).toISOString(),
-      description: 'Check in on proposal status',
-      type: 'call',
-      attendees: ['jane@prospect.com']
-    }
-  ];
 }
 
 // Create calendar event

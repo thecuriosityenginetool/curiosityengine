@@ -3672,7 +3672,7 @@ The draft is now in your Outlook Drafts folder and ready to send.`);
                                 <div className="mt-4">
                                   <button
                                     onClick={() => {
-                                      window.location.href = 'mailto:support@curiosityengine.io?subject=Salesforce Integration Setup&body=Hi Support Team,%0A%0AI have completed the Salesforce Connected App setup and am ready to share my credentials:%0A%0AConsumer Key: [paste here]%0AConsumer Secret: [paste here]%0ACallback URL: https://www.curiosityengine.io/api/salesforce/user-callback%0A%0APlease help me complete the integration.%0A%0AThanks!';
+                                      window.location.href = 'mailto:hello@curiosityengine.io?subject=Salesforce Integration Setup&body=Hi Team,%0A%0AI have completed the Salesforce Connected App setup and am ready to share my credentials:%0A%0AConsumer Key: [paste here]%0AConsumer Secret: [paste here]%0ACallback URL: https://www.curiosityengine.io/api/salesforce/user-callback%0A%0APlease help me complete the integration.%0A%0AThanks!';
                                     }}
                                     className="w-full bg-[#F95B14] text-white px-6 py-3 rounded-lg font-semibold hover:bg-orange-600 transition-colors flex items-center justify-center gap-2"
                                   >

@@ -1212,21 +1212,17 @@ Format with markdown for readability.`;
         setHasOutlookConnection(false);
       }
 
-      // Check Gmail connection
-      try {
-        const gmailResponse = await fetch('/api/gmail/auth-user');
-        if (gmailResponse.ok) {
-          const gmailData = await gmailResponse.json();
-          console.log('🔍 Gmail connection check:', gmailData);
-          gmailConnected = gmailData.connected === true;
-          console.log('✅ Gmail connected:', gmailConnected);
-          setHasGmailConnection(gmailConnected);
-        } else {
-          console.log('❌ Gmail status check failed:', gmailResponse.status);
-          setHasGmailConnection(false);
-        }
-      } catch (gmailError) {
-        console.log('❌ Gmail check error:', gmailError);
+      // Check Gmail connection - use status endpoint to verify actual tokens
+      const gmailResponse = await fetch('/api/gmail/status');
+      if (gmailResponse.ok) {
+        const gmailData = await gmailResponse.json();
+        console.log('🔍 Gmail connection check:', gmailData);
+        // More robust boolean check - handle string/boolean conversion
+        gmailConnected = Boolean(gmailData.connected) && gmailData.connected !== 'false' && gmailData.connected !== false;
+        console.log('✅ Gmail connected:', gmailConnected);
+        setHasGmailConnection(gmailConnected);
+      } else {
+        console.log('❌ Gmail status check failed:', gmailResponse.status);
         setHasGmailConnection(false);
       }
 

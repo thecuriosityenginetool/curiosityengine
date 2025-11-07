@@ -3526,25 +3526,75 @@ The draft is now in your Outlook Drafts folder and ready to send.`);
                               <div>
                                 <h3 className="text-lg font-semibold text-gray-900 mb-3">Step 2: Fill Out Basic Information</h3>
                                 <div className="bg-gray-50 border border-gray-200 rounded-lg p-4 space-y-3 text-sm">
-                                  <div>
-                                    <div className="font-semibold text-gray-900 mb-1">External Client App Name *</div>
-                                    <div className="bg-white px-3 py-2 rounded border border-gray-300 font-mono text-gray-700">
-                                      Sales Curiosity Engine
+                                  <div className="grid grid-cols-2 gap-4">
+                                    <div>
+                                      <div className="font-semibold text-gray-900 mb-1">External Client App Name *</div>
+                                      <div className="bg-white px-3 py-2 rounded border border-gray-300 font-mono text-gray-700">
+                                        Sales Curiosity Engine
+                                      </div>
+                                    </div>
+                                    
+                                    <div>
+                                      <div className="font-semibold text-gray-900 mb-1">API Name *</div>
+                                      <div className="bg-white px-3 py-2 rounded border border-gray-300 font-mono text-gray-700">
+                                        Sales_Curiosity_Engine
+                                      </div>
+                                      <p className="text-xs text-gray-500 mt-1">(Auto-filled)</p>
                                     </div>
                                   </div>
-                                  
-                                  <div>
-                                    <div className="font-semibold text-gray-900 mb-1">API Name *</div>
-                                    <div className="bg-white px-3 py-2 rounded border border-gray-300 font-mono text-gray-700">
-                                      Sales_Curiosity_Engine
+
+                                  <div className="grid grid-cols-2 gap-4">
+                                    <div>
+                                      <div className="font-semibold text-gray-900 mb-1">Contact Email *</div>
+                                      <div className="bg-white px-3 py-2 rounded border border-gray-300 text-gray-700">
+                                        hello@curiosityengine.io
+                                      </div>
                                     </div>
-                                    <p className="text-xs text-gray-500 mt-1">(Auto-filled from App Name)</p>
+                                    
+                                    <div>
+                                      <div className="font-semibold text-gray-900 mb-1">Distribution State *</div>
+                                      <div className="bg-white px-3 py-2 rounded border border-gray-300 text-gray-700">
+                                        Packaged
+                                      </div>
+                                    </div>
                                   </div>
-                                  
+
+                                  <div className="grid grid-cols-2 gap-4">
+                                    <div>
+                                      <div className="font-semibold text-gray-900 mb-1">Contact Phone</div>
+                                      <div className="bg-white px-3 py-2 rounded border border-gray-300 text-gray-500 text-xs">
+                                        (Optional)
+                                      </div>
+                                    </div>
+                                    
+                                    <div>
+                                      <div className="font-semibold text-gray-900 mb-1">Info URL</div>
+                                      <div className="bg-white px-3 py-2 rounded border border-gray-300 text-gray-500 text-xs">
+                                        (Optional)
+                                      </div>
+                                    </div>
+                                  </div>
+
+                                  <div className="grid grid-cols-2 gap-4">
+                                    <div>
+                                      <div className="font-semibold text-gray-900 mb-1">Logo Image URL</div>
+                                      <div className="bg-white px-3 py-2 rounded border border-gray-300 text-gray-500 text-xs">
+                                        (Optional)
+                                      </div>
+                                    </div>
+                                    
+                                    <div>
+                                      <div className="font-semibold text-gray-900 mb-1">Icon URL</div>
+                                      <div className="bg-white px-3 py-2 rounded border border-gray-300 text-gray-500 text-xs">
+                                        (Optional)
+                                      </div>
+                                    </div>
+                                  </div>
+
                                   <div>
-                                    <div className="font-semibold text-gray-900 mb-1">Contact Email *</div>
-                                    <div className="bg-white px-3 py-2 rounded border border-gray-300 text-gray-700">
-                                      Your admin email address
+                                    <div className="font-semibold text-gray-900 mb-1">Description</div>
+                                    <div className="bg-white px-3 py-2 rounded border border-gray-300 text-gray-500 text-xs">
+                                      (Optional - Leave blank)
                                     </div>
                                   </div>
                                 </div>
@@ -3555,7 +3605,7 @@ The draft is now in your Outlook Drafts folder and ready to send.`);
                                 <div className="bg-gray-50 border border-gray-200 rounded-lg p-4 space-y-4 text-sm">
                                   <div>
                                     <div className="font-semibold text-gray-900 mb-2">☑️ Enable OAuth Settings</div>
-                                    <p className="text-gray-600 text-xs">Check this box to reveal OAuth configuration options</p>
+                                    <p className="text-gray-600 text-xs">Check this box to reveal OAuth configuration options below</p>
                                   </div>
 
                                   <div>
@@ -3564,7 +3614,7 @@ The draft is now in your Outlook Drafts folder and ready to send.`);
                                     <div className="bg-white px-3 py-2 rounded border border-gray-300 font-mono text-xs text-gray-900">
                                       https://www.curiosityengine.io/api/salesforce/user-callback
                                     </div>
-                                    <p className="text-xs text-gray-500 mt-1">For local testing, also add:</p>
+                                    <p className="text-xs text-gray-500 mt-1">For local testing, also add on a new line:</p>
                                     <div className="bg-white px-3 py-2 rounded border border-gray-300 font-mono text-xs text-gray-700 mt-1">
                                       http://localhost:3000/api/salesforce/user-callback
                                     </div>
@@ -3572,25 +3622,64 @@ The draft is now in your Outlook Drafts folder and ready to send.`);
 
                                   <div>
                                     <div className="font-semibold text-gray-900 mb-2">Selected OAuth Scopes *</div>
-                                    <p className="text-gray-600 text-xs mb-2">Move these scopes from Available to Selected:</p>
+                                    <p className="text-gray-600 text-xs mb-2">Move these scopes from "Available" to "Selected" using the arrow buttons:</p>
                                     <div className="space-y-1 text-xs">
                                       <div className="flex items-center gap-2">
                                         <svg className="w-4 h-4 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
                                         </svg>
-                                        <span>Access and manage your data (api)</span>
+                                        <span>Access the identity URL service (id, profile, email, address, phone)</span>
                                       </div>
                                       <div className="flex items-center gap-2">
                                         <svg className="w-4 h-4 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
                                         </svg>
-                                        <span>Perform requests on your behalf at any time (refresh_token, offline_access)</span>
+                                        <span>Manage user data via APIs (api)</span>
                                       </div>
                                       <div className="flex items-center gap-2">
                                         <svg className="w-4 h-4 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
                                         </svg>
-                                        <span>Access unique user identifiers (openid)</span>
+                                        <span>Perform requests at any time (refresh_token, offline_access)</span>
+                                      </div>
+                                    </div>
+                                  </div>
+
+                                  <div className="border-t border-gray-300 pt-4 mt-4">
+                                    <div className="font-semibold text-gray-900 mb-3">Flow Enablement</div>
+                                    <p className="text-gray-600 text-xs mb-2">Leave all checkboxes unchecked (default settings are fine)</p>
+                                  </div>
+
+                                  <div className="border-t border-gray-300 pt-4">
+                                    <div className="font-semibold text-gray-900 mb-3">Security</div>
+                                    <p className="text-gray-600 text-xs mb-2">Check these boxes:</p>
+                                    <div className="space-y-2 text-xs">
+                                      <div className="flex items-center gap-2">
+                                        <div className="w-4 h-4 border-2 border-green-600 bg-green-100 rounded flex items-center justify-center">
+                                          <svg className="w-3 h-3 text-green-700" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M5 13l4 4L19 7" />
+                                          </svg>
+                                        </div>
+                                        <span className="font-medium">☑️ Require Secret for Web Server Flow</span>
+                                      </div>
+                                      <div className="flex items-center gap-2">
+                                        <div className="w-4 h-4 border-2 border-green-600 bg-green-100 rounded flex items-center justify-center">
+                                          <svg className="w-3 h-3 text-green-700" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M5 13l4 4L19 7" />
+                                          </svg>
+                                        </div>
+                                        <span className="font-medium">☑️ Require Secret for Refresh Token Flow</span>
+                                      </div>
+                                      <div className="flex items-center gap-2">
+                                        <div className="w-4 h-4 border-2 border-green-600 bg-green-100 rounded flex items-center justify-center">
+                                          <svg className="w-3 h-3 text-green-700" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M5 13l4 4L19 7" />
+                                          </svg>
+                                        </div>
+                                        <span className="font-medium">☑️ Require Proof Key for Code Exchange (PKCE)</span>
+                                      </div>
+                                      <div className="mt-2 text-xs text-gray-500">
+                                        Leave "Enable Refresh Token Rotation" and "JWT" unchecked
                                       </div>
                                     </div>
                                   </div>

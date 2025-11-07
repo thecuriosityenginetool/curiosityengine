@@ -3253,13 +3253,42 @@ The draft is now in your Outlook Drafts folder and ready to send.`);
               <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50" onClick={() => setShowIntegrationHelp(false)}>
                 <div className="bg-white rounded-2xl shadow-2xl max-w-2xl w-full max-h-[90vh] overflow-y-auto" onClick={(e) => e.stopPropagation()}>
                   <div className="sticky top-0 bg-white border-b border-gray-200 px-6 py-4 flex items-center justify-between">
-                    <h2 className="text-2xl font-bold text-gray-900">
-                      {selectedIntegration === 'salesforce' && 'Salesforce Integration'}
-                      {selectedIntegration === 'gmail' && 'Google Workspace Integration'}
-                      {selectedIntegration === 'outlook' && 'Microsoft Outlook Integration'}
-                      {selectedIntegration === 'linkedin' && 'LinkedIn Chrome Extension'}
-                      {selectedIntegration === 'hubspot' && 'HubSpot Integration'}
-                    </h2>
+                    <div className="flex items-center gap-3">
+                      {selectedIntegration === 'salesforce' && (
+                        <>
+                          <Image src="/salesforcelogo.svg" alt="Salesforce" width={32} height={32} className="w-8 h-8" />
+                          <h2 className="text-2xl font-bold text-gray-900">Salesforce Integration</h2>
+                        </>
+                      )}
+                      {selectedIntegration === 'gmail' && (
+                        <>
+                          <Image src="/Gmail Icon.svg" alt="Google Workspace" width={32} height={32} className="w-8 h-8" />
+                          <h2 className="text-2xl font-bold text-gray-900">Google Workspace Integration</h2>
+                        </>
+                      )}
+                      {selectedIntegration === 'outlook' && (
+                        <>
+                          <Image src="/Outlook_icon.svg" alt="Outlook" width={32} height={32} className="w-8 h-8" />
+                          <h2 className="text-2xl font-bold text-gray-900">Microsoft Outlook Integration</h2>
+                        </>
+                      )}
+                      {selectedIntegration === 'linkedin' && (
+                        <>
+                          <div className="w-8 h-8 bg-blue-600 rounded-lg flex items-center justify-center">
+                            <svg className="w-5 h-5 text-white" fill="currentColor" viewBox="0 0 24 24">
+                              <path d="M20.447 20.452h-3.554v-5.569c0-1.328-.027-3.037-1.852-3.037-1.853 0-2.136 1.445-2.136 2.939v5.667H9.351V9h3.414v1.561h.046c.477-.9 1.637-1.85 3.37-1.85 3.601 0 4.267 2.37 4.267 5.455v6.286zM5.337 7.433c-1.144 0-2.063-.926-2.063-2.065 0-1.138.92-2.063 2.063-2.063 1.14 0 2.064.925 2.064 2.063 0 1.139-.925 2.065-2.064 2.065zm1.782 13.019H3.555V9h3.564v11.452zM22.225 0H1.771C.792 0 0 .774 0 1.729v20.542C0 23.227.792 24 1.771 24h20.451C23.2 24 24 23.227 24 22.271V1.729C24 .774 23.2 0 22.222 0h.003z"/>
+                            </svg>
+                          </div>
+                          <h2 className="text-2xl font-bold text-gray-900">LinkedIn Chrome Extension</h2>
+                        </>
+                      )}
+                      {selectedIntegration === 'hubspot' && (
+                        <>
+                          <Image src="/hubspot-1.svg" alt="HubSpot" width={32} height={32} className="w-8 h-8" />
+                          <h2 className="text-2xl font-bold text-gray-900">HubSpot Integration</h2>
+                        </>
+                      )}
+                    </div>
                     <button
                       onClick={() => setShowIntegrationHelp(false)}
                       className="text-gray-400 hover:text-gray-600 transition-colors"
@@ -3497,18 +3526,42 @@ The draft is now in your Outlook Drafts folder and ready to send.`);
                               </div>
 
                               <div>
-                                <h3 className="text-lg font-semibold text-gray-900 mb-3">Step 5: Add to Vercel</h3>
-                                <ol className="list-decimal list-inside space-y-2 text-gray-700 text-sm">
-                                  <li className="pl-2">Go to <strong>Vercel Dashboard</strong> → Your Project → <strong>Settings</strong> → <strong>Environment Variables</strong></li>
-                                  <li className="pl-2">Add these 3 variables for all environments:
-                                    <div className="mt-2 space-y-1 pl-6 text-xs font-mono bg-gray-50 p-3 rounded">
-                                      <div><strong>SALESFORCE_CLIENT_ID</strong> = [Consumer Key]</div>
-                                      <div><strong>SALESFORCE_CLIENT_SECRET</strong> = [Consumer Secret]</div>
-                                      <div><strong>SALESFORCE_REDIRECT_URI</strong> = https://www.curiosityengine.io/api/salesforce/user-callback</div>
+                                <h3 className="text-lg font-semibold text-gray-900 mb-3">Step 5: Share Credentials with Support</h3>
+                                <p className="text-gray-700 text-sm mb-4">
+                                  Once you have your Consumer Key and Consumer Secret, you'll need to share them with our support team to complete the integration.
+                                </p>
+                                
+                                <div className="bg-gray-50 border border-gray-200 rounded-lg p-4">
+                                  <p className="text-sm font-semibold text-gray-900 mb-3">Prepare these credentials to share:</p>
+                                  <div className="space-y-2 text-sm font-mono text-gray-700">
+                                    <div className="bg-white px-3 py-2 rounded border border-gray-200">
+                                      <div className="text-xs text-gray-500 mb-1">Consumer Key (Client ID)</div>
+                                      <div className="text-gray-900">[Your Consumer Key from Step 3]</div>
                                     </div>
-                                  </li>
-                                  <li className="pl-2">Redeploy your application</li>
-                                </ol>
+                                    <div className="bg-white px-3 py-2 rounded border border-gray-200">
+                                      <div className="text-xs text-gray-500 mb-1">Consumer Secret</div>
+                                      <div className="text-gray-900">[Your Consumer Secret from Step 3]</div>
+                                    </div>
+                                    <div className="bg-white px-3 py-2 rounded border border-gray-200">
+                                      <div className="text-xs text-gray-500 mb-1">Callback URL</div>
+                                      <div className="text-gray-900">https://www.curiosityengine.io/api/salesforce/user-callback</div>
+                                    </div>
+                                  </div>
+                                </div>
+
+                                <div className="mt-4">
+                                  <button
+                                    onClick={() => {
+                                      window.location.href = 'mailto:support@curiosityengine.io?subject=Salesforce Integration Setup&body=Hi Support Team,%0A%0AI have completed the Salesforce Connected App setup and am ready to share my credentials:%0A%0AConsumer Key: [paste here]%0AConsumer Secret: [paste here]%0ACallback URL: https://www.curiosityengine.io/api/salesforce/user-callback%0A%0APlease help me complete the integration.%0A%0AThanks!';
+                                    }}
+                                    className="w-full bg-[#F95B14] text-white px-6 py-3 rounded-lg font-semibold hover:bg-orange-600 transition-colors flex items-center justify-center gap-2"
+                                  >
+                                    <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
+                                    </svg>
+                                    Email Support Team
+                                  </button>
+                                </div>
                               </div>
 
                               <div className="bg-green-50 border border-green-200 rounded-lg p-4">

@@ -497,8 +497,30 @@ export async function POST(req: NextRequest) {
       }
     }
 
+    // Get current date and time
+    const now = new Date();
+    const currentDateTime = now.toLocaleString('en-US', { 
+      weekday: 'long',
+      year: 'numeric',
+      month: 'long',
+      day: 'numeric',
+      hour: 'numeric',
+      minute: '2-digit',
+      hour12: true,
+      timeZoneName: 'short'
+    });
+    const currentDate = now.toISOString().split('T')[0]; // YYYY-MM-DD
+    const currentTime = now.toTimeString().split(' ')[0]; // HH:MM:SS
+
     // Build system prompt with context - ONLY mention connected integrations
-    let systemPrompt = `You are Curiosity Engine, an AI sales assistant working specifically for ${user.full_name || 'the user'}. You help them by using their personal context, company materials, and specific offerings to provide highly personalized sales assistance.`;
+    let systemPrompt = `You are Curiosity Engine, an AI sales assistant working specifically for ${user.full_name || 'the user'}. You help them by using their personal context, company materials, and specific offerings to provide highly personalized sales assistance.
+
+📅 **CURRENT DATE & TIME:**
+Today is: ${currentDateTime}
+Date: ${currentDate}
+Time: ${currentTime}
+
+When the user asks about "today", "this week", "tomorrow", etc., use this date/time as your reference point.`;
 
     if (hasSalesforce) {
       systemPrompt += `

@@ -2356,8 +2356,8 @@ The draft is now in your Outlook Drafts folder and ready to send.`);
               <div className="fixed right-4 top-24 w-80 bg-white rounded-xl border border-gray-200 shadow-2xl z-50 calendar-panel max-h-[calc(100vh-120px)] overflow-hidden flex flex-col">
                 <div className="p-4 border-b border-gray-100 flex justify-between items-center">
                   <h2 className="text-base font-semibold text-gray-900 flex items-center gap-2">
-                    <svg className="w-5 h-5 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                    <svg className="w-5 h-5 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth={1.5}>
+                      <path strokeLinecap="round" strokeLinejoin="round" d="M6.75 3v2.25M17.25 3v2.25M3 18.75V7.5a2.25 2.25 0 012.25-2.25h13.5A2.25 2.25 0 0121 7.5v11.25m-18 0A2.25 2.25 0 005.25 21h13.5A2.25 2.25 0 0021 18.75m-18 0v-7.5A2.25 2.25 0 015.25 9h13.5A2.25 2.25 0 0121 11.25v7.5" />
                     </svg>
                     Upcoming Events
                   </h2>
@@ -2385,7 +2385,9 @@ The draft is now in your Outlook Drafts folder and ready to send.`);
                       </>
                     ) : (
                       <>
-                        <span>🔄</span>
+                        <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth={1.5}>
+                          <path strokeLinecap="round" strokeLinejoin="round" d="M16.023 9.348h4.992v-.001M2.985 19.644v-4.992m0 0h4.992m-4.993 0l3.181 3.183a8.25 8.25 0 0013.803-3.7M4.031 9.865a8.25 8.25 0 0113.803-3.7l3.181 3.182m0-4.991v4.99" />
+                        </svg>
                         Sync
                       </>
                     )}
@@ -2395,7 +2397,9 @@ The draft is now in your Outlook Drafts folder and ready to send.`);
                 <div className="p-4 space-y-3 max-h-[640px]" style={{ overflowY: 'auto', overflowX: 'visible' }}>
                   {calendarEvents.length === 0 && (
                     <div className="text-center text-gray-500 py-8">
-                      <div className="text-3xl mb-2">📅</div>
+                      <svg className="w-16 h-16 mx-auto mb-3 text-gray-300" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth={1.5}>
+                        <path strokeLinecap="round" strokeLinejoin="round" d="M6.75 3v2.25M17.25 3v2.25M3 18.75V7.5a2.25 2.25 0 012.25-2.25h13.5A2.25 2.25 0 0121 7.5v11.25m-18 0A2.25 2.25 0 005.25 21h13.5A2.25 2.25 0 0021 18.75m-18 0v-7.5A2.25 2.25 0 015.25 9h13.5A2.25 2.25 0 0121 11.25v7.5m-9-6h.008v.008H12v-.008zM12 15h.008v.008H12V15zm0 2.25h.008v.008H12v-.008zM9.75 15h.008v.008H9.75V15zm0 2.25h.008v.008H9.75v-.008zM7.5 15h.008v.008H7.5V15zm0 2.25h.008v.008H7.5v-.008zm6.75-4.5h.008v.008h-.008v-.008zm0 2.25h.008v.008h-.008V15zm0 2.25h.008v.008h-.008v-.008zm2.25-4.5h.008v.008H16.5v-.008zm0 2.25h.008v.008H16.5V15z" />
+                      </svg>
                       <p className="text-sm">No upcoming events</p>
                       <p className="text-xs mt-1">Connect your calendar to see events</p>
                     </div>

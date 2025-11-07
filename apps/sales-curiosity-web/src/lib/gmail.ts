@@ -30,7 +30,7 @@ export function getGmailAuthUrl(state: string): string {
     client_id: GOOGLE_CLIENT_ID,
     redirect_uri: GOOGLE_REDIRECT_URI,
     response_type: 'code',
-    scope: 'https://www.googleapis.com/auth/gmail.compose https://www.googleapis.com/auth/gmail.send https://www.googleapis.com/auth/calendar https://www.googleapis.com/auth/userinfo.email',
+    scope: 'https://www.googleapis.com/auth/gmail.compose https://www.googleapis.com/auth/gmail.send https://www.googleapis.com/auth/gmail.readonly https://www.googleapis.com/auth/calendar https://www.googleapis.com/auth/calendar.readonly https://www.googleapis.com/auth/userinfo.email',
     access_type: 'offline',
     prompt: 'consent',
     state,
@@ -521,6 +521,129 @@ export async function createGoogleCalendarEvent(
     return { id: result.id, success: true };
   } catch (error) {
     console.error('Error creating Google Calendar event:', error);
+    throw error;
+  }
+}
+
+/**
+ * Search Gmail emails
+ */
+export async function searchGmailEmails(
+  organizationId: string,
+  query: string,
+  userId: string,
+  maxResults: number = 10
+): Promise<any[]> {
+  try {
+    console.log('🟩 [Gmail] Searching emails:', { query, maxResults });
+    
+    // First, search for message IDs
+    const searchParams = new URLSearchParams({
+      q: query,
+      maxResults: maxResults.toString()
+    });
+
+    const searchResult = await gmailApiRequest(
+      organizationId,
+      `/users/me/messages?${searchParams.toString()}`,
+      {},
+      userId
+    );
+
+    const messageIds = searchResult.messages || [];
+    console.log('🟩 [Gmail] Found message IDs:', messageIds.length);
+
+    if (messageIds.length === 0) {
+      return [];
+    }
+
+    // Fetch full details for each message
+    const messages = await Promise.all(
+      messageIds.slice(0, maxResults).map(async (msg: any) => {
+        const details = await gmailApiRequest(
+          organizationId,
+          `/users/me/messages/${msg.id}`,
+          {},
+          userId
+        );
+        return details;
+      })
+    );
+
+    console.log('✅ [Gmail] Fetched full details for', messages.length, 'emails');
+    return messages;
+  } catch (error) {
+    console.error('Error searching Gmail emails:', error);
+    throw error;
+  }
+}
+
+/**
+ * Get specific Gmail thread
+ */
+export async function getGmailThread(
+  organizationId: string,
+  threadId: string,
+  userId: string
+): Promise<any> {
+  try {
+    console.log('🟩 [Gmail] Getting thread:', threadId);
+    
+    const thread = await gmailApiRequest(
+      organizationId,
+      `/users/me/threads/${threadId}`,
+      {},
+      userId
+    );
+
+    console.log('✅ [Gmail] Thread retrieved');
+    return thread;
+  } catch (error) {
+    console.error('Error getting Gmail thread:', error);
+    throw error;
+  }
+}
+
+/**
+ * Search Google Calendar events
+ */
+export async function searchGoogleCalendarEvents(
+  organizationId: string,
+  query: string,
+  userId: string,
+  options?: {
+    startDate?: string;
+    endDate?: string;
+    maxResults?: number;
+  }
+): Promise<any[]> {
+  try {
+    console.log('🟩 [Gmail] Searching calendar events:', { query });
+    
+    const startDate = options?.startDate || new Date(Date.now() - 30 * 24 * 60 * 60 * 1000).toISOString(); // 30 days ago
+    const endDate = options?.endDate || new Date(Date.now() + 90 * 24 * 60 * 60 * 1000).toISOString(); // 90 days ahead
+    const maxResults = options?.maxResults || 20;
+
+    const params = new URLSearchParams({
+      q: query,
+      timeMin: startDate,
+      timeMax: endDate,
+      maxResults: maxResults.toString(),
+      singleEvents: 'true',
+      orderBy: 'startTime'
+    });
+
+    const result = await calendarApiRequest(
+      organizationId,
+      `/calendars/primary/events?${params.toString()}`,
+      {},
+      userId
+    );
+
+    console.log('✅ [Gmail] Found calendar events:', result.items?.length || 0);
+    return result.items || [];
+  } catch (error) {
+    console.error('Error searching Google Calendar events:', error);
     throw error;
   }
 }

@@ -26,7 +26,9 @@ import {
 import {
   createGmailDraft,
   sendGmailEmail,
-  createGoogleCalendarEvent
+  createGoogleCalendarEvent,
+  searchGmailEmails,
+  searchGoogleCalendarEvents
 } from '@/lib/gmail';
 import { matchCalendarEventsToSalesforce, buildCalendarContext } from '@/lib/calendar-matcher';
 
@@ -233,6 +235,60 @@ Start: ${new Date(args.start).toLocaleString()}
 End: ${new Date(args.end).toLocaleString()}
 ${args.attendees ? `Attendees: ${args.attendees.join(', ')}` : ''}
 Event ID: ${result.id}`;
+      }
+
+      case 'search_gmail_emails': {
+        const emails = await searchGmailEmails(organizationId, args.query, userId, args.maxResults || 10);
+        if (emails.length === 0) {
+          return `No emails found matching "${args.query}"`;
+        }
+
+        const emailList = emails.map((email: any) => {
+          const headers = email.payload?.headers || [];
+          const from = headers.find((h: any) => h.name === 'From')?.value || 'Unknown';
+          const subject = headers.find((h: any) => h.name === 'Subject')?.value || 'No subject';
+          const date = headers.find((h: any) => h.name === 'Date')?.value || '';
+          const snippet = email.snippet || '';
+          
+          return `From: ${from}
+Subject: ${subject}
+Date: ${date}
+Preview: ${snippet}
+---`;
+        }).join('\n\n');
+
+        return `Found ${emails.length} email(s) matching "${args.query}":
+
+${emailList}`;
+      }
+
+      case 'search_calendar_events': {
+        const events = await searchGoogleCalendarEvents(organizationId, args.query, userId, {
+          startDate: args.startDate,
+          endDate: args.endDate,
+          maxResults: args.maxResults
+        });
+        
+        if (events.length === 0) {
+          return `No calendar events found matching "${args.query}"`;
+        }
+
+        const eventList = events.map((event: any) => {
+          const start = event.start?.dateTime || event.start?.date;
+          const end = event.end?.dateTime || event.end?.date;
+          const attendees = event.attendees?.map((a: any) => a.email).join(', ') || 'No attendees';
+          
+          return `📅 ${event.summary}
+When: ${new Date(start).toLocaleString()} - ${new Date(end).toLocaleString()}
+${event.location ? `Location: ${event.location}` : ''}
+${event.description ? `Description: ${event.description}` : ''}
+Attendees: ${attendees}
+---`;
+        }).join('\n\n');
+
+        return `Found ${events.length} calendar event(s) matching "${args.query}":
+
+${eventList}`;
       }
 
       case 'search_emails': {

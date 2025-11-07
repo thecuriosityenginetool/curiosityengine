@@ -93,6 +93,56 @@ export const gmailTools: ChatCompletionTool[] = [
         required: ["title", "start", "end"]
       }
     }
+  },
+  {
+    type: "function",
+    function: {
+      name: "search_gmail_emails",
+      description: "Search the user's Gmail for emails matching a query. Use this when the user asks about emails, messages from someone, or wants to find specific conversations. Supports Gmail search syntax.",
+      parameters: {
+        type: "object",
+        properties: {
+          query: {
+            type: "string",
+            description: "Gmail search query (e.g., 'from:john@example.com', 'subject:proposal', 'is:unread', 'after:2025/11/01')"
+          },
+          maxResults: {
+            type: "number",
+            description: "Maximum number of emails to return (default 10)"
+          }
+        },
+        required: ["query"]
+      }
+    }
+  },
+  {
+    type: "function",
+    function: {
+      name: "search_calendar_events",
+      description: "Search Google Calendar for events matching a query or timeframe. Use this when the user asks about meetings, events, or their schedule.",
+      parameters: {
+        type: "object",
+        properties: {
+          query: {
+            type: "string",
+            description: "Search query for event title, description, or attendees"
+          },
+          startDate: {
+            type: "string",
+            description: "Start date for search range (ISO 8601 format, optional)"
+          },
+          endDate: {
+            type: "string",
+            description: "End date for search range (ISO 8601 format, optional)"
+          },
+          maxResults: {
+            type: "number",
+            description: "Maximum number of events to return (default 20)"
+          }
+        },
+        required: ["query"]
+      }
+    }
   }
 ];
 
@@ -118,5 +168,17 @@ export interface CreateGoogleCalendarEventArgs {
   description?: string;
   attendees?: string[];
   location?: string;
+}
+
+export interface SearchGmailEmailsArgs {
+  query: string;
+  maxResults?: number;
+}
+
+export interface SearchCalendarEventsArgs {
+  query: string;
+  startDate?: string;
+  endDate?: string;
+  maxResults?: number;
 }
 

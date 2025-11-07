@@ -788,7 +788,9 @@ export default function DashboardPage() {
 
   async function connectToGoogle() {
     try {
-      console.log('🔵 Connecting to Google Workspace (Gmail + Calendar)...');
+      console.log('🟩 [Connect Google] Step 1: Starting connection flow...');
+      console.log('🟩 [Connect Google] Step 2: Fetching /api/gmail/auth-user...');
+      
       const response = await fetch('/api/gmail/auth-user', {
         method: 'GET',
         credentials: 'include',
@@ -797,26 +799,42 @@ export default function DashboardPage() {
         },
       });
       
+      console.log('🟩 [Connect Google] Step 3: Response received. Status:', response.status);
+      console.log('🟩 [Connect Google] Response headers:', Object.fromEntries(response.headers.entries()));
+      
       if (response.ok) {
         const data = await response.json();
-        console.log('🔵 Google auth response:', data);
+        console.log('🟩 [Connect Google] Step 4: Response data:', data);
         
         if (data.authUrl) {
-          console.log('🔵 Redirecting to Google OAuth:', data.authUrl);
+          console.log('🟩 [Connect Google] Step 5: Got authUrl, redirecting...');
+          console.log('🟩 [Connect Google] Auth URL:', data.authUrl);
+          console.log('🟩 [Connect Google] Step 6: Setting window.location.href...');
           window.location.href = data.authUrl;
+          console.log('🟩 [Connect Google] Step 7: Redirect initiated (this may not log)');
+        } else if (data.connected) {
+          console.log('✅ [Connect Google] Already connected!');
+          alert('Google Workspace is already connected!');
+          await checkConnections(); // Refresh status
         } else {
-          console.error('❌ No authUrl in response:', data);
+          console.error('❌ [Connect Google] No authUrl in response:', data);
           alert('Failed to get Google authorization URL. Check console for details.');
         }
       } else {
-        console.error('❌ Response not OK. Status:', response.status);
+        console.error('❌ [Connect Google] Response not OK. Status:', response.status);
         const errorData = await response.text();
-        console.error('❌ Error data:', errorData);
-        alert('Error connecting to Google. Check console for details.');
+        console.error('❌ [Connect Google] Error response:', errorData);
+        
+        try {
+          const errorJson = JSON.parse(errorData);
+          alert(`Error: ${errorJson.error || 'Unknown error connecting to Google'}`);
+        } catch {
+          alert(`Error connecting to Google (Status: ${response.status}). Check console for details.`);
+        }
       }
     } catch (error) {
-      console.error('❌ Error connecting to Google:', error);
-      alert('Error connecting to Google. Check console for details.');
+      console.error('❌ [Connect Google] Fatal exception:', error);
+      alert(`Error connecting to Google: ${error instanceof Error ? error.message : 'Unknown error'}`);
     }
   }
 
@@ -1195,38 +1213,108 @@ Format with markdown for readability.`;
 
   async function checkConnections() {
     try {
+      console.log('🔍 [Dashboard] Checking all integrations...');
+      
+      // Use comprehensive status endpoint
+      const statusResponse = await fetch('/api/integrations/status');
+      
+      if (statusResponse.ok) {
+        const status = await statusResponse.json();
+        console.log('✅ [Dashboard] Integration status received:', status);
+        
+        // Update Gmail connection
+        const gmailConnected = status.gmail?.connected === true;
+        console.log('🔍 [Dashboard] Gmail:', { 
+          connected: gmailConnected,
+          enabled: status.gmail?.enabled,
+          hasTokens: status.gmail?.hasUserTokens
+        });
+        setHasGmailConnection(gmailConnected);
+        
+        // Update Outlook connection
+        const outlookConnected = status.outlook?.connected === true;
+        console.log('🔍 [Dashboard] Outlook:', { 
+          connected: outlookConnected,
+          enabled: status.outlook?.enabled,
+          hasTokens: status.outlook?.hasUserTokens
+        });
+        setHasOutlookConnection(outlookConnected);
+        
+        // Update Salesforce connection
+        const salesforceConnected = status.salesforce?.connected === true;
+        console.log('🔍 [Dashboard] Salesforce:', { 
+          connected: salesforceConnected,
+          enabled: status.salesforce?.enabled,
+          hasTokens: status.salesforce?.hasUserTokens
+        });
+        setHasSalesforceConnection(salesforceConnected);
+        
+        // Set email provider
+        const emailProvider = status.emailProvider;
+        console.log('🔍 [Dashboard] Email provider:', emailProvider);
+        setConnectedEmailProvider(emailProvider);
+        
+      } else {
+        console.error('❌ [Dashboard] Status endpoint failed:', statusResponse.status);
+        const errorText = await statusResponse.text();
+        console.error('❌ [Dashboard] Error response:', errorText);
+        
+        // Fall back to individual checks if comprehensive endpoint fails
+        console.log('⚠️ [Dashboard] Falling back to individual status checks...');
+        await checkConnectionsIndividually();
+      }
+    } catch (error) {
+      console.error('❌ [Dashboard] Fatal error checking connections:', error);
+      // Fall back to individual checks
+      await checkConnectionsIndividually();
+    }
+  }
+
+  async function checkConnectionsIndividually() {
+    try {
       let outlookConnected = false;
       let gmailConnected = false;
 
-      // Check Outlook connection - use status endpoint to verify actual tokens
-      const outlookResponse = await fetch('/api/outlook/status');
-      if (outlookResponse.ok) {
-        const outlookData = await outlookResponse.json();
-        console.log('🔍 Outlook connection check:', outlookData);
-        // More robust boolean check - handle string/boolean conversion
-        outlookConnected = Boolean(outlookData.connected) && outlookData.connected !== 'false' && outlookData.connected !== false;
-        console.log('✅ Outlook connected:', outlookConnected);
-        setHasOutlookConnection(outlookConnected);
-      } else {
-        console.log('❌ Outlook status check failed:', outlookResponse.status);
+      // Check Outlook
+      try {
+        const outlookResponse = await fetch('/api/outlook/status');
+        if (outlookResponse.ok) {
+          const outlookData = await outlookResponse.json();
+          outlookConnected = Boolean(outlookData.connected);
+          setHasOutlookConnection(outlookConnected);
+        }
+      } catch (e) {
+        console.error('❌ Outlook check failed:', e);
         setHasOutlookConnection(false);
       }
 
-      // Check Gmail connection - use status endpoint to verify actual tokens
-      const gmailResponse = await fetch('/api/gmail/status');
-      if (gmailResponse.ok) {
-        const gmailData = await gmailResponse.json();
-        console.log('🔍 Gmail connection check:', gmailData);
-        // More robust boolean check - handle string/boolean conversion
-        gmailConnected = Boolean(gmailData.connected) && gmailData.connected !== 'false' && gmailData.connected !== false;
-        console.log('✅ Gmail connected:', gmailConnected);
-        setHasGmailConnection(gmailConnected);
-      } else {
-        console.log('❌ Gmail status check failed:', gmailResponse.status);
+      // Check Gmail
+      try {
+        const gmailResponse = await fetch('/api/gmail/status');
+        if (gmailResponse.ok) {
+          const gmailData = await gmailResponse.json();
+          gmailConnected = Boolean(gmailData.connected);
+          setHasGmailConnection(gmailConnected);
+        }
+      } catch (e) {
+        console.error('❌ Gmail check failed:', e);
         setHasGmailConnection(false);
       }
 
-      // Set connected email provider based on which is connected
+      // Check Salesforce
+      try {
+        const sfResponse = await fetch('/api/salesforce/auth-user');
+        if (sfResponse.ok) {
+          const sfData = await sfResponse.json();
+          const isConnected = sfData.connected === true;
+          setHasSalesforceConnection(isConnected);
+        }
+      } catch (e) {
+        console.error('❌ Salesforce check failed:', e);
+        setHasSalesforceConnection(false);
+      }
+
+      // Set email provider
       if (outlookConnected) {
         setConnectedEmailProvider('microsoft');
       } else if (gmailConnected) {
@@ -1234,23 +1322,8 @@ Format with markdown for readability.`;
       } else {
         setConnectedEmailProvider(null);
       }
-
-      // Check Salesforce connection - need to verify actual tokens exist
-      const sfResponse = await fetch('/api/salesforce/auth-user');
-      if (sfResponse.ok) {
-        const sfData = await sfResponse.json();
-        console.log('🔍 Salesforce connection check:', sfData);
-        // Only set as connected if we have an authUrl (meaning not connected)
-        // If already connected, the API returns the connection status
-        const isConnected = sfData.connected === true;
-        console.log('✅ Salesforce connected:', isConnected);
-        setHasSalesforceConnection(isConnected);
-      } else {
-        console.log('❌ Salesforce API failed:', sfResponse.status);
-        setHasSalesforceConnection(false);
-      }
     } catch (error) {
-      console.error('Error checking connections:', error);
+      console.error('❌ Individual checks failed:', error);
       setHasSalesforceConnection(false);
       setHasOutlookConnection(false);
       setHasGmailConnection(false);

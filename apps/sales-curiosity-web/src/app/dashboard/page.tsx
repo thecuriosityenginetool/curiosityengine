@@ -134,6 +134,7 @@ export default function DashboardPage() {
   // Integration help modal state
   const [showIntegrationHelp, setShowIntegrationHelp] = useState(false);
   const [selectedIntegration, setSelectedIntegration] = useState<'salesforce' | 'gmail' | 'outlook' | 'linkedin' | 'hubspot' | null>(null);
+  const [salesforceHelpTab, setSalesforceHelpTab] = useState<'tools' | 'user' | 'org'>('tools');
   
   // Chrome extension detection
   const [hasChromeExtension, setHasChromeExtension] = useState<boolean | null>(null);
@@ -2882,6 +2883,7 @@ The draft is now in your Outlook Drafts folder and ready to send.`);
               <div className="rounded-2xl border border-gray-200 bg-white p-6 hover:shadow-lg transition-all hover:border-gray-300 relative group">
                 <button
                   onClick={() => {
+                    setSalesforceHelpTab('tools');
                     setSelectedIntegration('salesforce');
                     setShowIntegrationHelp(true);
                   }}
@@ -3270,50 +3272,252 @@ The draft is now in your Outlook Drafts folder and ready to send.`);
                   
                   <div className="p-6">
                     {selectedIntegration === 'salesforce' && (
-                      <div className="space-y-6">
-                        <div>
-                          <h3 className="text-lg font-semibold text-gray-900 mb-2">How to Connect</h3>
-                          <ol className="list-decimal list-inside space-y-2 text-gray-700">
-                            <li>Click the "Connect" button on the Salesforce card</li>
-                            <li>Sign in to your Salesforce account</li>
-                            <li>Grant Curiosity Engine access to your CRM data</li>
-                            <li>You'll be redirected back to the dashboard once connected</li>
-                          </ol>
+                      <div className="space-y-4">
+                        {/* Tabs */}
+                        <div className="border-b border-gray-200">
+                          <nav className="flex space-x-8">
+                            <button
+                              onClick={() => setSalesforceHelpTab('tools')}
+                              className={`pb-3 px-1 border-b-2 font-medium text-sm transition-colors ${
+                                salesforceHelpTab === 'tools'
+                                  ? 'border-[#F95B14] text-[#F95B14]'
+                                  : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
+                              }`}
+                            >
+                              Tools
+                            </button>
+                            <button
+                              onClick={() => setSalesforceHelpTab('user')}
+                              className={`pb-3 px-1 border-b-2 font-medium text-sm transition-colors ${
+                                salesforceHelpTab === 'user'
+                                  ? 'border-[#F95B14] text-[#F95B14]'
+                                  : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
+                              }`}
+                            >
+                              User Connect
+                            </button>
+                            <button
+                              onClick={() => setSalesforceHelpTab('org')}
+                              className={`pb-3 px-1 border-b-2 font-medium text-sm transition-colors ${
+                                salesforceHelpTab === 'org'
+                                  ? 'border-[#F95B14] text-[#F95B14]'
+                                  : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
+                              }`}
+                            >
+                              Connect Org
+                            </button>
+                          </nav>
                         </div>
-                        <div>
-                          <h3 className="text-lg font-semibold text-gray-900 mb-2">Available AI Functions</h3>
-                          <ul className="space-y-2 text-gray-700">
-                            <li className="flex items-start gap-2">
-                              <svg className="w-5 h-5 text-green-600 mt-0.5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
-                              </svg>
-                              <span><strong>Search contacts & leads:</strong> "Find all contacts at Acme Corp"</span>
-                            </li>
-                            <li className="flex items-start gap-2">
-                              <svg className="w-5 h-5 text-green-600 mt-0.5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
-                              </svg>
-                              <span><strong>Create new leads:</strong> "Create a lead for John Smith at TechCo"</span>
-                            </li>
-                            <li className="flex items-start gap-2">
-                              <svg className="w-5 h-5 text-green-600 mt-0.5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
-                              </svg>
-                              <span><strong>Add notes:</strong> "Add a note to the Smith account about our call"</span>
-                            </li>
-                            <li className="flex items-start gap-2">
-                              <svg className="w-5 h-5 text-green-600 mt-0.5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
-                              </svg>
-                              <span><strong>Create tasks:</strong> "Create a follow-up task for Jane Doe"</span>
-                            </li>
-                            <li className="flex items-start gap-2">
-                              <svg className="w-5 h-5 text-green-600 mt-0.5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
-                              </svg>
-                              <span><strong>Update records:</strong> "Update John's status to qualified"</span>
-                            </li>
-                          </ul>
+
+                        {/* Tab Content */}
+                        <div className="pt-2">
+                          {/* Tools Tab */}
+                          {salesforceHelpTab === 'tools' && (
+                            <div>
+                              <h3 className="text-lg font-semibold text-gray-900 mb-4">Available AI Functions</h3>
+                              <ul className="space-y-3 text-gray-700">
+                              <li className="flex items-start gap-3">
+                                <svg className="w-5 h-5 text-green-600 mt-0.5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                                </svg>
+                                <div>
+                                  <div className="font-medium text-gray-900">Search contacts & leads</div>
+                                  <div className="text-sm text-gray-600 mt-0.5">
+                                    "Find all contacts at Acme Corp"
+                                  </div>
+                                </div>
+                              </li>
+                              <li className="flex items-start gap-3">
+                                <svg className="w-5 h-5 text-green-600 mt-0.5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                                </svg>
+                                <div>
+                                  <div className="font-medium text-gray-900">Create new leads</div>
+                                  <div className="text-sm text-gray-600 mt-0.5">
+                                    "Create a lead for John Smith at TechCo"
+                                  </div>
+                                </div>
+                              </li>
+                              <li className="flex items-start gap-3">
+                                <svg className="w-5 h-5 text-green-600 mt-0.5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                                </svg>
+                                <div>
+                                  <div className="font-medium text-gray-900">Add notes to records</div>
+                                  <div className="text-sm text-gray-600 mt-0.5">
+                                    "Add a note to the Smith account about our call"
+                                  </div>
+                                </div>
+                              </li>
+                              <li className="flex items-start gap-3">
+                                <svg className="w-5 h-5 text-green-600 mt-0.5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                                </svg>
+                                <div>
+                                  <div className="font-medium text-gray-900">Create follow-up tasks</div>
+                                  <div className="text-sm text-gray-600 mt-0.5">
+                                    "Create a follow-up task for Jane Doe next week"
+                                  </div>
+                                </div>
+                              </li>
+                              <li className="flex items-start gap-3">
+                                <svg className="w-5 h-5 text-green-600 mt-0.5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                                </svg>
+                                <div>
+                                  <div className="font-medium text-gray-900">Update records</div>
+                                  <div className="text-sm text-gray-600 mt-0.5">
+                                    "Update John's status to qualified"
+                                  </div>
+                                </div>
+                              </li>
+                              <li className="flex items-start gap-3">
+                                <svg className="w-5 h-5 text-green-600 mt-0.5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                                </svg>
+                                <div>
+                                  <div className="font-medium text-gray-900">Query recent activity</div>
+                                  <div className="text-sm text-gray-600 mt-0.5">
+                                    "Show me recent deals we closed"
+                                  </div>
+                                </div>
+                              </li>
+                            </ul>
+                          </div>
+                          )}
+
+                          {/* User Connect Tab */}
+                          {salesforceHelpTab === 'user' && (
+                            <div className="space-y-6">
+                              <div>
+                                <h3 className="text-lg font-semibold text-gray-900 mb-3">How to Connect Your Salesforce</h3>
+                                <ol className="list-decimal list-inside space-y-3 text-gray-700">
+                                  <li className="pl-2">
+                                    <span className="font-medium">Click the "Connect" button</span> on the Salesforce card in the Connectors page
+                                  </li>
+                                  <li className="pl-2">
+                                    <span className="font-medium">Sign in to your Salesforce account</span> when redirected
+                                  </li>
+                                  <li className="pl-2">
+                                    <span className="font-medium">Grant Curiosity Engine access</span> to your CRM data (read contacts, leads, opportunities)
+                                  </li>
+                                  <li className="pl-2">
+                                    <span className="font-medium">You'll be redirected back</span> to the dashboard with a success message
+                                  </li>
+                                </ol>
+                              </div>
+                              
+                              <div className="bg-green-50 border border-green-200 rounded-lg p-4">
+                                <h4 className="font-semibold text-green-900 mb-2">✓ What happens after connecting:</h4>
+                                <ul className="space-y-1 text-sm text-green-800">
+                                  <li>• AI can search your Salesforce contacts and leads</li>
+                                  <li>• Check if LinkedIn profiles exist in your CRM</li>
+                                  <li>• Get AI emails tailored as "follow-up" or "cold outreach"</li>
+                                  <li>• Auto-create contacts and leads from conversations</li>
+                                </ul>
+                              </div>
+
+                              <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
+                                <p className="text-sm text-blue-900">
+                                  <strong>Note:</strong> This is a user-level connection. Each team member connects their own Salesforce account for personalized access to their data.
+                                </p>
+                              </div>
+                            </div>
+                          )}
+
+                          {/* Connect Org Tab */}
+                          {salesforceHelpTab === 'org' && (
+                            <div className="space-y-6">
+                              <div className="bg-orange-50 border border-orange-200 rounded-lg p-4">
+                                <p className="text-sm text-orange-900">
+                                  <strong>Admin Setup:</strong> This tab is for organization administrators setting up Salesforce for the first time. Regular users should use the "User Connect" tab.
+                                </p>
+                              </div>
+
+                              <div>
+                                <h3 className="text-lg font-semibold text-gray-900 mb-3">Step 1: Create Salesforce Developer Account</h3>
+                                <ol className="list-decimal list-inside space-y-2 text-gray-700 text-sm">
+                                  <li className="pl-2">Go to <code className="bg-gray-100 px-2 py-0.5 rounded text-xs">https://developer.salesforce.com/signup</code></li>
+                                  <li className="pl-2">Fill out the form (use a unique username like <code className="bg-gray-100 px-2 py-0.5 rounded text-xs">yourname@yourcompany.dev</code>)</li>
+                                  <li className="pl-2">Verify email and set password</li>
+                                  <li className="pl-2">Log in at <code className="bg-gray-100 px-2 py-0.5 rounded text-xs">https://login.salesforce.com</code></li>
+                                </ol>
+                              </div>
+
+                              <div>
+                                <h3 className="text-lg font-semibold text-gray-900 mb-3">Step 2: Create Connected App</h3>
+                                <ol className="list-decimal list-inside space-y-2 text-gray-700 text-sm">
+                                  <li className="pl-2">In Salesforce, click ⚙️ <strong>Setup</strong></li>
+                                  <li className="pl-2">Search for <strong>App Manager</strong></li>
+                                  <li className="pl-2">Click <strong>New Connected App</strong></li>
+                                </ol>
+                                
+                                <div className="mt-4 bg-gray-50 border border-gray-200 rounded-lg p-4">
+                                  <p className="text-sm font-semibold text-gray-900 mb-2">Fill in these fields:</p>
+                                  <div className="space-y-2 text-sm text-gray-700">
+                                    <div><strong>Connected App Name:</strong> <code className="bg-white px-2 py-0.5 rounded">Sales Curiosity Engine</code></div>
+                                    <div><strong>API Name:</strong> <code className="bg-white px-2 py-0.5 rounded">Sales_Curiosity_Engine</code></div>
+                                    <div><strong>Contact Email:</strong> Your email</div>
+                                    <div className="pt-2"><strong>☑️ Enable OAuth Settings</strong></div>
+                                    <div className="pl-4">
+                                      <div className="mt-2"><strong>Callback URLs:</strong></div>
+                                      <div className="font-mono text-xs bg-white px-2 py-1 rounded mt-1">https://www.curiosityengine.io/api/salesforce/user-callback</div>
+                                      <div className="font-mono text-xs bg-white px-2 py-1 rounded mt-1">http://localhost:3000/api/salesforce/user-callback</div>
+                                    </div>
+                                    <div className="pl-4">
+                                      <div className="mt-2"><strong>Selected OAuth Scopes:</strong></div>
+                                      <div className="text-xs mt-1">• Access and manage your data (api)</div>
+                                      <div className="text-xs">• Perform requests at any time (refresh_token, offline_access)</div>
+                                      <div className="text-xs">• Full access (full)</div>
+                                    </div>
+                                  </div>
+                                </div>
+                              </div>
+
+                              <div>
+                                <h3 className="text-lg font-semibold text-gray-900 mb-3">Step 3: Get Consumer Key & Secret</h3>
+                                <ol className="list-decimal list-inside space-y-2 text-gray-700 text-sm">
+                                  <li className="pl-2">Click <strong>Save</strong> → <strong>Continue</strong></li>
+                                  <li className="pl-2">Copy the <strong>Consumer Key</strong> → Save it!</li>
+                                  <li className="pl-2">Click <strong>Manage Consumer Details</strong></li>
+                                  <li className="pl-2">Copy the <strong>Consumer Secret</strong> → Save it!</li>
+                                </ol>
+                              </div>
+
+                              <div>
+                                <h3 className="text-lg font-semibold text-gray-900 mb-3">Step 4: Configure App Policies</h3>
+                                <ol className="list-decimal list-inside space-y-2 text-gray-700 text-sm">
+                                  <li className="pl-2">In <strong>App Manager</strong>, find your app → Click ▼ → <strong>Manage</strong></li>
+                                  <li className="pl-2">Click <strong>Edit Policies</strong></li>
+                                  <li className="pl-2">Set <strong>Permitted Users:</strong> All users may self-authorize</li>
+                                  <li className="pl-2">Set <strong>IP Relaxation:</strong> Relax IP restrictions</li>
+                                  <li className="pl-2">Set <strong>Refresh Token Policy:</strong> Valid until revoked</li>
+                                  <li className="pl-2">Click <strong>Save</strong></li>
+                                </ol>
+                              </div>
+
+                              <div>
+                                <h3 className="text-lg font-semibold text-gray-900 mb-3">Step 5: Add to Vercel</h3>
+                                <ol className="list-decimal list-inside space-y-2 text-gray-700 text-sm">
+                                  <li className="pl-2">Go to <strong>Vercel Dashboard</strong> → Your Project → <strong>Settings</strong> → <strong>Environment Variables</strong></li>
+                                  <li className="pl-2">Add these 3 variables for all environments:
+                                    <div className="mt-2 space-y-1 pl-6 text-xs font-mono bg-gray-50 p-3 rounded">
+                                      <div><strong>SALESFORCE_CLIENT_ID</strong> = [Consumer Key]</div>
+                                      <div><strong>SALESFORCE_CLIENT_SECRET</strong> = [Consumer Secret]</div>
+                                      <div><strong>SALESFORCE_REDIRECT_URI</strong> = https://www.curiosityengine.io/api/salesforce/user-callback</div>
+                                    </div>
+                                  </li>
+                                  <li className="pl-2">Redeploy your application</li>
+                                </ol>
+                              </div>
+
+                              <div className="bg-green-50 border border-green-200 rounded-lg p-4">
+                                <p className="text-sm text-green-900">
+                                  <strong>✅ Setup Complete!</strong> Users can now connect their own Salesforce accounts and get CRM-aware AI assistance.
+                                </p>
+                              </div>
+                            </div>
+                          )}
                         </div>
                       </div>
                     )}

@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { createClient } from '@supabase/supabase-js';
 import { getOutlookCalendarEvents } from '@/lib/outlook';
+import { getGoogleCalendarEvents } from '@/lib/gmail';
 import { auth } from '@/lib/auth';
 
 const supabase = createClient(
@@ -39,6 +40,18 @@ export async function GET(req: NextRequest) {
     
     console.log('🔍 Outlook integration check result:', { outlookIntegration, outlookError });
 
+    // Check if Gmail is connected
+    console.log('🔍 Checking Gmail integration for org:', userData.organization_id);
+    const { data: gmailIntegration } = await supabase
+      .from('organization_integrations')
+      .select('is_enabled, integration_type')
+      .eq('organization_id', userData.organization_id)
+      .eq('integration_type', 'gmail_user')
+      .eq('is_enabled', true)
+      .maybeSingle();
+    
+    console.log('🔍 Gmail integration check result:', { gmailIntegration });
+
     let events = [];
 
     if (outlookIntegration) {
@@ -73,9 +86,41 @@ export async function GET(req: NextRequest) {
         // Fall back to mock data if Outlook fails
         events = getMockEvents();
       }
+    } else if (gmailIntegration) {
+      // Fetch real Google Calendar events
+      try {
+        console.log('📅 Fetching calendar events from Google Calendar...');
+        const googleEvents = await getGoogleCalendarEvents(
+          userData.organization_id,
+          userData.id,
+          {
+            startDate: new Date().toISOString(),
+            endDate: new Date(Date.now() + 14 * 24 * 60 * 60 * 1000).toISOString(), // Next 14 days
+            maxResults: 20
+          }
+        );
+
+        // Transform Google Calendar events to our format
+        events = googleEvents.map((event: any) => ({
+          id: event.id,
+          title: event.summary,
+          start: event.start.dateTime || event.start.date,
+          end: event.end.dateTime || event.end.date,
+          description: event.description,
+          type: 'meeting',
+          attendees: event.attendees?.map((a: any) => a.email) || [],
+          location: event.location
+        }));
+
+        console.log(`✅ Fetched ${events.length} events from Google Calendar`);
+      } catch (gmailError) {
+        console.error('Error fetching from Google Calendar, falling back to mock data:', gmailError);
+        // Fall back to mock data if Google Calendar fails
+        events = getMockEvents();
+      }
     } else {
-      console.log('📅 Outlook not connected, using mock data');
-      // Return mock events if Outlook not connected
+      console.log('📅 No calendar provider connected, using mock data');
+      // Return mock events if neither provider is connected
       events = getMockEvents();
     }
 
@@ -156,6 +201,15 @@ export async function POST(req: NextRequest) {
       .eq('is_enabled', true)
       .maybeSingle();
 
+    // Check if Gmail is connected
+    const { data: gmailIntegration } = await supabase
+      .from('organization_integrations')
+      .select('is_enabled')
+      .eq('organization_id', userData.organization_id)
+      .eq('integration_type', 'gmail_user')
+      .eq('is_enabled', true)
+      .maybeSingle();
+
     if (outlookIntegration) {
       // Create event in Outlook
       try {
@@ -186,10 +240,40 @@ export async function POST(req: NextRequest) {
           error: 'Failed to create event in Outlook'
         }, { status: 500 });
       }
+    } else if (gmailIntegration) {
+      // Create event in Google Calendar
+      try {
+        const { createGoogleCalendarEvent } = await import('@/lib/gmail');
+        
+        const result = await createGoogleCalendarEvent(
+          userData.organization_id,
+          {
+            summary: title,
+            start,
+            end,
+            description,
+            attendees,
+            location
+          },
+          userData.id
+        );
+
+        return NextResponse.json({ 
+          success: true,
+          eventId: result.id,
+          message: 'Event created in Google Calendar'
+        });
+      } catch (gmailError) {
+        console.error('Error creating Google Calendar event:', gmailError);
+        return NextResponse.json({ 
+          success: false,
+          error: 'Failed to create event in Google Calendar'
+        }, { status: 500 });
+      }
     } else {
       return NextResponse.json({ 
         success: false,
-        error: 'Outlook not connected. Please connect Outlook to create calendar events.'
+        error: 'No calendar provider connected. Please connect Outlook or Gmail to create calendar events.'
       }, { status: 400 });
     }
 

@@ -30,7 +30,7 @@ export function getGmailAuthUrl(state: string): string {
     client_id: GOOGLE_CLIENT_ID,
     redirect_uri: GOOGLE_REDIRECT_URI,
     response_type: 'code',
-    scope: 'https://www.googleapis.com/auth/gmail.compose https://www.googleapis.com/auth/gmail.send https://www.googleapis.com/auth/userinfo.email',
+    scope: 'https://www.googleapis.com/auth/gmail.compose https://www.googleapis.com/auth/gmail.send https://www.googleapis.com/auth/calendar https://www.googleapis.com/auth/calendar.events https://www.googleapis.com/auth/userinfo.email',
     access_type: 'offline',
     prompt: 'consent',
     state,
@@ -307,6 +307,176 @@ export async function getGmailProfile(
     };
   } catch (error) {
     console.error('Error getting Gmail profile:', error);
+    throw error;
+  }
+}
+
+/**
+ * Make authenticated Google Calendar API request with automatic token refresh
+ */
+async function calendarApiRequest(
+  organizationId: string,
+  endpoint: string,
+  options: RequestInit = {},
+  userId: string
+): Promise<any> {
+  let tokens = await getUserGmailTokens(userId, organizationId);
+  
+  if (!tokens) {
+    throw new Error('Google Calendar integration not configured');
+  }
+
+  const makeRequest = async (accessToken: string) => {
+    const response = await fetch(`https://www.googleapis.com/calendar/v3${endpoint}`, {
+      ...options,
+      headers: {
+        'Authorization': `Bearer ${accessToken}`,
+        'Content-Type': 'application/json',
+        ...options.headers,
+      },
+    });
+
+    return response;
+  };
+
+  // Try with current access token
+  let response = await makeRequest(tokens.access_token);
+
+  // If unauthorized, try refreshing the token
+  if (response.status === 401) {
+    console.log('Google Calendar access token expired, refreshing...');
+    
+    try {
+      const newTokens = await refreshAccessToken(tokens.refresh_token);
+      
+      // Update tokens in database
+      const { data: existing } = await supabase
+        .from('organization_integrations')
+        .select('id, configuration')
+        .eq('organization_id', organizationId)
+        .eq('integration_type', 'gmail_user')
+        .single();
+
+      if (existing) {
+        const existingConfig = existing.configuration as any || {};
+        const mergedConfig = {
+          ...existingConfig,
+          [userId]: newTokens
+        };
+
+        await supabase
+          .from('organization_integrations')
+          .update({
+            configuration: mergedConfig,
+            updated_at: new Date().toISOString(),
+          })
+          .eq('id', existing.id);
+      }
+
+      // Retry request with new token
+      response = await makeRequest(newTokens.access_token);
+      tokens = newTokens;
+    } catch (refreshError) {
+      console.error('Google Calendar token refresh failed:', refreshError);
+      throw new Error('Google Calendar authentication failed. Please reconnect your account.');
+    }
+  }
+
+  if (!response.ok) {
+    const error = await response.text();
+    throw new Error(`Google Calendar API error: ${error}`);
+  }
+
+  return await response.json();
+}
+
+/**
+ * Get Google Calendar events
+ */
+export async function getGoogleCalendarEvents(
+  organizationId: string,
+  userId: string,
+  options?: {
+    startDate?: string; // ISO 8601 format
+    endDate?: string;   // ISO 8601 format
+    maxResults?: number;
+  }
+): Promise<any[]> {
+  try {
+    const startDate = options?.startDate || new Date().toISOString();
+    const endDate = options?.endDate || new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString();
+    const maxResults = options?.maxResults || 50;
+
+    // Build query parameters
+    const params = new URLSearchParams({
+      timeMin: startDate,
+      timeMax: endDate,
+      maxResults: maxResults.toString(),
+      singleEvents: 'true',
+      orderBy: 'startTime'
+    });
+
+    const result = await calendarApiRequest(
+      organizationId,
+      `/calendars/primary/events?${params.toString()}`,
+      {},
+      userId
+    );
+
+    return result.items || [];
+  } catch (error) {
+    console.error('Error fetching Google Calendar events:', error);
+    throw error;
+  }
+}
+
+/**
+ * Create a calendar event in Google Calendar
+ */
+export async function createGoogleCalendarEvent(
+  organizationId: string,
+  eventData: {
+    summary: string;
+    start: string; // ISO 8601
+    end: string;   // ISO 8601
+    description?: string;
+    location?: string;
+    attendees?: string[];
+  },
+  userId: string
+): Promise<{ id: string; success: boolean }> {
+  try {
+    const event = {
+      summary: eventData.summary,
+      description: eventData.description || '',
+      location: eventData.location || '',
+      start: {
+        dateTime: eventData.start,
+        timeZone: 'UTC'
+      },
+      end: {
+        dateTime: eventData.end,
+        timeZone: 'UTC'
+      },
+      attendees: eventData.attendees?.map(email => ({ email })) || [],
+      reminders: {
+        useDefault: true
+      }
+    };
+
+    const result = await calendarApiRequest(
+      organizationId,
+      '/calendars/primary/events',
+      {
+        method: 'POST',
+        body: JSON.stringify(event),
+      },
+      userId
+    );
+
+    return { id: result.id, success: true };
+  } catch (error) {
+    console.error('Error creating Google Calendar event:', error);
     throw error;
   }
 }

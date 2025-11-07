@@ -126,7 +126,9 @@ export default function DashboardPage() {
   const [showConnectionModal, setShowConnectionModal] = useState(false);
   const [connectionService, setConnectionService] = useState<'outlook' | 'salesforce' | null>(null);
   const [hasOutlookConnection, setHasOutlookConnection] = useState(false);
+  const [hasGmailConnection, setHasGmailConnection] = useState(false);
   const [hasSalesforceConnection, setHasSalesforceConnection] = useState(false);
+  const [connectedEmailProvider, setConnectedEmailProvider] = useState<'google' | 'microsoft' | null>(null);
   const [isSyncingCalendar, setIsSyncingCalendar] = useState(false);
   
   // Chrome extension detection
@@ -741,6 +743,7 @@ export default function DashboardPage() {
       });
       if (response.ok) {
         setHasOutlookConnection(false);
+        setConnectedEmailProvider(null);
         alert('✅ Outlook disconnected successfully');
         await createActivityLog('outlook_disconnected', 'Outlook Disconnected', 'Outlook integration disconnected');
       } else {
@@ -749,6 +752,25 @@ export default function DashboardPage() {
     } catch (error) {
       console.error('Error disconnecting Outlook:', error);
       alert('❌ Error disconnecting Outlook');
+    }
+  }
+
+  async function disconnectGoogle() {
+    try {
+      const response = await fetch('/api/gmail/disconnect', {
+        method: 'POST',
+      });
+      if (response.ok) {
+        setHasGmailConnection(false);
+        setConnectedEmailProvider(null);
+        alert('✅ Google Workspace disconnected successfully');
+        await createActivityLog('gmail_disconnected', 'Google Workspace Disconnected', 'Gmail and Google Calendar integration disconnected');
+      } else {
+        alert('❌ Failed to disconnect Google Workspace');
+      }
+    } catch (error) {
+      console.error('Error disconnecting Google:', error);
+      alert('❌ Error disconnecting Google Workspace');
     }
   }
 
@@ -764,8 +786,38 @@ export default function DashboardPage() {
     }
   }
 
-  async function connectToGoogleCalendar() {
-    alert('Google Calendar integration coming soon!');
+  async function connectToGoogle() {
+    try {
+      console.log('🔵 Connecting to Google Workspace (Gmail + Calendar)...');
+      const response = await fetch('/api/gmail/auth-user', {
+        method: 'GET',
+        credentials: 'include',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+      });
+      
+      if (response.ok) {
+        const data = await response.json();
+        console.log('🔵 Google auth response:', data);
+        
+        if (data.authUrl) {
+          console.log('🔵 Redirecting to Google OAuth:', data.authUrl);
+          window.location.href = data.authUrl;
+        } else {
+          console.error('❌ No authUrl in response:', data);
+          alert('Failed to get Google authorization URL. Check console for details.');
+        }
+      } else {
+        console.error('❌ Response not OK. Status:', response.status);
+        const errorData = await response.text();
+        console.error('❌ Error data:', errorData);
+        alert('Error connecting to Google. Check console for details.');
+      }
+    } catch (error) {
+      console.error('❌ Error connecting to Google:', error);
+      alert('Error connecting to Google. Check console for details.');
+    }
   }
 
   async function installChromeExtension() {
@@ -1143,18 +1195,48 @@ Format with markdown for readability.`;
 
   async function checkConnections() {
     try {
+      let outlookConnected = false;
+      let gmailConnected = false;
+
       // Check Outlook connection - use status endpoint to verify actual tokens
       const outlookResponse = await fetch('/api/outlook/status');
       if (outlookResponse.ok) {
         const outlookData = await outlookResponse.json();
         console.log('🔍 Outlook connection check:', outlookData);
         // More robust boolean check - handle string/boolean conversion
-        const isConnected = Boolean(outlookData.connected) && outlookData.connected !== 'false' && outlookData.connected !== false;
-        console.log('✅ Outlook connected:', isConnected);
-        setHasOutlookConnection(isConnected);
+        outlookConnected = Boolean(outlookData.connected) && outlookData.connected !== 'false' && outlookData.connected !== false;
+        console.log('✅ Outlook connected:', outlookConnected);
+        setHasOutlookConnection(outlookConnected);
       } else {
         console.log('❌ Outlook status check failed:', outlookResponse.status);
         setHasOutlookConnection(false);
+      }
+
+      // Check Gmail connection
+      try {
+        const gmailResponse = await fetch('/api/gmail/auth-user');
+        if (gmailResponse.ok) {
+          const gmailData = await gmailResponse.json();
+          console.log('🔍 Gmail connection check:', gmailData);
+          gmailConnected = gmailData.connected === true;
+          console.log('✅ Gmail connected:', gmailConnected);
+          setHasGmailConnection(gmailConnected);
+        } else {
+          console.log('❌ Gmail status check failed:', gmailResponse.status);
+          setHasGmailConnection(false);
+        }
+      } catch (gmailError) {
+        console.log('❌ Gmail check error:', gmailError);
+        setHasGmailConnection(false);
+      }
+
+      // Set connected email provider based on which is connected
+      if (outlookConnected) {
+        setConnectedEmailProvider('microsoft');
+      } else if (gmailConnected) {
+        setConnectedEmailProvider('google');
+      } else {
+        setConnectedEmailProvider(null);
       }
 
       // Check Salesforce connection - need to verify actual tokens exist
@@ -1175,6 +1257,8 @@ Format with markdown for readability.`;
       console.error('Error checking connections:', error);
       setHasSalesforceConnection(false);
       setHasOutlookConnection(false);
+      setHasGmailConnection(false);
+      setConnectedEmailProvider(null);
     }
   }
 
@@ -2843,7 +2927,7 @@ The draft is now in your Outlook Drafts folder and ready to send.`);
                 </div>
               </div>
 
-              {/* Gmail */}
+              {/* Google Workspace (Gmail + Calendar) */}
               <div 
                 className="rounded-2xl border border-gray-200 bg-white p-8 relative overflow-hidden hover:shadow-lg transition-shadow"
                 onMouseMove={(e) => {
@@ -2867,35 +2951,69 @@ The draft is now in your Outlook Drafts folder and ready to send.`);
                   <div className="flex items-center gap-4 mb-6">
                     <Image 
                       src="/Gmail Icon.svg" 
-                      alt="Gmail" 
+                      alt="Google Workspace" 
                       width={40}
                       height={40}
                       className="w-10 h-10"
                     />
                     <div>
-                      <h3 className="text-xl font-bold text-black">Gmail</h3>
-                      <p className="text-sm text-gray-600">Email Automation</p>
+                      <h3 className="text-xl font-bold text-black">Google Workspace</h3>
+                      <p className="text-sm text-gray-600">Gmail & Calendar</p>
                     </div>
                   </div>
                   <div className="space-y-3 text-gray-700">
                     <p className="text-sm leading-relaxed">
-                      Auto-draft personalized replies and follow-ups based on your sent email history and writing style.
+                      Connect Gmail and Google Calendar for AI-powered email drafting, meeting scheduling, and calendar sync.
                     </p>
                     <p className="text-sm leading-relaxed">
-                      Schedule meetings automatically and organize your inbox with AI-powered categorization and prioritization.
+                      Automatically create drafts, send emails, and schedule meetings with intelligent context from your calendar events.
                     </p>
                   </div>
-                  <div className="mt-6 flex items-center justify-between">
-                    <span className="px-3 py-1 text-xs rounded-full bg-gray-100 text-gray-600">
-                      Coming Soon
-                    </span>
-                    <button
-                      onClick={connectToGmail}
-                      disabled
-                      className="px-4 py-2 text-sm font-medium text-gray-400 bg-gray-100 rounded-lg cursor-not-allowed"
-                    >
-                      Connect
-                    </button>
+                  <div className="mt-6 flex flex-col gap-3">
+                    {connectedEmailProvider === 'microsoft' && (
+                      <div className="text-xs text-gray-500 italic">
+                        Outlook is connected. Disconnect Outlook to use Google Workspace.
+                      </div>
+                    )}
+                    <div className="flex items-center justify-between">
+                      {hasGmailConnection ? (
+                        <span className="px-3 py-1 text-xs rounded-full bg-green-100 text-green-800 font-medium">
+                          ✓ Connected
+                        </span>
+                      ) : connectedEmailProvider === 'microsoft' ? (
+                        <span className="px-3 py-1 text-xs rounded-full bg-gray-100 text-gray-500 font-medium">
+                          Outlook Connected
+                        </span>
+                      ) : (
+                        <span className="px-3 py-1 text-xs rounded-full bg-blue-100 text-blue-800 font-medium">
+                          Ready to Connect
+                        </span>
+                      )}
+                      {hasGmailConnection ? (
+                        <button
+                          onClick={disconnectGoogle}
+                          className="px-4 py-2 text-sm font-medium text-red-600 bg-red-50 rounded-lg hover:bg-red-100 transition-colors"
+                        >
+                          Disconnect
+                        </button>
+                      ) : (
+                        <button
+                          onClick={(e) => {
+                            e.preventDefault();
+                            e.stopPropagation();
+                            connectToGoogle().catch(err => console.error('Error:', err));
+                          }}
+                          disabled={connectedEmailProvider === 'microsoft'}
+                          className={`px-4 py-2 text-sm font-medium rounded-lg transition-colors ${
+                            connectedEmailProvider === 'microsoft'
+                              ? 'text-gray-400 bg-gray-100 cursor-not-allowed'
+                              : 'text-white bg-[#F95B14] hover:bg-orange-600'
+                          }`}
+                        >
+                          Connect
+                        </button>
+                      )}
+                    </div>
                   </div>
                 </div>
               </div>
@@ -2942,36 +3060,52 @@ The draft is now in your Outlook Drafts folder and ready to send.`);
                       AI-powered email drafting and meeting scheduling with full Office 365 ecosystem compatibility.
                     </p>
                   </div>
-                  <div className="mt-6 flex items-center justify-between">
-                    {hasOutlookConnection ? (
-                      <span className="px-3 py-1 text-xs rounded-full bg-green-100 text-green-800 font-medium">
-                        ✓ Connected
-                      </span>
-                    ) : (
-                      <span className="px-3 py-1 text-xs rounded-full bg-blue-100 text-blue-800 font-medium">
-                        Ready to Connect
-                      </span>
+                  <div className="mt-6 flex flex-col gap-3">
+                    {connectedEmailProvider === 'google' && (
+                      <div className="text-xs text-gray-500 italic">
+                        Google Workspace is connected. Disconnect Google to use Outlook.
+                      </div>
                     )}
-                    {hasOutlookConnection ? (
-                      <button
-                        onClick={disconnectOutlook}
-                        className="px-4 py-2 text-sm font-medium text-red-600 bg-red-50 rounded-lg hover:bg-red-100 transition-colors"
-                      >
-                        Disconnect
-                      </button>
-                    ) : (
-                      <button
-                        onClick={(e) => {
-                          e.preventDefault();
-                          e.stopPropagation();
-                          console.log('🔴🔴🔴 BUTTON CLICKED!');
-                          connectToOutlook().catch(err => console.error('🔴 Button click error:', err));
-                        }}
-                        className="px-4 py-2 text-sm font-medium text-white bg-[#F95B14] rounded-lg hover:bg-orange-600 transition-colors"
-                      >
-                        Connect
-                      </button>
-                    )}
+                    <div className="flex items-center justify-between">
+                      {hasOutlookConnection ? (
+                        <span className="px-3 py-1 text-xs rounded-full bg-green-100 text-green-800 font-medium">
+                          ✓ Connected
+                        </span>
+                      ) : connectedEmailProvider === 'google' ? (
+                        <span className="px-3 py-1 text-xs rounded-full bg-gray-100 text-gray-500 font-medium">
+                          Google Connected
+                        </span>
+                      ) : (
+                        <span className="px-3 py-1 text-xs rounded-full bg-blue-100 text-blue-800 font-medium">
+                          Ready to Connect
+                        </span>
+                      )}
+                      {hasOutlookConnection ? (
+                        <button
+                          onClick={disconnectOutlook}
+                          className="px-4 py-2 text-sm font-medium text-red-600 bg-red-50 rounded-lg hover:bg-red-100 transition-colors"
+                        >
+                          Disconnect
+                        </button>
+                      ) : (
+                        <button
+                          onClick={(e) => {
+                            e.preventDefault();
+                            e.stopPropagation();
+                            console.log('🔴🔴🔴 BUTTON CLICKED!');
+                            connectToOutlook().catch(err => console.error('🔴 Button click error:', err));
+                          }}
+                          disabled={connectedEmailProvider === 'google'}
+                          className={`px-4 py-2 text-sm font-medium rounded-lg transition-colors ${
+                            connectedEmailProvider === 'google'
+                              ? 'text-gray-400 bg-gray-100 cursor-not-allowed'
+                              : 'text-white bg-[#F95B14] hover:bg-orange-600'
+                          }`}
+                        >
+                          Connect
+                        </button>
+                      )}
+                    </div>
                   </div>
                 </div>
               </div>
@@ -3033,62 +3167,6 @@ The draft is now in your Outlook Drafts folder and ready to send.`);
                 </div>
               </div>
 
-              {/* Google Calendar */}
-              <div 
-                className="rounded-2xl border border-gray-200 bg-white p-8 relative overflow-hidden hover:shadow-lg transition-shadow"
-                onMouseMove={(e) => {
-                  const rect = e.currentTarget.getBoundingClientRect();
-                  setCardMousePositions(prev => ({
-                    ...prev,
-                    googlecal: {
-                      x: e.clientX - rect.left,
-                      y: e.clientY - rect.top
-                    }
-                  }));
-                }}
-                onMouseLeave={() => {
-                  setCardMousePositions(prev => ({
-                    ...prev,
-                    googlecal: { x: 0, y: 0 }
-                  }));
-                }}
-              >
-                <div>
-                  <div className="flex items-center gap-4 mb-6">
-                    <Image 
-                      src="/Google_Calendar_logo.svg" 
-                      alt="Google Calendar" 
-                      width={40}
-                      height={40}
-                      className="w-10 h-10"
-                    />
-                    <div>
-                      <h3 className="text-xl font-bold text-black">Google Calendar</h3>
-                      <p className="text-sm text-gray-600">Smart Scheduling</p>
-                    </div>
-                  </div>
-                  <div className="space-y-3 text-gray-700">
-                    <p className="text-sm leading-relaxed">
-                      AI-powered meeting scheduling that analyzes availability patterns and optimizes for prospect time zones.
-                    </p>
-                    <p className="text-sm leading-relaxed">
-                      Automatic calendar event creation with smart reminders and follow-up task generation based on meeting outcomes.
-                    </p>
-                  </div>
-                  <div className="mt-6 flex items-center justify-between">
-                    <span className="px-3 py-1 text-xs rounded-full bg-gray-100 text-gray-600">
-                      Coming Soon
-                    </span>
-                    <button
-                      onClick={connectToGoogleCalendar}
-                      disabled
-                      className="px-4 py-2 text-sm font-medium text-gray-400 bg-gray-100 rounded-lg cursor-not-allowed"
-                    >
-                      Connect
-                    </button>
-                  </div>
-                </div>
-              </div>
             </div>
           </div>
         )}

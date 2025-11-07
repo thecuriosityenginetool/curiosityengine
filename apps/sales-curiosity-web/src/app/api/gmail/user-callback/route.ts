@@ -73,8 +73,22 @@ export async function GET(req: NextRequest) {
         });
     }
 
+    // Log activity for both Gmail and Google Calendar connection
+    await supabase
+      .from('activity_logs')
+      .insert([
+        {
+          user_id: userId,
+          organization_id: organizationId,
+          activity_type: 'integration_connected',
+          description: 'Google Workspace Connected',
+          details: 'Gmail and Google Calendar integration enabled',
+          created_at: new Date().toISOString()
+        }
+      ]);
+
     return NextResponse.redirect(
-      new URL('/dashboard?success=Gmail connected successfully', process.env.NEXT_PUBLIC_APP_URL)
+      new URL('/dashboard?success=Google Workspace connected successfully (Gmail + Calendar)', process.env.NEXT_PUBLIC_APP_URL)
     );
   } catch (error) {
     console.error('Error handling Gmail callback:', error);

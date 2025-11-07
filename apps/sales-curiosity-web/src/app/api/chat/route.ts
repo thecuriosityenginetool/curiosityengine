@@ -4,6 +4,7 @@ import { auth } from '@/lib/auth';
 import { createClient } from '@supabase/supabase-js';
 import { salesforceTools } from '@/lib/salesforce-tools';
 import { outlookTools } from '@/lib/outlook-tools';
+import { gmailTools } from '@/lib/gmail-tools';
 import { 
   searchPersonInSalesforce, 
   createSalesforceLead, 
@@ -22,6 +23,11 @@ import {
   getRecentEmails,
   searchEmails
 } from '@/lib/outlook';
+import {
+  createGmailDraft,
+  sendGmailEmail,
+  createGoogleCalendarEvent
+} from '@/lib/gmail';
 import { matchCalendarEventsToSalesforce, buildCalendarContext } from '@/lib/calendar-matcher';
 
 const supabase = createClient(
@@ -184,6 +190,51 @@ ${args.attendees ? `Attendees: ${args.attendees.join(', ')}` : ''}
 Event ID: ${result.id}`;
       }
 
+      // Gmail tools
+      case 'create_gmail_draft': {
+        const result = await createGmailDraft(organizationId, {
+          to: args.to,
+          subject: args.subject,
+          body: args.body
+        }, userId);
+        return `✅ Email draft created successfully in Gmail!
+To: ${args.to}
+Subject: ${args.subject}
+Draft ID: ${result.id}
+
+The draft is now in your Gmail Drafts folder and ready to send.`;
+      }
+
+      case 'send_gmail_email': {
+        await sendGmailEmail(organizationId, {
+          to: args.to,
+          subject: args.subject,
+          body: args.body
+        }, userId);
+        return `✅ Email sent successfully via Gmail!
+To: ${args.to}
+Subject: ${args.subject}
+
+The email has been sent.`;
+      }
+
+      case 'create_google_calendar_event': {
+        const result = await createGoogleCalendarEvent(organizationId, {
+          summary: args.title,
+          start: args.start,
+          end: args.end,
+          description: args.description,
+          attendees: args.attendees,
+          location: args.location
+        }, userId);
+        return `✅ Calendar event created successfully in Google Calendar!
+Title: ${args.title}
+Start: ${new Date(args.start).toLocaleString()}
+End: ${new Date(args.end).toLocaleString()}
+${args.attendees ? `Attendees: ${args.attendees.join(', ')}` : ''}
+Event ID: ${result.id}`;
+      }
+
       case 'search_emails': {
         const emails = await searchEmails(organizationId, args.query, userId, args.limit || 5);
         if (emails.length === 0) {
@@ -289,15 +340,34 @@ export async function POST(req: NextRequest) {
       integration: outlookIntegration
     });
 
+    // Check if Gmail is enabled
+    const { data: gmailIntegration } = await supabase
+      .from('organization_integrations')
+      .select('is_enabled')
+      .eq('organization_id', user.organization_id)
+      .eq('integration_type', 'gmail_user')
+      .eq('is_enabled', true)
+      .maybeSingle();
+
+    const hasGmail = !!gmailIntegration;
+    
+    console.log('📬 Gmail integration check:', {
+      organizationId: user.organization_id,
+      hasGmail,
+      integration: gmailIntegration
+    });
+
     // Combine available tools
     const availableTools = [
       ...(hasSalesforce ? salesforceTools : []),
-      ...(hasOutlook ? outlookTools : [])
+      ...(hasOutlook ? outlookTools : []),
+      ...(hasGmail ? gmailTools : [])
     ];
 
     console.log('🤖 Chat API - Available tools:', {
       hasSalesforce,
       hasOutlook,
+      hasGmail,
       toolsCount: availableTools.length,
       toolNames: availableTools.map(t => t.function?.name)
     });
@@ -503,6 +573,7 @@ When the user mentions vague references like "latest prospect", "that person", "
       toolsAvailable: availableTools.length > 0,
       toolNames: availableTools.map(t => t.function?.name),
       hasOutlook,
+      hasGmail,
       hasSalesforce
     });
 

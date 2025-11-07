@@ -3791,13 +3791,19 @@ The draft is now in your Outlook Drafts folder and ready to send.`);
                           <ol className="list-decimal list-inside space-y-2 text-gray-700">
                             <li>Click the "Connect" button on the Google Workspace card</li>
                             <li>Sign in to your Google account</li>
-                            <li>Grant access to Gmail and Google Calendar</li>
+                            <li>Grant access to Gmail and Google Calendar (read and write)</li>
                             <li>Both email and calendar will be connected automatically</li>
                           </ol>
                         </div>
                         <div>
                           <h3 className="text-lg font-semibold text-gray-900 mb-2">Available AI Functions</h3>
                           <ul className="space-y-2 text-gray-700">
+                            <li className="flex items-start gap-2">
+                              <svg className="w-5 h-5 text-blue-600 mt-0.5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+                              </svg>
+                              <span><strong>Search emails:</strong> "Show me emails from john@example.com" or "Find unread emails about the proposal"</span>
+                            </li>
                             <li className="flex items-start gap-2">
                               <svg className="w-5 h-5 text-green-600 mt-0.5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
@@ -3811,20 +3817,20 @@ The draft is now in your Outlook Drafts folder and ready to send.`);
                               <span><strong>Send emails:</strong> "Send an email to jane@company.com with project update"</span>
                             </li>
                             <li className="flex items-start gap-2">
+                              <svg className="w-5 h-5 text-blue-600 mt-0.5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                              </svg>
+                              <span><strong>Search calendar:</strong> "What meetings do I have with Acme Corp?" or "Show my schedule this week"</span>
+                            </li>
+                            <li className="flex items-start gap-2">
                               <svg className="w-5 h-5 text-green-600 mt-0.5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
                               </svg>
                               <span><strong>Schedule meetings:</strong> "Schedule a meeting with Bob tomorrow at 2pm"</span>
                             </li>
                             <li className="flex items-start gap-2">
-                              <svg className="w-5 h-5 text-green-600 mt-0.5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
-                              </svg>
-                              <span><strong>View calendar:</strong> "What's on my calendar this week?"</span>
-                            </li>
-                            <li className="flex items-start gap-2">
-                              <svg className="w-5 h-5 text-green-600 mt-0.5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                              <svg className="w-5 h-5 text-purple-600 mt-0.5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
                               </svg>
                               <span><strong>Sync calendar:</strong> Click the Sync button to refresh your calendar events</span>
                             </li>
@@ -3832,7 +3838,7 @@ The draft is now in your Outlook Drafts folder and ready to send.`);
                         </div>
                         <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
                           <p className="text-sm text-blue-900">
-                            <strong>Note:</strong> Connecting Google Workspace grants access to both Gmail and Google Calendar simultaneously. You cannot connect both Google and Microsoft email providers at the same time.
+                            <strong>Note:</strong> Connecting Google Workspace grants access to both Gmail (read + write) and Google Calendar (read + write) simultaneously. You cannot connect both Google and Microsoft email providers at the same time.
                           </p>
                         </div>
                       </div>

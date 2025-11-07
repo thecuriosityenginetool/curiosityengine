@@ -63,7 +63,7 @@ export default function DashboardPage() {
   const [loading, setLoading] = useState(true);
   const [user, setUser] = useState<any>(null);
   const [userData, setUserData] = useState<User | null>(null);
-  const [activeTab, setActiveTab] = useState<'dashboard' | 'leads' | 'team' | 'context' | 'integrations' | 'logs'>('dashboard');
+  const [activeTab, setActiveTab] = useState<'dashboard' | 'leads' | 'context' | 'integrations' | 'logs'>('dashboard');
   const [settingsSubTab, setSettingsSubTab] = useState<'profile' | 'team' | 'knowledge'>('profile');
   
   // Dashboard state
@@ -1745,8 +1745,7 @@ The draft is now in your Outlook Drafts folder and ready to send.`);
               {[
                 { id: 'dashboard', label: 'Agent', icon: (<svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z" /></svg>) },
                 { id: 'leads', label: 'Leads', icon: (<svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z" /></svg>) },
-                ...(isAdmin ? [{ id: 'team' as const, label: 'Team', icon: (<svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z" /></svg>) }] : []),
-                { id: 'context', label: 'Settings', icon: (<svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z" /><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" /></svg>) },
+                { id: 'context', label: 'Admin', icon: (<svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z" /></svg>) },
                 { id: 'integrations', label: 'Connectors', icon: (<svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 10V3L4 14h7v7l9-11h-7z" /></svg>) },
                 { id: 'logs', label: 'Activity', icon: (<svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" /></svg>) },
               ].map((tab) => (
@@ -2550,7 +2549,7 @@ The draft is now in your Outlook Drafts folder and ready to send.`);
             {/* Left Sidebar Navigation */}
             <div className="w-64 bg-white border-r border-gray-200 flex flex-col">
               <div className="p-6 border-b border-gray-200">
-                <h2 className="text-xl font-bold text-gray-900">Settings</h2>
+                <h2 className="text-xl font-bold text-gray-900">Admin</h2>
               </div>
 
               <nav className="flex-1 p-4 space-y-1">
@@ -2576,10 +2575,10 @@ The draft is now in your Outlook Drafts folder and ready to send.`);
                       <h3 className="text-xs font-semibold text-gray-500 uppercase tracking-wider">
                         Organization
                       </h3>
-                    </div>
+                  </div>
 
                     {/* Team Management */}
-                    <button
+                  <button
                       onClick={() => setSettingsSubTab('team')}
                       className={`w-full flex items-center gap-3 px-4 py-3 text-left rounded-lg transition-all ${
                         settingsSubTab === 'team'
@@ -2591,7 +2590,7 @@ The draft is now in your Outlook Drafts folder and ready to send.`);
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z" />
                       </svg>
                       <span>Users</span>
-                    </button>
+                  </button>
 
                     {/* Knowledge Base */}
                     <button
@@ -2610,7 +2609,7 @@ The draft is now in your Outlook Drafts folder and ready to send.`);
                   </>
                 )}
               </nav>
-            </div>
+              </div>
 
             {/* Right Content Area */}
             <div className="flex-1 overflow-y-auto">
@@ -2622,43 +2621,43 @@ The draft is now in your Outlook Drafts folder and ready to send.`);
                     userContext={userData?.user_context || { aboutMe: '', objectives: '' }}
                     onSaveProfile={saveProfileData}
                     onSaveContext={async (context) => {
-                      try {
-                        console.log('💾 Saving context...', context);
-                        
-                        if (!session?.user?.email) {
-                          alert('No session found. Please refresh and try again.');
-                          return;
-                        }
+                  try {
+                    console.log('💾 Saving context...', context);
+                    
+                    if (!session?.user?.email) {
+                      alert('No session found. Please refresh and try again.');
+                      return;
+                    }
 
-                        console.log('🔑 Using NextAuth session for:', session.user.email);
+                    console.log('🔑 Using NextAuth session for:', session.user.email);
 
-                        const response = await fetch('/api/user/context', {
-                          method: 'PUT',
-                          headers: {
-                            'Content-Type': 'application/json',
-                          },
+                    const response = await fetch('/api/user/context', {
+                      method: 'PUT',
+                      headers: {
+                        'Content-Type': 'application/json',
+                      },
                           credentials: 'include',
-                          body: JSON.stringify({ userContext: context }),
-                        });
+                      body: JSON.stringify({ userContext: context }),
+                    });
 
-                        console.log('📡 Response status:', response.status);
-                        const data = await response.json();
-                        console.log('📡 Response data:', data);
+                    console.log('📡 Response status:', response.status);
+                    const data = await response.json();
+                    console.log('📡 Response data:', data);
 
-                        if (response.ok) {
-                          alert('✅ Context saved successfully!');
-                          if (userData) {
-                            setUserData({ ...userData, user_context: context });
-                          }
-                        } else {
-                          alert(`❌ Error saving: ${data.error || 'Unknown error'}`);
-                        }
-                      } catch (error) {
-                        console.error('❌ Error saving context:', error);
-                        alert(`❌ Error: ${error instanceof Error ? error.message : 'Unknown error'}`);
+                    if (response.ok) {
+                      alert('✅ Context saved successfully!');
+                      if (userData) {
+                        setUserData({ ...userData, user_context: context });
                       }
-                    }}
-                  />
+                    } else {
+                      alert(`❌ Error saving: ${data.error || 'Unknown error'}`);
+                    }
+                  } catch (error) {
+                    console.error('❌ Error saving context:', error);
+                    alert(`❌ Error: ${error instanceof Error ? error.message : 'Unknown error'}`);
+                  }
+                }}
+              />
                 )}
 
                 {/* Team Tab */}
@@ -2678,8 +2677,8 @@ The draft is now in your Outlook Drafts folder and ready to send.`);
                     uploadMessage={uploadMessage}
                     uploadMessageType={uploadMessageType}
                   />
-                )}
-              </div>
+                    )}
+                  </div>
             </div>
           </div>
         )}

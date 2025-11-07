@@ -2546,482 +2546,140 @@ The draft is now in your Outlook Drafts folder and ready to send.`);
         )}
 
         {activeTab === 'context' && (
-          <div className="max-w-4xl mx-auto space-y-6">
-            {/* Profile Settings */}
-            <div className="bg-white rounded-lg border border-gray-200 shadow-sm p-6">
-              <h2 className="text-2xl font-semibold text-gray-900 mb-6">⚙️ Settings</h2>
-              
-              {/* User Profile Section */}
-              <div className="mb-8">
-                <h3 className="text-lg font-semibold text-gray-900 mb-4">Profile Information</h3>
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">
-                      Full Name
-                    </label>
-                    <input
-                      type="text"
-                      value={profileData.full_name}
-                      onChange={(e) => setProfileData({...profileData, full_name: e.target.value})}
-                      className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#F95B14] focus:border-transparent outline-none"
-                      placeholder="John Doe"
-                    />
-                  </div>
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">
-                      Job Title
-                    </label>
-                    <input
-                      type="text"
-                      value={profileData.job_title}
-                      onChange={(e) => setProfileData({...profileData, job_title: e.target.value})}
-                      className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#F95B14] focus:border-transparent outline-none"
-                      placeholder="Sales Manager"
-                    />
-                  </div>
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">
-                      Company Name
-                    </label>
-                    <input
-                      type="text"
-                      value={profileData.company_name}
-                      onChange={(e) => setProfileData({...profileData, company_name: e.target.value})}
-                      className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#F95B14] focus:border-transparent outline-none"
-                      placeholder="Acme Corp"
-                    />
-                  </div>
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">
-                      Company URL
-                    </label>
-                    <input
-                      type="url"
-                      value={profileData.company_url}
-                      onChange={(e) => setProfileData({...profileData, company_url: e.target.value})}
-                      className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#F95B14] focus:border-transparent outline-none"
-                      placeholder="https://acme.com"
-                    />
-                  </div>
-                </div>
-                <div className="mt-4">
-                  <button
-                    onClick={saveProfileData}
-                    className="bg-[#F95B14] text-white px-6 py-2 rounded-lg font-semibold hover:bg-orange-600 transition-colors"
-                  >
-                    Save Profile
-                  </button>
-                </div>
+          <div className="flex h-[calc(100vh-120px)] bg-gray-50">
+            {/* Left Sidebar Navigation */}
+            <div className="w-64 bg-white border-r border-gray-200 flex flex-col">
+              <div className="p-6 border-b border-gray-200">
+                <h2 className="text-xl font-bold text-gray-900">Settings</h2>
               </div>
 
-              {/* Context Section */}
-              <div className="mb-8">
-                <h3 className="text-lg font-semibold text-gray-900 mb-4">AI Context</h3>
-              <ContextForm 
-                context={userData.user_context || { aboutMe: '', objectives: '' }}
-                onSave={async (context) => {
-                  try {
-                    console.log('💾 Saving context...', context);
-                    
-                    if (!session?.user?.email) {
-                      alert('No session found. Please refresh and try again.');
-                      return;
-                    }
+              <nav className="flex-1 p-4 space-y-1">
+                {/* Profile Section */}
+                <button
+                  onClick={() => setSettingsSubTab('profile')}
+                  className={`w-full flex items-center gap-3 px-4 py-3 text-left rounded-lg transition-all ${
+                    settingsSubTab === 'profile'
+                      ? 'bg-blue-50 text-blue-700 font-medium'
+                      : 'text-gray-700 hover:bg-gray-50'
+                  }`}
+                >
+                  <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
+                  </svg>
+                  <span>Profile</span>
+                </button>
 
-                    // Use NextAuth session - already available in component!
-                    console.log('🔑 Using NextAuth session for:', session.user.email);
+                {isAdmin && (
+                  <>
+                    {/* Organization Settings Header */}
+                    <div className="pt-6 pb-2 px-4">
+                      <h3 className="text-xs font-semibold text-gray-500 uppercase tracking-wider">
+                        Organization
+                      </h3>
+                    </div>
 
-                    const response = await fetch('/api/user/context', {
-                      method: 'PUT',
-                      headers: {
-                        'Content-Type': 'application/json',
-                      },
-                      credentials: 'include', // Include cookies for NextAuth
-                      body: JSON.stringify({ userContext: context }),
-                    });
+                    {/* Team Management */}
+                    <button
+                      onClick={() => setSettingsSubTab('team')}
+                      className={`w-full flex items-center gap-3 px-4 py-3 text-left rounded-lg transition-all ${
+                        settingsSubTab === 'team'
+                          ? 'bg-blue-50 text-blue-700 font-medium'
+                          : 'text-gray-700 hover:bg-gray-50'
+                      }`}
+                    >
+                      <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z" />
+                      </svg>
+                      <span>Users</span>
+                    </button>
 
-                    console.log('📡 Response status:', response.status);
-                    const data = await response.json();
-                    console.log('📡 Response data:', data);
-
-                    if (response.ok) {
-                      alert('✅ Context saved successfully!');
-                      if (userData) {
-                        setUserData({ ...userData, user_context: context });
-                      }
-                    } else {
-                      alert(`❌ Error saving: ${data.error || 'Unknown error'}`);
-                    }
-                  } catch (error) {
-                    console.error('❌ Error saving context:', error);
-                    alert(`❌ Error: ${error instanceof Error ? error.message : 'Unknown error'}`);
-                  }
-                }}
-              />
+                    {/* Knowledge Base */}
+                    <button
+                      onClick={() => setSettingsSubTab('knowledge')}
+                      className={`w-full flex items-center gap-3 px-4 py-3 text-left rounded-lg transition-all ${
+                        settingsSubTab === 'knowledge'
+                          ? 'bg-blue-50 text-blue-700 font-medium'
+                          : 'text-gray-700 hover:bg-gray-50'
+                      }`}
+                    >
+                      <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253" />
+                      </svg>
+                      <span>Knowledge</span>
+                    </button>
+                  </>
+                )}
+              </nav>
             </div>
 
-              {/* Sales Materials Upload */}
-              <div className="mb-8">
-                <h3 className="text-lg font-semibold text-gray-900 mb-4">Sales Materials & Guides</h3>
-                <p className="text-sm text-gray-600 mb-4">
-                  Upload PDFs, presentations, or documents that contain sales guides, product information, or company materials. 
-                  The AI will use this information to provide better assistance.
-                </p>
-                <div className="border-2 border-dashed border-gray-300 rounded-lg p-8 text-center hover:border-[#F95B14] transition-colors">
-                  <input
-                    type="file"
-                    accept=".pdf,.docx,.txt,.pptx"
-                    className="hidden"
-                    id="sales-materials-upload"
-                    onChange={handleFileUpload}
-                    disabled={uploadingFile}
-                  />
-                  <label
-                    htmlFor="sales-materials-upload"
-                    className="cursor-pointer"
-                  >
-                    {uploadingFile ? (
-                      <>
-                        <div className="text-4xl mb-2">⏳</div>
-                        <p className="text-sm font-medium text-gray-900">Uploading...</p>
-                      </>
-                    ) : (
-                      <>
-                        <div className="text-4xl mb-2">📄</div>
-                        <p className="text-sm font-medium text-gray-900">Click to upload sales materials</p>
-                        <p className="text-xs text-gray-500 mt-1">PDF, DOCX, TXT, PPTX (Max 10MB)</p>
-                      </>
-                    )}
-                  </label>
-          </div>
-                
-                {/* Upload Message */}
-                {uploadMessage && (
-                  <div className={`mt-4 p-3 rounded-lg border ${
-                    uploadMessageType === 'success' 
-                      ? 'bg-green-50 border-green-200 text-green-800' 
-                      : 'bg-red-50 border-red-200 text-red-800'
-                  }`}>
-                    <p className="text-sm font-medium">{uploadMessage}</p>
-                  </div>
-                )}
-                
-                {/* My Permissions (if available) */}
-                {userPermissions && (
-                  <div className="mb-4 p-3 bg-blue-50 border border-blue-200 rounded-lg">
-                    <h4 className="text-sm font-semibold text-blue-900 mb-2">📋 Your Permissions</h4>
-                    <div className="grid grid-cols-2 gap-2 text-xs">
-                      <div className="flex items-center">
-                        <span className={userPermissions.can_upload_materials ? 'text-green-600' : 'text-gray-400'}>
-                          {userPermissions.can_upload_materials ? '✓' : '✗'}
-                        </span>
-                        <span className="ml-1">Upload materials</span>
-                      </div>
-                      <div className="flex items-center">
-                        <span className={userPermissions.can_share_materials ? 'text-green-600' : 'text-gray-400'}>
-                          {userPermissions.can_share_materials ? '✓' : '✗'}
-                        </span>
-                        <span className="ml-1">Share materials</span>
-                      </div>
-                      <div className="flex items-center">
-                        <span className={userPermissions.can_view_org_materials ? 'text-green-600' : 'text-gray-400'}>
-                          {userPermissions.can_view_org_materials ? '✓' : '✗'}
-                        </span>
-                        <span className="ml-1">View team materials</span>
-                      </div>
-                      <div className="flex items-center">
-                        <span className={userPermissions.can_delete_own_materials ? 'text-green-600' : 'text-gray-400'}>
-                          {userPermissions.can_delete_own_materials ? '✓' : '✗'}
-                        </span>
-                        <span className="ml-1">Delete own materials</span>
-                      </div>
-                    </div>
-                  </div>
-                )}
-
-                {/* Uploaded files list */}
-                <div className="mt-4 space-y-4">
-                  {/* My Materials */}
-                  {salesMaterials.filter(m => m.is_owner).length > 0 && (
-                    <div>
-                      <h4 className="text-sm font-medium text-gray-700 mb-2">
-                        📁 My Materials ({salesMaterials.filter(m => m.is_owner).length})
-                      </h4>
-                      <div className="space-y-2">
-                        {salesMaterials.filter(m => m.is_owner).map((material) => (
-                          <div key={material.id} className="p-3 bg-gray-50 rounded-lg border border-gray-200">
-                            <div className="flex items-start justify-between">
-                              <div className="flex-1">
-                                <div className="flex items-center gap-2 mb-1">
-                                  <p className="text-sm font-medium text-gray-900">{material.file_name}</p>
-                                  <span className={`text-xs px-2 py-0.5 rounded-full font-medium ${
-                                    material.visibility === 'organization' ? 'bg-green-100 text-green-700' :
-                                    material.visibility === 'team' ? 'bg-blue-100 text-blue-700' :
-                                    'bg-gray-100 text-gray-700'
-                                  }`}>
-                                    {material.visibility === 'organization' ? '🌐 Org' :
-                                     material.visibility === 'team' ? '👥 Team' :
-                                     '🔒 Private'}
-                                  </span>
-                                </div>
-                                <p className="text-xs text-gray-500">
-                                  {material.category} • {(material.file_size / 1024).toFixed(1)} KB • {new Date(material.created_at).toLocaleDateString()}
-                                </p>
-                                {material.shared_at && (
-                                  <p className="text-xs text-gray-400 mt-1">
-                                    Shared {new Date(material.shared_at).toLocaleDateString()}
-                                  </p>
-                                )}
-                              </div>
-                              <div className="flex items-center gap-2 ml-4">
-                                {/* Share dropdown */}
-                                {material.can_share && userPermissions?.can_share_materials && (
-                                  <div className="relative group">
-                                    <button className="text-blue-600 hover:text-blue-800 transition-colors text-sm">
-                                      🔄
-                                    </button>
-                                    <div className="hidden group-hover:block absolute right-0 mt-1 w-48 bg-white border border-gray-200 rounded-lg shadow-lg z-10">
-                                      <button
-                                        onClick={() => shareMaterial(material.id, 'private')}
-                                        className="block w-full text-left px-4 py-2 text-sm hover:bg-gray-50"
-                                      >
-                                        🔒 Make Private
-                                      </button>
-                                      <button
-                                        onClick={() => shareMaterial(material.id, 'organization')}
-                                        className="block w-full text-left px-4 py-2 text-sm hover:bg-gray-50"
-                                      >
-                                        🌐 Share with Organization
-                                      </button>
-                                    </div>
-                                  </div>
-                                )}
-                                {/* Delete button */}
-                                {material.can_delete && (
-                                  <button
-                                    onClick={() => deleteMaterial(material.id)}
-                                    className="text-red-600 hover:text-red-800 transition-colors"
-                                  >
-                                    🗑️
-                                  </button>
-                                )}
-                              </div>
-                            </div>
-                          </div>
-                        ))}
-                      </div>
-                    </div>
-                  )}
-
-                  {/* Team Materials */}
-                  {salesMaterials.filter(m => !m.is_owner).length > 0 && (
-                    <div>
-                      <h4 className="text-sm font-medium text-gray-700 mb-2">
-                        👥 Team Materials ({salesMaterials.filter(m => !m.is_owner).length})
-                      </h4>
-                      <div className="space-y-2">
-                        {salesMaterials.filter(m => !m.is_owner).map((material) => (
-                          <div key={material.id} className="p-3 bg-blue-50 rounded-lg border border-blue-200">
-                            <div className="flex items-start justify-between">
-                              <div className="flex-1">
-                                <div className="flex items-center gap-2 mb-1">
-                                  <p className="text-sm font-medium text-gray-900">{material.file_name}</p>
-                                  <span className="text-xs px-2 py-0.5 rounded-full font-medium bg-blue-100 text-blue-700">
-                                    {material.visibility === 'organization' ? '🌐 Shared' : '👥 Team'}
-                                  </span>
-                                </div>
-                                <p className="text-xs text-gray-500">
-                                  {material.category} • {(material.file_size / 1024).toFixed(1)} KB
-                                </p>
-                                {material.owner && (
-                                  <p className="text-xs text-gray-400 mt-1">
-                                    By: {material.owner.full_name || material.owner.email}
-                                  </p>
-                                )}
-                              </div>
-                            </div>
-                          </div>
-                        ))}
-                      </div>
-                    </div>
-                  )}
-
-                  {salesMaterials.length === 0 && (
-                    <p className="text-sm text-gray-500 text-center py-4">
-                      No materials uploaded yet. Upload your first sales material above!
-                    </p>
-                  )}
-                </div>
-              </div>
-
-              {/* Team Management Section - Always Show */}
-              <div className="bg-white rounded-lg border border-gray-200 shadow-sm p-6">
-                <div className="flex items-center justify-between mb-4">
-                  <h3 className="text-lg font-semibold text-gray-900">👥 Team Collaboration</h3>
-                  {isAdmin && (
-                    <button
-                      onClick={() => router.push('/admin/organization')}
-                      className="text-xs bg-[#667eea] text-white px-3 py-1.5 rounded-lg hover:bg-[#5568d3] transition-colors font-medium"
-                    >
-                      Admin Dashboard →
-                    </button>
-                  )}
-                </div>
-                
-                {isAdmin ? (
-                  <div>
-                    <p className="text-sm text-gray-600 mb-4">
-                      Invite team members and manage your organization.
-                    </p>
-                    
-                    {/* Invitation Form */}
-                    <div className="bg-gradient-to-r from-blue-50 to-indigo-50 border border-blue-200 rounded-lg p-4 mb-4">
-                      <h4 className="text-sm font-semibold text-blue-900 mb-3">📨 Invite Team Member</h4>
-                      
-                      {inviteMessage && (
-                        <div className={`mb-3 p-3 rounded-lg text-xs font-medium ${
-                          inviteMessage.startsWith('✅') 
-                            ? 'bg-green-100 text-green-800 border border-green-200' 
-                            : 'bg-red-100 text-red-800 border border-red-200'
-                        }`}>
-                          <div className="whitespace-pre-wrap">{inviteMessage}</div>
-                        </div>
-                      )}
-                      
-                      <div className="space-y-3">
-                        <div>
-                          <label className="block text-xs font-medium text-gray-700 mb-1">Email Address</label>
-                          <input
-                            type="email"
-                            value={inviteEmail}
-                            onChange={(e) => setInviteEmail(e.target.value)}
-                            placeholder="teammate@company.com"
-                            className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none"
-                            disabled={inviteLoading}
-                          />
-                        </div>
+            {/* Right Content Area */}
+            <div className="flex-1 overflow-y-auto">
+              <div className="max-w-4xl mx-auto p-8">
+                {/* Profile Tab */}
+                {settingsSubTab === 'profile' && (
+                  <ProfileTab
+                    profileData={profileData}
+                    userContext={userData?.user_context || { aboutMe: '', objectives: '' }}
+                    onSaveProfile={saveProfileData}
+                    onSaveContext={async (context) => {
+                      try {
+                        console.log('💾 Saving context...', context);
                         
-                        <div>
-                          <label className="block text-xs font-medium text-gray-700 mb-1">Role</label>
-                          <select 
-                            value={inviteRole}
-                            onChange={(e) => setInviteRole(e.target.value as 'member' | 'org_admin')}
-                            className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none bg-white"
-                            disabled={inviteLoading}
-                          >
-                            <option value="member">Team Member (Standard Access)</option>
-                            <option value="org_admin">Admin (Full Access)</option>
-                          </select>
-                        </div>
-                        
-                        <button
-                          onClick={handleSendInvitation}
-                          disabled={inviteLoading || !inviteEmail}
-                          className="w-full bg-blue-600 text-white px-4 py-2.5 rounded-lg text-sm font-semibold hover:bg-blue-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
-                        >
-                          {inviteLoading ? 'Sending...' : '✉️ Send Invitation'}
-                        </button>
-                        
-                        <p className="text-xs text-blue-700 italic">
-                          They'll get an invitation link to join your organization.
-                        </p>
-                      </div>
-                    </div>
+                        if (!session?.user?.email) {
+                          alert('No session found. Please refresh and try again.');
+                          return;
+                        }
 
-                    {/* Quick Stats */}
-                    <div className="grid grid-cols-2 gap-3 mb-4">
-                      <div className="bg-white border border-gray-200 rounded-lg p-3 text-center">
-                        <div className="text-2xl font-bold text-[#667eea]">
-                          {salesMaterials.filter(m => m.visibility === 'organization').length}
-                        </div>
-                        <div className="text-xs text-gray-600 mt-1">Shared Materials</div>
-                      </div>
-                      <div className="bg-white border border-gray-200 rounded-lg p-3 text-center">
-                        <div className="text-2xl font-bold text-[#667eea]">
-                          {salesMaterials.filter(m => !m.is_owner).length}
-                        </div>
-                        <div className="text-xs text-gray-600 mt-1">Team Materials</div>
-                      </div>
-                    </div>
+                        console.log('🔑 Using NextAuth session for:', session.user.email);
 
-                    {/* Link to Full Dashboard */}
-                    <button
-                      onClick={() => router.push('/admin/organization')}
-                      className="w-full bg-gray-100 text-gray-700 px-4 py-2 rounded-lg text-sm font-medium hover:bg-gray-200 transition-colors flex items-center justify-center space-x-2"
-                    >
-                      <span>View Full Organization Dashboard</span>
-                      <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 8l4 4m0 0l-4 4m4-4H3" />
-                      </svg>
-                    </button>
-                  </div>
-                ) : (
-                  <div>
-                    {userData?.organization_id ? (
-                      <div>
-                        <p className="text-sm text-gray-600 mb-3">
-                          You're part of a team! Share your sales materials and collaborate with teammates.
-                        </p>
-                        
-                        <div className="bg-gray-50 border border-gray-200 rounded-lg p-4">
-                          <h4 className="text-sm font-semibold text-gray-700 mb-2">💡 Team Features:</h4>
-                          <ul className="text-xs text-gray-600 space-y-1.5">
-                            <li>• Share your materials with the team using the 🔄 button above</li>
-                            <li>• Access materials shared by your teammates</li>
-                            <li>• Collaborate on sales strategies and insights</li>
-                          </ul>
-                          <p className="text-xs text-gray-500 mt-3 italic">
-                            Need to invite someone? Contact your organization admin.
-                          </p>
-                        </div>
-                      </div>
-                    ) : (
-                      <div>
-                        <p className="text-sm text-gray-600 mb-3">
-                          Individual account - Upgrade to enable team collaboration features.
-                        </p>
-                        <button
-                          onClick={() => {
-                            window.location.href = `mailto:hello@curiosityengine.io?subject=Upgrade to Organization Account&body=Hi,%0A%0AI would like to upgrade to an Organization account to enable team features.%0A%0AName: ${userData?.full_name}%0AEmail: ${userData?.email}%0A%0APlease send me more information.%0A%0AThanks!`;
-                          }}
-                          className="w-full bg-[#F95B14] text-white px-4 py-2 rounded-lg text-sm font-medium hover:bg-orange-600 transition-colors"
-                        >
-                          📧 Request Organization Upgrade
-                        </button>
-                      </div>
-                    )}
-                  </div>
-                )}
-              </div>
+                        const response = await fetch('/api/user/context', {
+                          method: 'PUT',
+                          headers: {
+                            'Content-Type': 'application/json',
+                          },
+                          credentials: 'include',
+                          body: JSON.stringify({ userContext: context }),
+                        });
 
-              {/* Upgrade Section */}
-              {!isAdmin && (
-                <div className="bg-gradient-to-r from-orange-50 to-orange-100 border-2 border-[#F95B14] rounded-lg p-6">
-                  <div className="flex items-start justify-between">
-                    <div>
-                      <h3 className="text-lg font-semibold text-gray-900 mb-2">🚀 Upgrade to Company Plan</h3>
-                      <p className="text-sm text-gray-700 mb-4">
-                        Get advanced features including:
-                      </p>
-                      <ul className="text-sm text-gray-700 space-y-1 mb-4">
-                        <li>✓ Team collaboration & shared context</li>
-                        <li>✓ Unlimited sales material storage</li>
-                        <li>✓ Advanced CRM integrations</li>
-                        <li>✓ Custom AI training on your data</li>
-                        <li>✓ Priority support</li>
-                      </ul>
-                    </div>
-                  </div>
-                  <button
-                    onClick={() => {
-                      window.location.href = `mailto:hello@curiosityengine.io?subject=Upgrade to Company Plan&body=Hi,%0A%0AI would like to upgrade to the Company Plan.%0A%0AName: ${userData.full_name}%0AEmail: ${userData.email}%0A%0APlease send me more information.%0A%0AThanks!`;
+                        console.log('📡 Response status:', response.status);
+                        const data = await response.json();
+                        console.log('📡 Response data:', data);
+
+                        if (response.ok) {
+                          alert('✅ Context saved successfully!');
+                          if (userData) {
+                            setUserData({ ...userData, user_context: context });
+                          }
+                        } else {
+                          alert(`❌ Error saving: ${data.error || 'Unknown error'}`);
+                        }
+                      } catch (error) {
+                        console.error('❌ Error saving context:', error);
+                        alert(`❌ Error: ${error instanceof Error ? error.message : 'Unknown error'}`);
+                      }
                     }}
-                    className="bg-[#F95B14] text-white px-6 py-3 rounded-lg font-semibold hover:bg-orange-600 transition-colors"
-                  >
-                    📧 Request Upgrade
-                  </button>
-                </div>
-              )}
+                  />
+                )}
+
+                {/* Team Tab */}
+                {settingsSubTab === 'team' && isAdmin && (
+                  <TeamTab
+                    organizationId={userData?.organization_id || ''}
+                  />
+                )}
+
+                {/* Knowledge Tab */}
+                {settingsSubTab === 'knowledge' && isAdmin && (
+                  <KnowledgeTab
+                    materials={salesMaterials}
+                    onFileUpload={handleFileUpload}
+                    onDeleteMaterial={deleteMaterial}
+                    uploadingFile={uploadingFile}
+                    uploadMessage={uploadMessage}
+                    uploadMessageType={uploadMessageType}
+                  />
+                )}
+              </div>
             </div>
           </div>
         )}

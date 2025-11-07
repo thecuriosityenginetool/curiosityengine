@@ -1,0 +1,22 @@
+[
+  {
+    "fileName": "main-overview.mdc",
+    "description": "Complete system overview detailing the sales intelligence platform architecture, component interaction, and integration patterns between CRM, email, and AI systems"
+  },
+  {
+    "fileName": "data-models-relationships.mdc",
+    "description": "Detailed documentation of the hierarchical data models including organization structure, user contexts, CRM integrations, and their relationships and inheritance patterns"
+  },
+  {
+    "fileName": "ai-algorithms.mdc",
+    "description": "Comprehensive documentation of AI algorithms for profile analysis, email generation, and context-aware sales intelligence, including prompt engineering and context assembly logic"
+  },
+  {
+    "fileName": "integration-flows.mdc",
+    "description": "Detailed documentation of data flows between LinkedIn profile analysis, CRM systems, email providers, and AI components, including synchronization patterns and error handling"
+  },
+  {
+    "fileName": "permission-hierarchy.mdc",
+    "description": "Documentation of the multi-level permission system, including organization hierarchy, content sharing rules, and context inheritance mechanisms"
+  }
+]

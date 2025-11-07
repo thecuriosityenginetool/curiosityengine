@@ -42,15 +42,20 @@ export async function GET(req: NextRequest) {
 
     // Check if Gmail is connected
     console.log('🔍 Checking Gmail integration for org:', userData.organization_id);
-    const { data: gmailIntegration } = await supabase
+    const { data: gmailIntegration, error: gmailError } = await supabase
       .from('organization_integrations')
-      .select('is_enabled, integration_type')
+      .select('is_enabled, integration_type, configuration')
       .eq('organization_id', userData.organization_id)
       .eq('integration_type', 'gmail_user')
       .eq('is_enabled', true)
       .maybeSingle();
     
-    console.log('🔍 Gmail integration check result:', { gmailIntegration });
+    console.log('🔍 Gmail integration check result:', { 
+      gmailIntegration, 
+      gmailError,
+      hasConfig: !!gmailIntegration?.configuration,
+      organizationId: userData.organization_id
+    });
 
     let events = [];
 

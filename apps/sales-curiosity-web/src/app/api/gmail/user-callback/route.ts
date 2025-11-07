@@ -135,9 +135,10 @@ export async function GET(req: NextRequest) {
       new URL('/dashboard?success=Google Workspace connected successfully (Gmail + Calendar)', process.env.NEXT_PUBLIC_APP_URL)
     );
   } catch (error) {
-    console.error('Error handling Gmail callback:', error);
+    console.error('❌ [Gmail Callback] Fatal error:', error);
+    const errorMessage = error instanceof Error ? error.message : 'Unknown error connecting Google Workspace';
     return NextResponse.redirect(
-      new URL(`/dashboard?error=${encodeURIComponent(String(error))}`, process.env.NEXT_PUBLIC_APP_URL)
+      new URL(`/dashboard?error=${encodeURIComponent(errorMessage)}`, process.env.NEXT_PUBLIC_APP_URL)
     );
   }
 }

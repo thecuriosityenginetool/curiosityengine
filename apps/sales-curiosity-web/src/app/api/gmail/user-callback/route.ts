@@ -41,12 +41,21 @@ export async function GET(req: NextRequest) {
 
     // Exchange code for tokens
     console.log('🟩 [Gmail Callback] Exchanging code for tokens...');
-    const tokens = await exchangeCodeForTokens(code);
-    console.log('🟩 [Gmail Callback] Tokens received:', {
-      hasAccessToken: !!tokens.access_token,
-      hasRefreshToken: !!tokens.refresh_token,
-      expiresIn: tokens.expires_in
-    });
+    let tokens;
+    try {
+      tokens = await exchangeCodeForTokens(code);
+      console.log('🟩 [Gmail Callback] Tokens received:', {
+        hasAccessToken: !!tokens.access_token,
+        hasRefreshToken: !!tokens.refresh_token,
+        expiresIn: tokens.expires_in
+      });
+    } catch (tokenError) {
+      console.error('❌ [Gmail Callback] Token exchange failed:', tokenError);
+      const errorMessage = tokenError instanceof Error ? tokenError.message : 'Token exchange failed';
+      return NextResponse.redirect(
+        new URL(`/dashboard?error=${encodeURIComponent('Google token exchange failed: ' + errorMessage)}`, process.env.NEXT_PUBLIC_APP_URL)
+      );
+    }
 
     // Store tokens at user level
     console.log('🟩 [Gmail Callback] Checking for existing integration...');

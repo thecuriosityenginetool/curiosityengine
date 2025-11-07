@@ -3509,74 +3509,144 @@ The draft is now in your Outlook Drafts folder and ready to send.`);
                             <div className="space-y-6">
                               <div className="bg-orange-50 border border-orange-200 rounded-lg p-4">
                                 <p className="text-sm text-orange-900">
-                                  <strong>Admin Setup:</strong> This tab is for organization administrators setting up Salesforce for the first time. Regular users should use the "User Connect" tab.
+                                  <strong>Admin Setup:</strong> This guide is for organization administrators with Salesforce admin access. Regular users should use the "User Connect" tab.
                                 </p>
                               </div>
 
                               <div>
-                                <h3 className="text-lg font-semibold text-gray-900 mb-3">Step 1: Create Salesforce Developer Account</h3>
+                                <h3 className="text-lg font-semibold text-gray-900 mb-3">Step 1: Access Salesforce Setup</h3>
                                 <ol className="list-decimal list-inside space-y-2 text-gray-700 text-sm">
-                                  <li className="pl-2">Go to <code className="bg-gray-100 px-2 py-0.5 rounded text-xs">https://developer.salesforce.com/signup</code></li>
-                                  <li className="pl-2">Fill out the form (use a unique username like <code className="bg-gray-100 px-2 py-0.5 rounded text-xs">yourname@yourcompany.dev</code>)</li>
-                                  <li className="pl-2">Verify email and set password</li>
-                                  <li className="pl-2">Log in at <code className="bg-gray-100 px-2 py-0.5 rounded text-xs">https://login.salesforce.com</code></li>
+                                  <li className="pl-2">Log in to your Salesforce account at <code className="bg-gray-100 px-2 py-0.5 rounded text-xs">login.salesforce.com</code></li>
+                                  <li className="pl-2">Click the ⚙️ <strong>Setup</strong> icon (gear icon in top right)</li>
+                                  <li className="pl-2">In the Quick Find search box, type <strong>"App Manager"</strong></li>
+                                  <li className="pl-2">Click <strong>New Connected App</strong> button</li>
                                 </ol>
                               </div>
 
                               <div>
-                                <h3 className="text-lg font-semibold text-gray-900 mb-3">Step 2: Create Connected App</h3>
-                                <ol className="list-decimal list-inside space-y-2 text-gray-700 text-sm">
-                                  <li className="pl-2">In Salesforce, click ⚙️ <strong>Setup</strong></li>
-                                  <li className="pl-2">Search for <strong>App Manager</strong></li>
-                                  <li className="pl-2">Click <strong>New Connected App</strong></li>
-                                </ol>
-                                
-                                <div className="mt-4 bg-gray-50 border border-gray-200 rounded-lg p-4">
-                                  <p className="text-sm font-semibold text-gray-900 mb-2">Fill in these fields:</p>
-                                  <div className="space-y-2 text-sm text-gray-700">
-                                    <div><strong>Connected App Name:</strong> <code className="bg-white px-2 py-0.5 rounded">Sales Curiosity Engine</code></div>
-                                    <div><strong>API Name:</strong> <code className="bg-white px-2 py-0.5 rounded">Sales_Curiosity_Engine</code></div>
-                                    <div><strong>Contact Email:</strong> Your email</div>
-                                    <div className="pt-2"><strong>☑️ Enable OAuth Settings</strong></div>
-                                    <div className="pl-4">
-                                      <div className="mt-2"><strong>Callback URLs:</strong></div>
-                                      <div className="font-mono text-xs bg-white px-2 py-1 rounded mt-1">https://www.curiosityengine.io/api/salesforce/user-callback</div>
-                                      <div className="font-mono text-xs bg-white px-2 py-1 rounded mt-1">http://localhost:3000/api/salesforce/user-callback</div>
+                                <h3 className="text-lg font-semibold text-gray-900 mb-3">Step 2: Fill Out Basic Information</h3>
+                                <div className="bg-gray-50 border border-gray-200 rounded-lg p-4 space-y-3 text-sm">
+                                  <div>
+                                    <div className="font-semibold text-gray-900 mb-1">External Client App Name *</div>
+                                    <div className="bg-white px-3 py-2 rounded border border-gray-300 font-mono text-gray-700">
+                                      Sales Curiosity Engine
                                     </div>
-                                    <div className="pl-4">
-                                      <div className="mt-2"><strong>Selected OAuth Scopes:</strong></div>
-                                      <div className="text-xs mt-1">• Access and manage your data (api)</div>
-                                      <div className="text-xs">• Perform requests at any time (refresh_token, offline_access)</div>
-                                      <div className="text-xs">• Full access (full)</div>
+                                  </div>
+                                  
+                                  <div>
+                                    <div className="font-semibold text-gray-900 mb-1">API Name *</div>
+                                    <div className="bg-white px-3 py-2 rounded border border-gray-300 font-mono text-gray-700">
+                                      Sales_Curiosity_Engine
+                                    </div>
+                                    <p className="text-xs text-gray-500 mt-1">(Auto-filled from App Name)</p>
+                                  </div>
+                                  
+                                  <div>
+                                    <div className="font-semibold text-gray-900 mb-1">Contact Email *</div>
+                                    <div className="bg-white px-3 py-2 rounded border border-gray-300 text-gray-700">
+                                      Your admin email address
                                     </div>
                                   </div>
                                 </div>
                               </div>
 
                               <div>
-                                <h3 className="text-lg font-semibold text-gray-900 mb-3">Step 3: Get Consumer Key & Secret</h3>
-                                <ol className="list-decimal list-inside space-y-2 text-gray-700 text-sm">
-                                  <li className="pl-2">Click <strong>Save</strong> → <strong>Continue</strong></li>
-                                  <li className="pl-2">Copy the <strong>Consumer Key</strong> → Save it!</li>
-                                  <li className="pl-2">Click <strong>Manage Consumer Details</strong></li>
-                                  <li className="pl-2">Copy the <strong>Consumer Secret</strong> → Save it!</li>
+                                <h3 className="text-lg font-semibold text-gray-900 mb-3">Step 3: Configure OAuth Settings</h3>
+                                <div className="bg-gray-50 border border-gray-200 rounded-lg p-4 space-y-4 text-sm">
+                                  <div>
+                                    <div className="font-semibold text-gray-900 mb-2">☑️ Enable OAuth Settings</div>
+                                    <p className="text-gray-600 text-xs">Check this box to reveal OAuth configuration options</p>
+                                  </div>
+
+                                  <div>
+                                    <div className="font-semibold text-gray-900 mb-2">Callback URL *</div>
+                                    <p className="text-gray-600 text-xs mb-2">Enter this exact URL:</p>
+                                    <div className="bg-white px-3 py-2 rounded border border-gray-300 font-mono text-xs text-gray-900">
+                                      https://www.curiosityengine.io/api/salesforce/user-callback
+                                    </div>
+                                    <p className="text-xs text-gray-500 mt-1">For local testing, also add:</p>
+                                    <div className="bg-white px-3 py-2 rounded border border-gray-300 font-mono text-xs text-gray-700 mt-1">
+                                      http://localhost:3000/api/salesforce/user-callback
+                                    </div>
+                                  </div>
+
+                                  <div>
+                                    <div className="font-semibold text-gray-900 mb-2">Selected OAuth Scopes *</div>
+                                    <p className="text-gray-600 text-xs mb-2">Move these scopes from Available to Selected:</p>
+                                    <div className="space-y-1 text-xs">
+                                      <div className="flex items-center gap-2">
+                                        <svg className="w-4 h-4 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                                        </svg>
+                                        <span>Access and manage your data (api)</span>
+                                      </div>
+                                      <div className="flex items-center gap-2">
+                                        <svg className="w-4 h-4 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                                        </svg>
+                                        <span>Perform requests on your behalf at any time (refresh_token, offline_access)</span>
+                                      </div>
+                                      <div className="flex items-center gap-2">
+                                        <svg className="w-4 h-4 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                                        </svg>
+                                        <span>Access unique user identifiers (openid)</span>
+                                      </div>
+                                    </div>
+                                  </div>
+                                </div>
+                              </div>
+
+                              <div>
+                                <h3 className="text-lg font-semibold text-gray-900 mb-3">Step 4: Save & Get Credentials</h3>
+                                <ol className="list-decimal list-inside space-y-3 text-gray-700 text-sm">
+                                  <li className="pl-2">Scroll to the bottom and click <strong>Save</strong></li>
+                                  <li className="pl-2">Wait for the page to load, then click <strong>Continue</strong></li>
+                                  <li className="pl-2">
+                                    On the app details page, you'll see:
+                                    <div className="mt-2 bg-gray-50 border border-gray-200 rounded p-3 space-y-2">
+                                      <div>
+                                        <div className="text-xs text-gray-600">Consumer Key</div>
+                                        <div className="font-mono text-xs bg-white px-2 py-1 rounded border border-gray-300 mt-1">
+                                          [Long string starting with 3MVG...]
+                                        </div>
+                                        <p className="text-xs text-gray-500 mt-1">→ Copy this entire key and save it</p>
+                                      </div>
+                                    </div>
+                                  </li>
+                                  <li className="pl-2">
+                                    Click <strong>"Click to reveal"</strong> next to Consumer Secret, or click <strong>"Manage Consumer Details"</strong>
+                                    <div className="mt-2 bg-gray-50 border border-gray-200 rounded p-3">
+                                      <div className="text-xs text-gray-600">Consumer Secret</div>
+                                      <div className="font-mono text-xs bg-white px-2 py-1 rounded border border-gray-300 mt-1">
+                                        [Long string - will be hidden initially]
+                                      </div>
+                                      <p className="text-xs text-gray-500 mt-1">→ Copy this secret and save it securely</p>
+                                    </div>
+                                  </li>
                                 </ol>
                               </div>
 
                               <div>
-                                <h3 className="text-lg font-semibold text-gray-900 mb-3">Step 4: Configure App Policies</h3>
+                                <h3 className="text-lg font-semibold text-gray-900 mb-3">Step 5: Configure App Policies (Important!)</h3>
                                 <ol className="list-decimal list-inside space-y-2 text-gray-700 text-sm">
-                                  <li className="pl-2">In <strong>App Manager</strong>, find your app → Click ▼ → <strong>Manage</strong></li>
-                                  <li className="pl-2">Click <strong>Edit Policies</strong></li>
-                                  <li className="pl-2">Set <strong>Permitted Users:</strong> All users may self-authorize</li>
-                                  <li className="pl-2">Set <strong>IP Relaxation:</strong> Relax IP restrictions</li>
-                                  <li className="pl-2">Set <strong>Refresh Token Policy:</strong> Valid until revoked</li>
+                                  <li className="pl-2">Go back to <strong>Setup</strong> → <strong>App Manager</strong></li>
+                                  <li className="pl-2">Find "Sales Curiosity Engine" → Click dropdown ▼ → <strong>Manage</strong></li>
+                                  <li className="pl-2">Click <strong>Edit Policies</strong> button</li>
+                                  <li className="pl-2">
+                                    Set these critical settings:
+                                    <div className="mt-2 bg-gray-50 border border-gray-200 rounded p-3 space-y-2 text-xs">
+                                      <div><strong>Permitted Users:</strong> All users may self-authorize</div>
+                                      <div><strong>IP Relaxation:</strong> Relax IP restrictions</div>
+                                      <div><strong>Refresh Token Policy:</strong> Refresh token is valid until revoked</div>
+                                    </div>
+                                  </li>
                                   <li className="pl-2">Click <strong>Save</strong></li>
                                 </ol>
                               </div>
 
                               <div>
-                                <h3 className="text-lg font-semibold text-gray-900 mb-3">Step 5: Share Credentials with Support</h3>
+                                <h3 className="text-lg font-semibold text-gray-900 mb-3">Step 6: Share Credentials with Support</h3>
                                 <p className="text-gray-700 text-sm mb-4">
                                   Once you have your Consumer Key and Consumer Secret, you'll need to share them with our support team to complete the integration.
                                 </p>

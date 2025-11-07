@@ -3344,75 +3344,125 @@ The draft is now in your Outlook Drafts folder and ready to send.`);
                           {salesforceHelpTab === 'tools' && (
                             <div>
                               <h3 className="text-lg font-semibold text-gray-900 mb-4">Available AI Functions</h3>
-                              <ul className="space-y-3 text-gray-700">
-                              <li className="flex items-start gap-3">
-                                <svg className="w-5 h-5 text-green-600 mt-0.5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
-                                </svg>
-                                <div>
-                                  <div className="font-medium text-gray-900">Search contacts & leads</div>
-                                  <div className="text-sm text-gray-600 mt-0.5">
-                                    "Find all contacts at Acme Corp"
+                              <p className="text-sm text-gray-600 mb-6">
+                                Once connected, you can ask the AI to perform these Salesforce actions directly from your conversations:
+                              </p>
+                              <ul className="space-y-4 text-gray-700">
+                                <li className="flex items-start gap-3 p-3 bg-gray-50 rounded-lg">
+                                  <svg className="w-5 h-5 text-blue-600 mt-0.5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+                                  </svg>
+                                  <div className="flex-1">
+                                    <div className="font-semibold text-gray-900">Search Contacts & Leads</div>
+                                    <div className="text-sm text-gray-600 mt-1">Find people in your CRM by name, email, or company</div>
+                                    <div className="text-xs text-gray-500 mt-2 font-mono bg-white px-2 py-1 rounded border border-gray-200">
+                                      "Find all contacts at Acme Corp"
+                                    </div>
                                   </div>
-                                </div>
-                              </li>
-                              <li className="flex items-start gap-3">
-                                <svg className="w-5 h-5 text-green-600 mt-0.5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
-                                </svg>
-                                <div>
-                                  <div className="font-medium text-gray-900">Create new leads</div>
-                                  <div className="text-sm text-gray-600 mt-0.5">
-                                    "Create a lead for John Smith at TechCo"
+                                </li>
+
+                                <li className="flex items-start gap-3 p-3 bg-gray-50 rounded-lg">
+                                  <svg className="w-5 h-5 text-green-600 mt-0.5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
+                                  </svg>
+                                  <div className="flex-1">
+                                    <div className="font-semibold text-gray-900">Create New Leads</div>
+                                    <div className="text-sm text-gray-600 mt-1">Add new prospects to your Salesforce pipeline</div>
+                                    <div className="text-xs text-gray-500 mt-2 font-mono bg-white px-2 py-1 rounded border border-gray-200">
+                                      "Create a lead for John Smith at TechCo, title: CEO, email: john@techco.com"
+                                    </div>
                                   </div>
-                                </div>
-                              </li>
-                              <li className="flex items-start gap-3">
-                                <svg className="w-5 h-5 text-green-600 mt-0.5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
-                                </svg>
-                                <div>
-                                  <div className="font-medium text-gray-900">Add notes to records</div>
-                                  <div className="text-sm text-gray-600 mt-0.5">
-                                    "Add a note to the Smith account about our call"
+                                </li>
+
+                                <li className="flex items-start gap-3 p-3 bg-gray-50 rounded-lg">
+                                  <svg className="w-5 h-5 text-green-600 mt-0.5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M18 9v3m0 0v3m0-3h3m-3 0h-3m-2-5a4 4 0 11-8 0 4 4 0 018 0zM3 20a6 6 0 0112 0v1H3v-1z" />
+                                  </svg>
+                                  <div className="flex-1">
+                                    <div className="font-semibold text-gray-900">Create New Contacts</div>
+                                    <div className="text-sm text-gray-600 mt-1">Add established relationships to your CRM</div>
+                                    <div className="text-xs text-gray-500 mt-2 font-mono bg-white px-2 py-1 rounded border border-gray-200">
+                                      "Create a contact for Sarah Johnson, email: sarah@company.com"
+                                    </div>
                                   </div>
-                                </div>
-                              </li>
-                              <li className="flex items-start gap-3">
-                                <svg className="w-5 h-5 text-green-600 mt-0.5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
-                                </svg>
-                                <div>
-                                  <div className="font-medium text-gray-900">Create follow-up tasks</div>
-                                  <div className="text-sm text-gray-600 mt-0.5">
-                                    "Create a follow-up task for Jane Doe next week"
+                                </li>
+
+                                <li className="flex items-start gap-3 p-3 bg-gray-50 rounded-lg">
+                                  <svg className="w-5 h-5 text-yellow-600 mt-0.5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
+                                  </svg>
+                                  <div className="flex-1">
+                                    <div className="font-semibold text-gray-900">Update Records</div>
+                                    <div className="text-sm text-gray-600 mt-1">Modify contact or lead information</div>
+                                    <div className="text-xs text-gray-500 mt-2 font-mono bg-white px-2 py-1 rounded border border-gray-200">
+                                      "Update John's status to qualified and add phone number 555-1234"
+                                    </div>
                                   </div>
-                                </div>
-                              </li>
-                              <li className="flex items-start gap-3">
-                                <svg className="w-5 h-5 text-green-600 mt-0.5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
-                                </svg>
-                                <div>
-                                  <div className="font-medium text-gray-900">Update records</div>
-                                  <div className="text-sm text-gray-600 mt-0.5">
-                                    "Update John's status to qualified"
+                                </li>
+
+                                <li className="flex items-start gap-3 p-3 bg-gray-50 rounded-lg">
+                                  <svg className="w-5 h-5 text-purple-600 mt-0.5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                                  </svg>
+                                  <div className="flex-1">
+                                    <div className="font-semibold text-gray-900">Add Notes</div>
+                                    <div className="text-sm text-gray-600 mt-1">Log call notes, meeting outcomes, or important details</div>
+                                    <div className="text-xs text-gray-500 mt-2 font-mono bg-white px-2 py-1 rounded border border-gray-200">
+                                      "Add a note to the Smith account: Had a great call, interested in Q1 pricing"
+                                    </div>
                                   </div>
-                                </div>
-                              </li>
-                              <li className="flex items-start gap-3">
-                                <svg className="w-5 h-5 text-green-600 mt-0.5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
-                                </svg>
-                                <div>
-                                  <div className="font-medium text-gray-900">Query recent activity</div>
-                                  <div className="text-sm text-gray-600 mt-0.5">
-                                    "Show me recent deals we closed"
+                                </li>
+
+                                <li className="flex items-start gap-3 p-3 bg-gray-50 rounded-lg">
+                                  <svg className="w-5 h-5 text-orange-600 mt-0.5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" />
+                                  </svg>
+                                  <div className="flex-1">
+                                    <div className="font-semibold text-gray-900">Create Tasks & Reminders</div>
+                                    <div className="text-sm text-gray-600 mt-1">Schedule follow-ups with due dates and priority levels</div>
+                                    <div className="text-xs text-gray-500 mt-2 font-mono bg-white px-2 py-1 rounded border border-gray-200">
+                                      "Create a high-priority task to follow up with Jane Doe on 2025-11-15"
+                                    </div>
                                   </div>
-                                </div>
-                              </li>
-                            </ul>
-                          </div>
+                                </li>
+
+                                <li className="flex items-start gap-3 p-3 bg-gray-50 rounded-lg">
+                                  <svg className="w-5 h-5 text-indigo-600 mt-0.5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+                                  </svg>
+                                  <div className="flex-1">
+                                    <div className="font-semibold text-gray-900">Get Recent Activity</div>
+                                    <div className="text-sm text-gray-600 mt-1">View interaction history, tasks, and notes for any contact</div>
+                                    <div className="text-xs text-gray-500 mt-2 font-mono bg-white px-2 py-1 rounded border border-gray-200">
+                                      "Show me recent activity for john@techco.com"
+                                    </div>
+                                  </div>
+                                </li>
+
+                                <li className="flex items-start gap-3 p-3 bg-gray-50 rounded-lg">
+                                  <svg className="w-5 h-5 text-red-600 mt-0.5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7v8a2 2 0 002 2h6M8 7V5a2 2 0 012-2h4.586a1 1 0 01.707.293l4.414 4.414a1 1 0 01.293.707V15a2 2 0 01-2 2h-2M8 7H6a2 2 0 00-2 2v10a2 2 0 002 2h8a2 2 0 002-2v-2" />
+                                  </svg>
+                                  <div className="flex-1">
+                                    <div className="font-semibold text-gray-900">Execute Custom SOQL Queries</div>
+                                    <div className="text-sm text-gray-600 mt-1">Run advanced queries for complex data retrieval</div>
+                                    <div className="text-xs text-gray-500 mt-2 font-mono bg-white px-2 py-1 rounded border border-gray-200">
+                                      "Query Salesforce for all opportunities closed this quarter"
+                                    </div>
+                                  </div>
+                                </li>
+                              </ul>
+
+                              <div className="mt-6 bg-blue-50 border border-blue-200 rounded-lg p-4">
+                                <h4 className="font-semibold text-blue-900 mb-2">💡 Pro Tips:</h4>
+                                <ul className="space-y-1 text-sm text-blue-800">
+                                  <li>• Combine functions: "Search for contacts at Acme and create a follow-up task"</li>
+                                  <li>• Use natural language - the AI understands context</li>
+                                  <li>• All actions are logged in your Activity tab for tracking</li>
+                                  <li>• Works seamlessly with LinkedIn profile analysis</li>
+                                </ul>
+                              </div>
+                            </div>
                           )}
 
                           {/* User Connect Tab */}

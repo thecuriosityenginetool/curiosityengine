@@ -465,9 +465,14 @@ export async function POST(req: NextRequest) {
         ).join('\n')}`;
       }
     } else if (calendarEvents.length > 0) {
-      calendarContext = `\n\nUpcoming Calendar Events:\n${calendarEvents.map((event: any) => 
-        `- ${event.title} at ${event.start} ${event.description ? '(' + event.description + ')' : ''}`
-      ).join('\n')}`;
+      calendarContext = `\n\n📅 **YOUR CALENDAR EVENTS (Today: ${currentDate}):**\n${calendarEvents.map((event: any) => {
+        const eventDate = new Date(event.start);
+        const eventDateStr = eventDate.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
+        const eventTimeStr = eventDate.toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit', hour12: true });
+        return `- ${event.title} on ${eventDateStr} at ${eventTimeStr}${event.description ? ' (' + event.description + ')' : ''}`;
+      }).join('\n')}
+
+When asked about events, reference these directly. Only search if user asks to find specific events.`;
     }
 
     // Get recent emails if Outlook is connected

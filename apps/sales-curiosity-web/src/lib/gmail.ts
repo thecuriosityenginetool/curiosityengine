@@ -43,6 +43,14 @@ export function getGmailAuthUrl(state: string): string {
  * Exchange authorization code for tokens
  */
 export async function exchangeCodeForTokens(code: string): Promise<GmailTokens> {
+  console.log('🟩 [Gmail] Starting token exchange...');
+  console.log('🟩 [Gmail] Config check:', {
+    hasClientId: !!GOOGLE_CLIENT_ID,
+    hasClientSecret: !!GOOGLE_CLIENT_SECRET,
+    hasRedirectUri: !!GOOGLE_REDIRECT_URI,
+    redirectUri: GOOGLE_REDIRECT_URI
+  });
+
   const params = new URLSearchParams({
     code,
     client_id: GOOGLE_CLIENT_ID,
@@ -51,6 +59,7 @@ export async function exchangeCodeForTokens(code: string): Promise<GmailTokens> 
     grant_type: 'authorization_code',
   });
 
+  console.log('🟩 [Gmail] Making token request to Google...');
   const response = await fetch('https://oauth2.googleapis.com/token', {
     method: 'POST',
     headers: {
@@ -59,18 +68,31 @@ export async function exchangeCodeForTokens(code: string): Promise<GmailTokens> 
     body: params.toString(),
   });
 
+  console.log('🟩 [Gmail] Token response status:', response.status);
+
   if (!response.ok) {
     const error = await response.text();
+    console.error('❌ [Gmail] Token exchange failed:', error);
     throw new Error(`Gmail token exchange failed: ${error}`);
   }
 
-  return await response.json();
+  const tokens = await response.json();
+  console.log('✅ [Gmail] Tokens received successfully:', {
+    hasAccessToken: !!tokens.access_token,
+    hasRefreshToken: !!tokens.refresh_token,
+    expiresIn: tokens.expires_in,
+    scope: tokens.scope
+  });
+
+  return tokens;
 }
 
 /**
  * Refresh Gmail access token
  */
 export async function refreshAccessToken(refreshToken: string): Promise<GmailTokens> {
+  console.log('🟩 [Gmail] Refreshing access token...');
+  
   const params = new URLSearchParams({
     client_id: GOOGLE_CLIENT_ID,
     client_secret: GOOGLE_CLIENT_SECRET,
@@ -86,18 +108,26 @@ export async function refreshAccessToken(refreshToken: string): Promise<GmailTok
     body: params.toString(),
   });
 
+  console.log('🟩 [Gmail] Refresh response status:', response.status);
+
   if (!response.ok) {
     const error = await response.text();
+    console.error('❌ [Gmail] Token refresh failed:', error);
     throw new Error(`Gmail token refresh failed: ${error}`);
   }
 
-  return await response.json();
+  const tokens = await response.json();
+  console.log('✅ [Gmail] Token refreshed successfully');
+  
+  return tokens;
 }
 
 /**
  * Get Gmail tokens for a specific user
  */
 export async function getUserGmailTokens(userId: string, organizationId: string): Promise<GmailTokens | null> {
+  console.log('🟩 [Gmail] Getting user tokens:', { userId, organizationId });
+  
   const { data, error } = await supabase
     .from('organization_integrations')
     .select('configuration')
@@ -106,12 +136,26 @@ export async function getUserGmailTokens(userId: string, organizationId: string)
     .eq('is_enabled', true)
     .single();
 
-  if (error || !data) {
+  if (error) {
+    console.error('❌ [Gmail] Error fetching integration:', error);
+    return null;
+  }
+
+  if (!data) {
+    console.log('⚠️ [Gmail] No gmail_user integration found for org:', organizationId);
     return null;
   }
 
   const config = data.configuration as any;
-  return config[userId] || null;
+  const userTokens = config[userId];
+  
+  console.log('🟩 [Gmail] Token check result:', {
+    hasConfig: !!config,
+    hasUserTokens: !!userTokens,
+    configKeys: Object.keys(config || {})
+  });
+
+  return userTokens || null;
 }
 
 /**

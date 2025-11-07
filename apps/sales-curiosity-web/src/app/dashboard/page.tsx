@@ -131,6 +131,10 @@ export default function DashboardPage() {
   const [connectedEmailProvider, setConnectedEmailProvider] = useState<'google' | 'microsoft' | null>(null);
   const [isSyncingCalendar, setIsSyncingCalendar] = useState(false);
   
+  // Integration help modal state
+  const [showIntegrationHelp, setShowIntegrationHelp] = useState(false);
+  const [selectedIntegration, setSelectedIntegration] = useState<'salesforce' | 'gmail' | 'outlook' | 'linkedin' | 'hubspot' | null>(null);
+  
   // Chrome extension detection
   const [hasChromeExtension, setHasChromeExtension] = useState<boolean | null>(null);
   
@@ -2854,17 +2858,41 @@ The draft is now in your Outlook Drafts folder and ready to send.`);
         )}
 
         {activeTab === 'integrations' && (
-          <div className="max-w-7xl mx-auto">
-            <div className="text-center mb-12">
-              <h2 className="text-3xl font-bold text-gray-900 mb-4">🔌 Connectors</h2>
-              <p className="text-lg text-gray-600 max-w-2xl mx-auto">
-                Connect with the tools you already use. Our AI agents understand your pipeline, company context, and sales process.
+          <div className="max-w-7xl mx-auto px-6 py-8">
+            {/* Modern Header */}
+            <div className="mb-12">
+              <div className="flex items-center gap-4 mb-4">
+                <div className="w-14 h-14 bg-gradient-to-br from-orange-500 to-orange-600 rounded-2xl flex items-center justify-center shadow-lg">
+                  <svg className="w-7 h-7 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth={1.5}>
+                    <path strokeLinecap="round" strokeLinejoin="round" d="M13.5 16.875h3.375m0 0h3.375m-3.375 0V13.5m0 3.375v3.375M6 10.5h2.25a2.25 2.25 0 002.25-2.25V6a2.25 2.25 0 00-2.25-2.25H6A2.25 2.25 0 003.75 6v2.25A2.25 2.25 0 006 10.5zm0 9.75h2.25A2.25 2.25 0 0010.5 18v-2.25a2.25 2.25 0 00-2.25-2.25H6a2.25 2.25 0 00-2.25 2.25V18A2.25 2.25 0 006 20.25zm9.75-9.75H18a2.25 2.25 0 002.25-2.25V6A2.25 2.25 0 0018 3.75h-2.25A2.25 2.25 0 0013.5 6v2.25a2.25 2.25 0 002.25 2.25z" />
+                  </svg>
+                </div>
+                <div>
+                  <h1 className="text-3xl font-bold text-gray-900">Connectors</h1>
+                  <p className="text-gray-600 mt-1">Integrate with your sales stack</p>
+                </div>
+              </div>
+              <p className="text-gray-500 max-w-3xl">
+                Connect your CRM, email, and calendar tools. Our AI agents will automatically sync data, create drafts, and schedule meetings across all your platforms.
               </p>
             </div>
             
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
               {/* Salesforce */}
-              <div className="rounded-2xl border border-gray-200 bg-white p-8 hover:shadow-lg transition-shadow">
+              <div className="rounded-2xl border border-gray-200 bg-white p-6 hover:shadow-lg transition-all hover:border-gray-300 relative group">
+                <button
+                  onClick={() => {
+                    setSelectedIntegration('salesforce');
+                    setShowIntegrationHelp(true);
+                  }}
+                  className="absolute top-4 right-4 w-8 h-8 rounded-full bg-gray-100 hover:bg-orange-100 flex items-center justify-center transition-colors group/help"
+                  title="View documentation"
+                >
+                  <svg className="w-4 h-4 text-gray-500 group-hover/help:text-orange-600" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth={2}>
+                    <path strokeLinecap="round" strokeLinejoin="round" d="M12 18v-5.25m0 0a6.01 6.01 0 001.5-.189m-1.5.189a6.01 6.01 0 01-1.5-.189m3.75 7.478a12.06 12.06 0 01-4.5 0m3.75 2.383a14.406 14.406 0 01-3 0M14.25 18v-.192c0-.983.658-1.823 1.508-2.316a7.5 7.5 0 10-7.517 0c.85.493 1.509 1.333 1.509 2.316V18" />
+                  </svg>
+                </button>
+                
                 <div>
                   <div className="flex items-center gap-4 mb-6">
                     <Image 
@@ -2874,7 +2902,7 @@ The draft is now in your Outlook Drafts folder and ready to send.`);
                       height={40}
                       className="w-10 h-10"
                     />
-                    <div>
+                    <div className="flex-1">
                       <h3 className="text-xl font-bold text-black">Salesforce</h3>
                       <p className="text-sm text-gray-600">CRM Integration</p>
                     </div>
@@ -2917,25 +2945,20 @@ The draft is now in your Outlook Drafts folder and ready to send.`);
               </div>
 
               {/* LinkedIn */}
-              <div 
-                className="rounded-2xl border border-gray-200 bg-white p-8 relative overflow-hidden hover:shadow-lg transition-shadow"
-                onMouseMove={(e) => {
-                  const rect = e.currentTarget.getBoundingClientRect();
-                  setCardMousePositions(prev => ({
-                    ...prev,
-                    linkedin: {
-                      x: e.clientX - rect.left,
-                      y: e.clientY - rect.top
-                    }
-                  }));
-                }}
-                onMouseLeave={() => {
-                  setCardMousePositions(prev => ({
-                    ...prev,
-                    linkedin: { x: 0, y: 0 }
-                  }));
-                }}
-              >
+              <div className="rounded-2xl border border-gray-200 bg-white p-6 hover:shadow-lg transition-all hover:border-gray-300 relative group">
+                <button
+                  onClick={() => {
+                    setSelectedIntegration('linkedin');
+                    setShowIntegrationHelp(true);
+                  }}
+                  className="absolute top-4 right-4 w-8 h-8 rounded-full bg-gray-100 hover:bg-orange-100 flex items-center justify-center transition-colors group/help z-10"
+                  title="View documentation"
+                >
+                  <svg className="w-4 h-4 text-gray-500 group-hover/help:text-orange-600" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth={2}>
+                    <path strokeLinecap="round" strokeLinejoin="round" d="M12 18v-5.25m0 0a6.01 6.01 0 001.5-.189m-1.5.189a6.01 6.01 0 01-1.5-.189m3.75 7.478a12.06 12.06 0 01-4.5 0m3.75 2.383a14.406 14.406 0 01-3 0M14.25 18v-.192c0-.983.658-1.823 1.508-2.316a7.5 7.5 0 10-7.517 0c.85.493 1.509 1.333 1.509 2.316V18" />
+                  </svg>
+                </button>
+                
                 <div>
                   <div className="flex items-center gap-4 mb-6">
                     <div className="w-10 h-10 bg-blue-600 rounded-lg flex items-center justify-center">
@@ -2943,7 +2966,7 @@ The draft is now in your Outlook Drafts folder and ready to send.`);
                         <path d="M20.447 20.452h-3.554v-5.569c0-1.328-.027-3.037-1.852-3.037-1.853 0-2.136 1.445-2.136 2.939v5.667H9.351V9h3.414v1.561h.046c.477-.9 1.637-1.85 3.37-1.85 3.601 0 4.267 2.37 4.267 5.455v6.286zM5.337 7.433c-1.144 0-2.063-.926-2.063-2.065 0-1.138.92-2.063 2.063-2.063 1.14 0 2.064.925 2.064 2.063 0 1.139-.925 2.065-2.064 2.065zm1.782 13.019H3.555V9h3.564v11.452zM22.225 0H1.771C.792 0 0 .774 0 1.729v20.542C0 23.227.792 24 1.771 24h20.451C23.2 24 24 23.227 24 22.271V1.729C24 .774 23.2 0 22.222 0h.003z"/>
                       </svg>
                     </div>
-                    <div>
+                    <div className="flex-1">
                       <h3 className="text-xl font-bold text-black">LinkedIn</h3>
                       <p className="text-sm text-gray-600">Profile Analysis</p>
                     </div>
@@ -2997,25 +3020,20 @@ The draft is now in your Outlook Drafts folder and ready to send.`);
               </div>
 
               {/* Google Workspace (Gmail + Calendar) */}
-              <div 
-                className="rounded-2xl border border-gray-200 bg-white p-8 relative overflow-hidden hover:shadow-lg transition-shadow"
-                onMouseMove={(e) => {
-                  const rect = e.currentTarget.getBoundingClientRect();
-                  setCardMousePositions(prev => ({
-                    ...prev,
-                    gmail: {
-                      x: e.clientX - rect.left,
-                      y: e.clientY - rect.top
-                    }
-                  }));
-                }}
-                onMouseLeave={() => {
-                  setCardMousePositions(prev => ({
-                    ...prev,
-                    gmail: { x: 0, y: 0 }
-                  }));
-                }}
-              >
+              <div className="rounded-2xl border border-gray-200 bg-white p-6 hover:shadow-lg transition-all hover:border-gray-300 relative group">
+                <button
+                  onClick={() => {
+                    setSelectedIntegration('gmail');
+                    setShowIntegrationHelp(true);
+                  }}
+                  className="absolute top-4 right-4 w-8 h-8 rounded-full bg-gray-100 hover:bg-orange-100 flex items-center justify-center transition-colors group/help z-10"
+                  title="View documentation"
+                >
+                  <svg className="w-4 h-4 text-gray-500 group-hover/help:text-orange-600" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth={2}>
+                    <path strokeLinecap="round" strokeLinejoin="round" d="M12 18v-5.25m0 0a6.01 6.01 0 001.5-.189m-1.5.189a6.01 6.01 0 01-1.5-.189m3.75 7.478a12.06 12.06 0 01-4.5 0m3.75 2.383a14.406 14.406 0 01-3 0M14.25 18v-.192c0-.983.658-1.823 1.508-2.316a7.5 7.5 0 10-7.517 0c.85.493 1.509 1.333 1.509 2.316V18" />
+                  </svg>
+                </button>
+                
                 <div>
                   <div className="flex items-center gap-4 mb-6">
                     <Image 
@@ -3025,7 +3043,7 @@ The draft is now in your Outlook Drafts folder and ready to send.`);
                       height={40}
                       className="w-10 h-10"
                     />
-                    <div>
+                    <div className="flex-1">
                       <h3 className="text-xl font-bold text-black">Google Workspace</h3>
                       <p className="text-sm text-gray-600">Gmail & Calendar</p>
                     </div>
@@ -3088,25 +3106,20 @@ The draft is now in your Outlook Drafts folder and ready to send.`);
               </div>
 
               {/* Outlook */}
-              <div 
-                className="rounded-2xl border border-gray-200 bg-white p-8 relative overflow-hidden hover:shadow-lg transition-shadow"
-                onMouseMove={(e) => {
-                  const rect = e.currentTarget.getBoundingClientRect();
-                  setCardMousePositions(prev => ({
-                    ...prev,
-                    outlook: {
-                      x: e.clientX - rect.left,
-                      y: e.clientY - rect.top
-                    }
-                  }));
-                }}
-                onMouseLeave={() => {
-                  setCardMousePositions(prev => ({
-                    ...prev,
-                    outlook: { x: 0, y: 0 }
-                  }));
-                }}
-              >
+              <div className="rounded-2xl border border-gray-200 bg-white p-6 hover:shadow-lg transition-all hover:border-gray-300 relative group">
+                <button
+                  onClick={() => {
+                    setSelectedIntegration('outlook');
+                    setShowIntegrationHelp(true);
+                  }}
+                  className="absolute top-4 right-4 w-8 h-8 rounded-full bg-gray-100 hover:bg-orange-100 flex items-center justify-center transition-colors group/help z-10"
+                  title="View documentation"
+                >
+                  <svg className="w-4 h-4 text-gray-500 group-hover/help:text-orange-600" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth={2}>
+                    <path strokeLinecap="round" strokeLinejoin="round" d="M12 18v-5.25m0 0a6.01 6.01 0 001.5-.189m-1.5.189a6.01 6.01 0 01-1.5-.189m3.75 7.478a12.06 12.06 0 01-4.5 0m3.75 2.383a14.406 14.406 0 01-3 0M14.25 18v-.192c0-.983.658-1.823 1.508-2.316a7.5 7.5 0 10-7.517 0c.85.493 1.509 1.333 1.509 2.316V18" />
+                  </svg>
+                </button>
+                
                 <div>
                   <div className="flex items-center gap-4 mb-6">
                     <Image 
@@ -3116,7 +3129,7 @@ The draft is now in your Outlook Drafts folder and ready to send.`);
                       height={40}
                       className="w-10 h-10"
                     />
-                    <div>
+                    <div className="flex-1">
                       <h3 className="text-xl font-bold text-black">Outlook</h3>
                       <p className="text-sm text-gray-600">Microsoft 365</p>
                     </div>
@@ -3180,25 +3193,20 @@ The draft is now in your Outlook Drafts folder and ready to send.`);
               </div>
 
               {/* HubSpot */}
-              <div 
-                className="rounded-2xl border border-gray-200 bg-white p-8 relative overflow-hidden hover:shadow-lg transition-shadow"
-                onMouseMove={(e) => {
-                  const rect = e.currentTarget.getBoundingClientRect();
-                  setCardMousePositions(prev => ({
-                    ...prev,
-                    hubspot: {
-                      x: e.clientX - rect.left,
-                      y: e.clientY - rect.top
-                    }
-                  }));
-                }}
-                onMouseLeave={() => {
-                  setCardMousePositions(prev => ({
-                    ...prev,
-                    hubspot: { x: 0, y: 0 }
-                  }));
-                }}
-              >
+              <div className="rounded-2xl border border-gray-200 bg-white p-6 hover:shadow-lg transition-all hover:border-gray-300 relative group">
+                <button
+                  onClick={() => {
+                    setSelectedIntegration('hubspot');
+                    setShowIntegrationHelp(true);
+                  }}
+                  className="absolute top-4 right-4 w-8 h-8 rounded-full bg-gray-100 hover:bg-orange-100 flex items-center justify-center transition-colors group/help z-10"
+                  title="View documentation"
+                >
+                  <svg className="w-4 h-4 text-gray-500 group-hover/help:text-orange-600" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth={2}>
+                    <path strokeLinecap="round" strokeLinejoin="round" d="M12 18v-5.25m0 0a6.01 6.01 0 001.5-.189m-1.5.189a6.01 6.01 0 01-1.5-.189m3.75 7.478a12.06 12.06 0 01-4.5 0m3.75 2.383a14.406 14.406 0 01-3 0M14.25 18v-.192c0-.983.658-1.823 1.508-2.316a7.5 7.5 0 10-7.517 0c.85.493 1.509 1.333 1.509 2.316V18" />
+                  </svg>
+                </button>
+                
                 <div>
                   <div className="flex items-center gap-4 mb-6">
                     <Image 
@@ -3208,7 +3216,7 @@ The draft is now in your Outlook Drafts folder and ready to send.`);
                       height={40}
                       className="w-10 h-10"
                     />
-                    <div>
+                    <div className="flex-1">
                       <h3 className="text-xl font-bold text-black">HubSpot</h3>
                       <p className="text-sm text-gray-600">CRM & Marketing</p>
                     </div>
@@ -3237,6 +3245,267 @@ The draft is now in your Outlook Drafts folder and ready to send.`);
               </div>
 
             </div>
+
+            {/* Integration Help Modal */}
+            {showIntegrationHelp && selectedIntegration && (
+              <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50" onClick={() => setShowIntegrationHelp(false)}>
+                <div className="bg-white rounded-2xl shadow-2xl max-w-2xl w-full max-h-[90vh] overflow-y-auto" onClick={(e) => e.stopPropagation()}>
+                  <div className="sticky top-0 bg-white border-b border-gray-200 px-6 py-4 flex items-center justify-between">
+                    <h2 className="text-2xl font-bold text-gray-900">
+                      {selectedIntegration === 'salesforce' && 'Salesforce Integration'}
+                      {selectedIntegration === 'gmail' && 'Google Workspace Integration'}
+                      {selectedIntegration === 'outlook' && 'Microsoft Outlook Integration'}
+                      {selectedIntegration === 'linkedin' && 'LinkedIn Chrome Extension'}
+                      {selectedIntegration === 'hubspot' && 'HubSpot Integration'}
+                    </h2>
+                    <button
+                      onClick={() => setShowIntegrationHelp(false)}
+                      className="text-gray-400 hover:text-gray-600 transition-colors"
+                    >
+                      <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                      </svg>
+                    </button>
+                  </div>
+                  
+                  <div className="p-6">
+                    {selectedIntegration === 'salesforce' && (
+                      <div className="space-y-6">
+                        <div>
+                          <h3 className="text-lg font-semibold text-gray-900 mb-2">How to Connect</h3>
+                          <ol className="list-decimal list-inside space-y-2 text-gray-700">
+                            <li>Click the "Connect" button on the Salesforce card</li>
+                            <li>Sign in to your Salesforce account</li>
+                            <li>Grant Curiosity Engine access to your CRM data</li>
+                            <li>You'll be redirected back to the dashboard once connected</li>
+                          </ol>
+                        </div>
+                        <div>
+                          <h3 className="text-lg font-semibold text-gray-900 mb-2">Available AI Functions</h3>
+                          <ul className="space-y-2 text-gray-700">
+                            <li className="flex items-start gap-2">
+                              <svg className="w-5 h-5 text-green-600 mt-0.5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                              </svg>
+                              <span><strong>Search contacts & leads:</strong> "Find all contacts at Acme Corp"</span>
+                            </li>
+                            <li className="flex items-start gap-2">
+                              <svg className="w-5 h-5 text-green-600 mt-0.5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                              </svg>
+                              <span><strong>Create new leads:</strong> "Create a lead for John Smith at TechCo"</span>
+                            </li>
+                            <li className="flex items-start gap-2">
+                              <svg className="w-5 h-5 text-green-600 mt-0.5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                              </svg>
+                              <span><strong>Add notes:</strong> "Add a note to the Smith account about our call"</span>
+                            </li>
+                            <li className="flex items-start gap-2">
+                              <svg className="w-5 h-5 text-green-600 mt-0.5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                              </svg>
+                              <span><strong>Create tasks:</strong> "Create a follow-up task for Jane Doe"</span>
+                            </li>
+                            <li className="flex items-start gap-2">
+                              <svg className="w-5 h-5 text-green-600 mt-0.5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                              </svg>
+                              <span><strong>Update records:</strong> "Update John's status to qualified"</span>
+                            </li>
+                          </ul>
+                        </div>
+                      </div>
+                    )}
+                    
+                    {selectedIntegration === 'gmail' && (
+                      <div className="space-y-6">
+                        <div>
+                          <h3 className="text-lg font-semibold text-gray-900 mb-2">How to Connect</h3>
+                          <ol className="list-decimal list-inside space-y-2 text-gray-700">
+                            <li>Click the "Connect" button on the Google Workspace card</li>
+                            <li>Sign in to your Google account</li>
+                            <li>Grant access to Gmail and Google Calendar</li>
+                            <li>Both email and calendar will be connected automatically</li>
+                          </ol>
+                        </div>
+                        <div>
+                          <h3 className="text-lg font-semibold text-gray-900 mb-2">Available AI Functions</h3>
+                          <ul className="space-y-2 text-gray-700">
+                            <li className="flex items-start gap-2">
+                              <svg className="w-5 h-5 text-green-600 mt-0.5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                              </svg>
+                              <span><strong>Create email drafts:</strong> "Draft an email to john@example.com about the demo"</span>
+                            </li>
+                            <li className="flex items-start gap-2">
+                              <svg className="w-5 h-5 text-green-600 mt-0.5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                              </svg>
+                              <span><strong>Send emails:</strong> "Send an email to jane@company.com with project update"</span>
+                            </li>
+                            <li className="flex items-start gap-2">
+                              <svg className="w-5 h-5 text-green-600 mt-0.5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                              </svg>
+                              <span><strong>Schedule meetings:</strong> "Schedule a meeting with Bob tomorrow at 2pm"</span>
+                            </li>
+                            <li className="flex items-start gap-2">
+                              <svg className="w-5 h-5 text-green-600 mt-0.5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                              </svg>
+                              <span><strong>View calendar:</strong> "What's on my calendar this week?"</span>
+                            </li>
+                            <li className="flex items-start gap-2">
+                              <svg className="w-5 h-5 text-green-600 mt-0.5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                              </svg>
+                              <span><strong>Sync calendar:</strong> Click the Sync button to refresh your calendar events</span>
+                            </li>
+                          </ul>
+                        </div>
+                        <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
+                          <p className="text-sm text-blue-900">
+                            <strong>Note:</strong> Connecting Google Workspace grants access to both Gmail and Google Calendar simultaneously. You cannot connect both Google and Microsoft email providers at the same time.
+                          </p>
+                        </div>
+                      </div>
+                    )}
+                    
+                    {selectedIntegration === 'outlook' && (
+                      <div className="space-y-6">
+                        <div>
+                          <h3 className="text-lg font-semibold text-gray-900 mb-2">How to Connect</h3>
+                          <ol className="list-decimal list-inside space-y-2 text-gray-700">
+                            <li>Click the "Connect" button on the Outlook card</li>
+                            <li>Sign in to your Microsoft account</li>
+                            <li>Grant access to Outlook Mail and Calendar</li>
+                            <li>Both email and calendar will be connected automatically</li>
+                          </ol>
+                        </div>
+                        <div>
+                          <h3 className="text-lg font-semibold text-gray-900 mb-2">Available AI Functions</h3>
+                          <ul className="space-y-2 text-gray-700">
+                            <li className="flex items-start gap-2">
+                              <svg className="w-5 h-5 text-green-600 mt-0.5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                              </svg>
+                              <span><strong>Create email drafts:</strong> "Draft an email to john@example.com about the proposal"</span>
+                            </li>
+                            <li className="flex items-start gap-2">
+                              <svg className="w-5 h-5 text-green-600 mt-0.5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                              </svg>
+                              <span><strong>Send emails:</strong> "Send an email to jane@company.com about next steps"</span>
+                            </li>
+                            <li className="flex items-start gap-2">
+                              <svg className="w-5 h-5 text-green-600 mt-0.5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                              </svg>
+                              <span><strong>Schedule meetings:</strong> "Create a meeting with Sarah next Monday at 10am"</span>
+                            </li>
+                            <li className="flex items-start gap-2">
+                              <svg className="w-5 h-5 text-green-600 mt-0.5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                              </svg>
+                              <span><strong>Search emails:</strong> "Find recent emails from prospect@company.com"</span>
+                            </li>
+                            <li className="flex items-start gap-2">
+                              <svg className="w-5 h-5 text-green-600 mt-0.5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                              </svg>
+                              <span><strong>Sync calendar:</strong> Click the Sync button to refresh your calendar events</span>
+                            </li>
+                          </ul>
+                        </div>
+                        <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
+                          <p className="text-sm text-blue-900">
+                            <strong>Note:</strong> You cannot connect both Google and Microsoft email providers at the same time. Disconnect one to use the other.
+                          </p>
+                        </div>
+                      </div>
+                    )}
+                    
+                    {selectedIntegration === 'linkedin' && (
+                      <div className="space-y-6">
+                        <div>
+                          <h3 className="text-lg font-semibold text-gray-900 mb-2">How to Connect</h3>
+                          <ol className="list-decimal list-inside space-y-2 text-gray-700">
+                            <li>Install the Curiosity Engine Chrome Extension</li>
+                            <li>Navigate to any LinkedIn profile or company page</li>
+                            <li>Click the extension icon in your browser</li>
+                            <li>The extension will automatically analyze the profile</li>
+                          </ol>
+                        </div>
+                        <div>
+                          <h3 className="text-lg font-semibold text-gray-900 mb-2">Available Features</h3>
+                          <ul className="space-y-2 text-gray-700">
+                            <li className="flex items-start gap-2">
+                              <svg className="w-5 h-5 text-green-600 mt-0.5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                              </svg>
+                              <span><strong>Real-time profile analysis:</strong> Extract insights from LinkedIn profiles</span>
+                            </li>
+                            <li className="flex items-start gap-2">
+                              <svg className="w-5 h-5 text-green-600 mt-0.5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                              </svg>
+                              <span><strong>Company intelligence:</strong> Analyze company pages for buying signals</span>
+                            </li>
+                            <li className="flex items-start gap-2">
+                              <svg className="w-5 h-5 text-green-600 mt-0.5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                              </svg>
+                              <span><strong>Save to leads:</strong> Automatically save analyzed profiles to your Leads tab</span>
+                            </li>
+                            <li className="flex items-start gap-2">
+                              <svg className="w-5 h-5 text-green-600 mt-0.5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                              </svg>
+                              <span><strong>Personalized outreach:</strong> Get AI-powered recommendations for engagement</span>
+                            </li>
+                          </ul>
+                        </div>
+                      </div>
+                    )}
+                    
+                    {selectedIntegration === 'hubspot' && (
+                      <div className="space-y-6">
+                        <div>
+                          <h3 className="text-lg font-semibold text-gray-900 mb-2">Coming Soon</h3>
+                          <p className="text-gray-700">
+                            HubSpot integration is currently in development. Once available, you'll be able to:
+                          </p>
+                        </div>
+                        <div>
+                          <h3 className="text-lg font-semibold text-gray-900 mb-2">Planned Features</h3>
+                          <ul className="space-y-2 text-gray-700">
+                            <li className="flex items-start gap-2">
+                              <svg className="w-5 h-5 text-gray-400 mt-0.5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+                              </svg>
+                              <span>Sync contacts and deals automatically</span>
+                            </li>
+                            <li className="flex items-start gap-2">
+                              <svg className="w-5 h-5 text-gray-400 mt-0.5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+                              </svg>
+                              <span>AI-enriched lead scoring</span>
+                            </li>
+                            <li className="flex items-start gap-2">
+                              <svg className="w-5 h-5 text-gray-400 mt-0.5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+                              </svg>
+                              <span>Automated marketing sequences</span>
+                            </li>
+                          </ul>
+                        </div>
+                      </div>
+                    )}
+                  </div>
+                </div>
+              </div>
+            )}
           </div>
         )}
 

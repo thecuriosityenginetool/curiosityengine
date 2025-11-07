@@ -326,7 +326,9 @@ export async function POST(req: NextRequest) {
   const encoder = new TextEncoder();
   
   try {
+    console.log('🤖 [Chat API] Request received');
     const session = await auth();
+    console.log('🤖 [Chat API] Session check:', session ? 'Valid' : 'None');
     
     if (!session?.user?.email) {
       return new Response(
@@ -335,7 +337,9 @@ export async function POST(req: NextRequest) {
       );
     }
 
+    console.log('🤖 [Chat API] Parsing request body...');
     const { message, conversationHistory = [], userContext, calendarEvents = [], model } = await req.json();
+    console.log('🤖 [Chat API] Request parsed:', { hasMessage: !!message, eventsCount: calendarEvents.length });
 
     if (!message) {
       return new Response(
@@ -851,11 +855,13 @@ When the user mentions vague references like "latest prospect", "that person", "
     });
 
   } catch (error) {
-    console.error('Chat API error:', error);
+    console.error('❌ [Chat API] Fatal error:', error);
+    console.error('❌ [Chat API] Error stack:', error instanceof Error ? error.stack : 'No stack');
     return new Response(
       encoder.encode(JSON.stringify({
         error: 'Failed to process chat message',
-        details: error instanceof Error ? error.message : 'Unknown error'
+        details: error instanceof Error ? error.message : 'Unknown error',
+        stack: error instanceof Error ? error.stack : undefined
       })),
       {
         status: 500,

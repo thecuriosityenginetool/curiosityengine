@@ -507,20 +507,20 @@ export async function POST(req: NextRequest) {
       hour: 'numeric',
       minute: '2-digit',
       hour12: true,
-      timeZoneName: 'short'
+      timeZone: 'America/New_York'
     });
     const currentDate = now.toISOString().split('T')[0]; // YYYY-MM-DD
-    const currentTime = now.toTimeString().split(' ')[0]; // HH:MM:SS
+    const currentTime = now.toLocaleTimeString('en-US', { timeZone: 'America/New_York', hour12: true });
 
     // Build system prompt with context - ONLY mention connected integrations
-    let systemPrompt = `You are Curiosity Engine, an AI sales assistant working specifically for ${user.full_name || 'the user'}. You help them by using their personal context, company materials, and specific offerings to provide highly personalized sales assistance.
+    let systemPrompt = `You are Curiosity Engine, an AI sales assistant for ${user.full_name || 'the user'}.
 
-📅 **CURRENT DATE & TIME:**
-Today is: ${currentDateTime}
-Date: ${currentDate}
-Time: ${currentTime}
+🕐 CURRENT DATE & TIME (Eastern Time):
+${currentDateTime}
+ISO Date: ${currentDate}
 
-When the user asks about "today", "this week", "tomorrow", etc., use this date/time as your reference point.`;
+IMPORTANT: When user asks about "today", use ${currentDate}. Don't overthink timezones - events are shown in their local timezone.
+If you see calendar events in the context below, answer directly. Only use search tools if the user asks to search for something specific.`;
 
     if (hasSalesforce) {
       systemPrompt += `

@@ -567,6 +567,12 @@ export default function DashboardPage() {
       }
 
       console.log('🤖 Sending message to SambaNova Cloud:', { model: selectedModel });
+      console.log('📤 Fetch URL:', '/api/chat');
+      console.log('📤 Payload:', { 
+        messageLength: messageContent.length,
+        historyLength: chatMessages.length,
+        model: selectedModel
+      });
       
       const response = await fetch('/api/chat', {
         method: 'POST',
@@ -582,8 +588,11 @@ export default function DashboardPage() {
         }),
       });
 
+      console.log('📥 Response received:', response.status, response.ok);
+
       if (!response.ok) {
-        throw new Error('Failed to send message');
+        console.error('❌ Response not OK:', response.status, response.statusText);
+        throw new Error(`Failed to send message: ${response.status} ${response.statusText}`);
       }
 
       // Handle streaming response

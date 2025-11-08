@@ -1460,6 +1460,40 @@ Format with markdown for readability.`;
     }
   }
 
+  // Reset Salesforce credentials and connection
+  async function resetSalesforceConnection() {
+    if (!confirm('This will remove your Salesforce credentials and disconnect the integration. You will need to re-enter credentials and reconnect. Continue?')) {
+      return;
+    }
+
+    setSfCredentialsLoading(true);
+
+    try {
+      const response = await fetch('/api/salesforce/credentials', {
+        method: 'DELETE',
+        credentials: 'include',
+      });
+
+      if (response.ok) {
+        setSfCredentialsSaved(false);
+        setSfClientId('');
+        setSfClientSecret('');
+        setSfCredentialsMessage('✅ Connection reset. You can now enter new credentials.');
+        setHasSalesforceConnection(false);
+        // Refresh connections
+        await checkConnections();
+      } else {
+        const errorData = await response.json();
+        setSfCredentialsMessage('❌ ' + (errorData.error || 'Failed to reset connection'));
+      }
+    } catch (error) {
+      console.error('Error resetting connection:', error);
+      setSfCredentialsMessage('❌ Error resetting connection. Please try again.');
+    } finally {
+      setSfCredentialsLoading(false);
+    }
+  }
+
   // Organization-level Salesforce connection (for org admins)
   async function connectSalesforceOrg() {
     try {
@@ -3650,10 +3684,23 @@ The draft is now in your Outlook Drafts folder and ready to send.`);
                                 </div>
                                 
                                 {sfCredentialsSaved ? (
-                                  <div className="bg-green-50 border border-green-200 rounded-lg p-4">
-                                    <p className="text-sm text-green-800 font-medium">
-                                      ✅ Credentials saved! You can proceed to Step 2 below.
-                                    </p>
+                                  <div className="space-y-3">
+                                    <div className="bg-green-50 border border-green-200 rounded-lg p-4">
+                                      <p className="text-sm text-green-800 font-medium">
+                                        ✅ Credentials saved! You can proceed to Step 2 below.
+                                      </p>
+                                    </div>
+                                    <button
+                                      onClick={() => {
+                                        setSfCredentialsSaved(false);
+                                        setSfClientId('');
+                                        setSfClientSecret('');
+                                        setSfCredentialsMessage('');
+                                      }}
+                                      className="w-full bg-gray-100 text-gray-700 px-4 py-2 rounded-lg font-medium hover:bg-gray-200 transition-colors text-sm"
+                                    >
+                                      🔄 Edit / Replace Credentials
+                                    </button>
                                   </div>
                                 ) : (
                                   <div className="space-y-4">
@@ -3841,6 +3888,26 @@ The draft is now in your Outlook Drafts folder and ready to send.`);
                                   <li>Your credentials are encrypted and stored securely in our database</li>
                                 </ul>
                               </div>
+
+                              {/* Troubleshooting / Reset Section */}
+                              {(sfCredentialsSaved || hasSalesforceConnection) && (
+                                <div className="border-t border-gray-300 pt-6">
+                                  <h3 className="text-lg font-semibold text-gray-900 mb-3">🔧 Troubleshooting</h3>
+                                  <p className="text-sm text-gray-700 mb-3">
+                                    Having issues connecting? You can reset the entire Salesforce connection to start fresh.
+                                  </p>
+                                  <button
+                                    onClick={resetSalesforceConnection}
+                                    disabled={sfCredentialsLoading}
+                                    className="bg-red-50 text-red-700 px-4 py-2 rounded-lg font-medium hover:bg-red-100 transition-colors border border-red-200 text-sm disabled:opacity-50"
+                                  >
+                                    🔄 Reset Connection & Clear Credentials
+                                  </button>
+                                  <p className="text-xs text-gray-500 mt-2">
+                                    This will remove all saved credentials and disconnect Salesforce. Use this if you need to enter different credentials or troubleshoot connection issues.
+                                  </p>
+                                </div>
+                              )}
                             </div>
                           )}
                         </div>

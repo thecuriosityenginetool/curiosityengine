@@ -191,3 +191,73 @@ export async function GET(req: NextRequest) {
   }
 }
 
+/**
+ * Delete organization Salesforce credentials and connection
+ * DELETE /api/salesforce/credentials
+ */
+export async function DELETE(req: NextRequest) {
+  const supabase = getSupabaseAdmin();
+  
+  try {
+    // Get user from NextAuth session
+    const session = await auth();
+    
+    if (!session?.user?.email) {
+      return NextResponse.json(
+        { error: 'Unauthorized' },
+        { status: 401 }
+      );
+    }
+
+    // Get user data
+    const { data: user } = await supabase
+      .from('users')
+      .select('id, organization_id, role')
+      .eq('email', session.user.email)
+      .single();
+
+    if (!user) {
+      return NextResponse.json(
+        { error: 'User not found' },
+        { status: 404 }
+      );
+    }
+
+    // Check if user has permission
+    if (!['org_admin', 'super_admin'].includes(user.role)) {
+      return NextResponse.json(
+        { error: 'Only organization admins can reset Salesforce credentials' },
+        { status: 403 }
+      );
+    }
+
+    console.log('🟪 [Salesforce Credentials] Resetting connection for org:', user.organization_id);
+
+    // Delete the integration record completely
+    const { error: deleteError } = await supabase
+      .from('organization_integrations')
+      .delete()
+      .eq('organization_id', user.organization_id)
+      .eq('integration_type', 'salesforce');
+
+    if (deleteError) {
+      console.error('❌ [Salesforce Credentials] Delete error:', deleteError);
+      throw deleteError;
+    }
+
+    console.log('✅ [Salesforce Credentials] Connection reset successfully');
+
+    return NextResponse.json({
+      ok: true,
+      message: 'Salesforce connection reset. You can now enter new credentials.',
+    });
+
+  } catch (error) {
+    console.error('❌ [Salesforce Credentials] DELETE error:', error);
+    return NextResponse.json(
+      { error: 'Failed to reset connection' },
+      { status: 500 }
+    );
+  }
+}
+

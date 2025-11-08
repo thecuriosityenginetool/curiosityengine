@@ -186,12 +186,17 @@ async function toolsNode(state: typeof AgentState.State) {
  * Router Function - Decides whether to continue to tools or end
  */
 function shouldContinue(state: typeof AgentState.State): string {
-  const { messages } = state;
+  const { messages, toolsExecuted } = state;
   const lastMessage = messages[messages.length - 1];
   
-  // If the last message has tool calls, go to tool executor node
-  if ('tool_calls' in lastMessage && lastMessage.tool_calls && lastMessage.tool_calls.length > 0) {
-    console.log('→ [Router] Routing to tool executor node');
+  console.log('🔀 [Router] Checking last message:', lastMessage.constructor.name);
+  console.log('🔀 [Router] Tools already executed:', toolsExecuted);
+  console.log('🔀 [Router] Has tool_calls property:', 'tool_calls' in lastMessage);
+  console.log('🔀 [Router] tool_calls value:', (lastMessage as any).tool_calls);
+  
+  // If the last message has tool calls AND we haven't executed tools yet, go to tool executor
+  if ('tool_calls' in lastMessage && (lastMessage as any).tool_calls && (lastMessage as any).tool_calls.length > 0 && !toolsExecuted) {
+    console.log('→ [Router] Routing to tool executor node (found', (lastMessage as any).tool_calls.length, 'tool calls)');
     return 'execute_tools';
   }
   

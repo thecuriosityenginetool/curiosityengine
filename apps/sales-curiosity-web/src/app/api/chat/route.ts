@@ -715,6 +715,7 @@ When the user mentions vague references like "latest prospect", "that person", "
           await invokeAgent(
             langchainMessages,
             langchainTools,
+            actualModel, // Pass the resolved model name (not "auto")
             model, // Pass original user selection for fallback logic
             (event) => {
               // Stream events to frontend in SSE format

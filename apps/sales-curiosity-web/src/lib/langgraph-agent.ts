@@ -12,7 +12,7 @@ import { StateGraph, END, START, Annotation } from '@langchain/langgraph';
 import { BaseMessage, HumanMessage, AIMessage, SystemMessage, ToolMessage } from '@langchain/core/messages';
 import { ChatOpenAI } from '@langchain/openai';
 import { DynamicStructuredTool } from '@langchain/core/tools';
-import { selectModel, getFallbackModel } from './model-router';
+import { getFallbackModel } from './model-router';
 
 /**
  * Agent State Definition
@@ -49,14 +49,10 @@ const AgentState = Annotation.Root({
  * Agent Node - Main reasoning node that calls the LLM
  */
 async function agentNode(state: typeof AgentState.State) {
-  const { messages, userSelectedModel, retryCount, tools, timeout } = state;
+  const { messages, userSelectedModel, retryCount, tools, timeout, modelUsed } = state;
   
-  // Get the last message (user's input)
-  const lastMessage = messages[messages.length - 1];
-  const userMessage = lastMessage instanceof HumanMessage ? lastMessage.content as string : '';
-  
-  // Select model based on user preference and message content
-  let selectedModel = selectModel(userMessage, userSelectedModel);
+  // Use the model that was already selected (from state)
+  let selectedModel = modelUsed;
   
   // If timeout occurred, try fallback model
   if (timeout && retryCount < 2) {
@@ -196,13 +192,15 @@ export function createAgentGraph(tools: DynamicStructuredTool[]) {
  * 
  * @param messages - Conversation history
  * @param tools - Available tools for the agent
- * @param userSelectedModel - User's manual model selection (or 'auto')
+ * @param selectedModel - The resolved model name to use (e.g., "Llama-3.3-70B-Instruct")
+ * @param originalUserSelection - Original user's model selection (for fallback logic, e.g., "auto")
  * @param onStream - Callback for streaming events
  */
 export async function invokeAgent(
   messages: BaseMessage[],
   tools: DynamicStructuredTool[],
-  userSelectedModel: string | null,
+  selectedModel: string,
+  originalUserSelection: string | null,
   onStream?: (event: {
     type: 'content' | 'tool_start' | 'tool_result' | 'thinking' | 'done' | 'error';
     content?: string;
@@ -214,16 +212,17 @@ export async function invokeAgent(
   const graph = createAgentGraph(tools);
   
   console.log('🚀 [Agent] Starting invocation with', tools.length, 'tools');
+  console.log('🎯 [Agent] Using model:', selectedModel, '(original selection:', originalUserSelection, ')');
   
   try {
     // Create initial state
     const initialState = {
       messages,
       tools,
-      userSelectedModel,
+      userSelectedModel: originalUserSelection, // Keep original for fallback logic
       retryCount: 0,
       timeout: false,
-      modelUsed: '',
+      modelUsed: selectedModel, // Use the resolved model name directly
     };
     
     // Stream the graph execution

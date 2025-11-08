@@ -33,7 +33,7 @@ import {
 import { matchCalendarEventsToSalesforce, buildCalendarContext } from '@/lib/calendar-matcher';
 
 // LangGraph imports
-import { HumanMessage, SystemMessage } from '@langchain/core/messages';
+import { HumanMessage, SystemMessage, AIMessage } from '@langchain/core/messages';
 import { createAgentTools } from '@/lib/langgraph-tools';
 import { invokeAgent } from '@/lib/langgraph-agent';
 import { selectModel } from '@/lib/model-router';
@@ -707,9 +707,15 @@ When the user mentions vague references like "latest prospect", "that person", "
     // Build LangChain messages from conversation history
     const langchainMessages = [
       new SystemMessage(systemPrompt),
-      ...conversationHistory.map((msg: any) => 
-        msg.role === 'user' ? new HumanMessage(msg.content) : new SystemMessage(msg.content)
-      ),
+      ...conversationHistory.map((msg: any) => {
+        if (msg.role === 'user') {
+          return new HumanMessage(msg.content);
+        } else if (msg.role === 'assistant') {
+          return new AIMessage(msg.content);
+        } else {
+          return new SystemMessage(msg.content);
+        }
+      }),
       new HumanMessage(message),
     ];
 
@@ -735,54 +741,71 @@ When the user mentions vague references like "latest prospect", "that person", "
 
           // Invoke LangGraph agent with streaming
           console.log('🚀 [Chat API] Invoking LangGraph agent with model:', actualModel);
+          console.log('🚀 [Chat API] Tools available:', langchainTools.map(t => t.name));
           
-          await invokeAgent(
-            langchainMessages,
-            langchainTools,
-            actualModel, // Pass the resolved model name (not "auto")
-            model, // Pass original user selection for fallback logic
-            (event) => {
-              // Stream events to frontend in SSE format
-              try {
-                if (event.type === 'content') {
-                  controller.enqueue(
-                    encoder.encode(`data: ${JSON.stringify({
-                      type: 'content',
-                      content: event.content,
-                      model: event.model
-                    })}\n\n`)
-                  );
-                } else if (event.type === 'tool_start') {
-                  controller.enqueue(
-                    encoder.encode(`data: ${JSON.stringify({
-                      type: 'tool_start',
-                      tool: event.tool
-                    })}\n\n`)
-                  );
-                } else if (event.type === 'tool_result') {
-                  controller.enqueue(
-                    encoder.encode(`data: ${JSON.stringify({
-                      type: 'tool_result',
-                      result: event.result
-                    })}\n\n`)
-                  );
-                } else if (event.type === 'done') {
-                  controller.enqueue(
-                    encoder.encode(`data: ${JSON.stringify({ type: 'done' })}\n\n`)
-                  );
-                } else if (event.type === 'error') {
-                  controller.enqueue(
-                    encoder.encode(`data: ${JSON.stringify({
-                      type: 'error',
-                      error: event.content
-                    })}\n\n`)
-                  );
+          try {
+            await invokeAgent(
+              langchainMessages,
+              langchainTools,
+              actualModel, // Pass the resolved model name (not "auto")
+              model, // Pass original user selection for fallback logic
+              (event) => {
+                // Stream events to frontend in SSE format
+                try {
+                  console.log('📡 [Chat API] Streaming event:', event.type);
+                  
+                  if (event.type === 'content') {
+                    controller.enqueue(
+                      encoder.encode(`data: ${JSON.stringify({
+                        type: 'content',
+                        content: event.content,
+                        model: event.model
+                      })}\n\n`)
+                    );
+                  } else if (event.type === 'tool_start') {
+                    controller.enqueue(
+                      encoder.encode(`data: ${JSON.stringify({
+                        type: 'tool_start',
+                        tool: event.tool
+                      })}\n\n`)
+                    );
+                  } else if (event.type === 'tool_result') {
+                    controller.enqueue(
+                      encoder.encode(`data: ${JSON.stringify({
+                        type: 'tool_result',
+                        result: event.result
+                      })}\n\n`)
+                    );
+                  } else if (event.type === 'done') {
+                    console.log('✅ [Chat API] Agent completed successfully');
+                    controller.enqueue(
+                      encoder.encode(`data: ${JSON.stringify({ type: 'done' })}\n\n`)
+                    );
+                  } else if (event.type === 'error') {
+                    console.error('❌ [Chat API] Agent error event:', event.content);
+                    controller.enqueue(
+                      encoder.encode(`data: ${JSON.stringify({
+                        type: 'error',
+                        error: event.content
+                      })}\n\n`)
+                    );
+                  }
+                } catch (streamError) {
+                  console.error('❌ [Chat API] Error encoding stream event:', streamError);
                 }
-              } catch (streamError) {
-                console.error('Error encoding stream event:', streamError);
               }
-            }
-          );
+            );
+            
+            console.log('✅ [Chat API] Agent invocation completed');
+          } catch (agentError) {
+            console.error('❌ [Chat API] Agent invocation failed:', agentError);
+            controller.enqueue(
+              encoder.encode(`data: ${JSON.stringify({
+                type: 'error',
+                error: agentError instanceof Error ? agentError.message : 'Agent execution failed'
+              })}\n\n`)
+            );
+          }
 
           controller.close();
         } catch (error) {

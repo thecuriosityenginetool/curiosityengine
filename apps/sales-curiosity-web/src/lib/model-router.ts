@@ -37,7 +37,7 @@ const REASONING_KEYWORDS = [
  * Detect if a message needs tool-based processing (function calling)
  * Returns true if message is tool-heavy, false if reasoning-heavy
  */
-function isToolBasedRequest(message: string): boolean {
+export function isToolBasedRequest(message: string): boolean {
   const lowerMessage = message.toLowerCase();
   
   // Short greetings/simple messages don't need tools

@@ -36,7 +36,7 @@ import { matchCalendarEventsToSalesforce, buildCalendarContext } from '@/lib/cal
 import { HumanMessage, SystemMessage, AIMessage } from '@langchain/core/messages';
 import { createAgentTools } from '@/lib/langgraph-tools';
 import { invokeAgent } from '@/lib/langgraph-agent';
-import { selectModel } from '@/lib/model-router';
+import { selectModel, isToolBasedRequest } from '@/lib/model-router';
 
 const supabase = createClient(
   process.env.NEXT_PUBLIC_SUPABASE_URL!,
@@ -700,7 +700,6 @@ When the user mentions vague references like "latest prospect", "that person", "
     console.log('🔀 [Chat API] LangGraph enabled:', useLangGraph);
     
     // Detect if this specific message needs tools (not just if tools exist)
-    const { isToolBasedRequest } = await import('@/lib/model-router');
     const messageNeedsTools = isToolBasedRequest(message);
     console.log('🔍 [Chat API] Message needs tools:', messageNeedsTools);
 

@@ -422,7 +422,7 @@ export default function Home() {
     return (
       <main className="min-h-screen bg-white">
         {/* Hero Section */}
-        <section className="relative isolate overflow-hidden bg-gradient-to-b from-[#F95B14]/10 via-white to-white h-screen flex flex-col">
+        <section className="relative isolate overflow-hidden bg-gradient-to-b from-[#F95B14]/10 via-white to-white min-h-screen flex flex-col">
           {/* Mouse-tracking gradient overlay */}
           <div className="absolute inset-0 pointer-events-none">
             <div 
@@ -435,7 +435,7 @@ export default function Home() {
             />
           </div>
 
-          <div className="relative mx-auto max-w-7xl px-6 flex-1 flex flex-col justify-center py-16">
+          <div className="relative mx-auto max-w-7xl px-6 flex-1 flex flex-col justify-center py-8 sm:py-16">
             <div className="mx-auto max-w-4xl text-center">
               {/* Logo with hover animation */}
               <div className="mb-8 flex justify-center group animate-fade-in-up" style={{animationDelay: '0.1s'}}>
@@ -466,14 +466,14 @@ export default function Home() {
               </p>
 
               {/* Get started text */}
-              <p className="text-base text-gray-600 mb-8 animate-fade-in-up" style={{animationDelay: '0.5s'}}>Get started in seconds:</p>
+              <p className="text-base text-gray-600 mb-6 animate-fade-in-up" style={{animationDelay: '0.5s'}}>Get started in seconds:</p>
 
               {/* CTA Buttons matching the image */}
-              <div className="flex flex-col sm:flex-row gap-4 justify-center items-center mb-10 animate-fade-in-up" style={{animationDelay: '0.6s'}}>
+              <div className="flex flex-col sm:flex-row gap-4 justify-center items-center mb-12 pb-8 animate-fade-in-up" style={{animationDelay: '0.6s'}}>
                 {/* Gmail Button */}
                 <Link 
                   href="/signup?integration=gmail"
-                  className="flex items-center gap-3 px-6 py-3 bg-white border border-gray-200 rounded-lg hover:shadow-md transition-all duration-300 hover:scale-105 relative z-10"
+                  className="flex items-center gap-3 px-6 py-3 bg-white border border-gray-200 rounded-lg hover:shadow-md transition-all duration-300 hover:scale-105 relative z-10 w-full sm:w-auto max-w-[200px]"
                 >
                   <Image 
                     src="/Gmail Icon.svg" 
@@ -488,7 +488,7 @@ export default function Home() {
                 {/* Outlook Button */}
                 <Link 
                   href="/signup?integration=outlook"
-                  className="flex items-center gap-3 px-6 py-3 bg-white border border-gray-200 text-gray-800 rounded-lg hover:shadow-md transition-all duration-300 hover:scale-105 relative z-10"
+                  className="flex items-center gap-3 px-6 py-3 bg-white border border-gray-200 text-gray-800 rounded-lg hover:shadow-md transition-all duration-300 hover:scale-105 relative z-10 w-full sm:w-auto max-w-[200px]"
                 >
                   <Image 
                     src="/Outlook_icon.svg" 

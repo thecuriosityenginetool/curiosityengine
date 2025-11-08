@@ -655,17 +655,23 @@ export default function DashboardPage() {
                   // Save final assistant message with parsed thinking
                   if (currentChatId && accumulatedContent) {
                     const { thinking, final } = parseThinkingTags(accumulatedContent);
+                    // Combine agent steps with AI reasoning for full thinking context
+                    const fullThinking = agentSteps + (agentSteps && thinking ? '\n---\n\n**AI Reasoning:**\n' + thinking : thinking);
+                    
                     await fetch(`/api/chats/${currentChatId}/messages`, {
                       method: 'POST',
                       headers: { 'Content-Type': 'application/json' },
                       body: JSON.stringify({
                         role: 'assistant',
                         content: final,
-                        thinking: thinking,
+                        thinking: fullThinking,
                         model: selectedModel
                       }),
                     });
                     console.log('💾 Saved assistant message to chat:', currentChatId);
+                    
+                    // Reload chat history to ensure saved messages appear in sidebar
+                    loadChatHistory();
                   }
                 } else if (parsed.type === 'error') {
                   accumulatedContent += `\n\n❌ Error: ${parsed.error}`;

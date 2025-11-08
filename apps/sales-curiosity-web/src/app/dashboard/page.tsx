@@ -703,7 +703,16 @@ export default function DashboardPage() {
   }
 
   async function connectToSalesforce() {
-    connectSalesforce(); // Use the function we created
+    // Smart connection: org admins connect at org-level, others at user-level
+    const isOrgAdmin = userData?.role === 'org_admin' || userData?.role === 'super_admin';
+    
+    if (isOrgAdmin) {
+      console.log('🟣 Admin user detected - connecting at organization level');
+      connectSalesforceOrg();
+    } else {
+      console.log('🟣 Regular user - connecting at user level');
+      connectSalesforce();
+    }
   }
 
   async function connectToGmail() {
@@ -1380,6 +1389,41 @@ Format with markdown for readability.`;
     }
   }
 
+  // Organization-level Salesforce connection (for org admins)
+  async function connectSalesforceOrg() {
+    try {
+      console.log('🟣 Connecting organization-level Salesforce...');
+      
+      const response = await fetch('/api/salesforce/auth', {
+        method: 'GET',
+        credentials: 'include',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+      });
+      
+      if (response.ok) {
+        const data = await response.json();
+        
+        if (data.authUrl) {
+          console.log('🟣 Redirecting to Salesforce authorization...');
+          window.location.href = data.authUrl;
+        } else {
+          console.error('❌ No authUrl in response:', data);
+          alert('Failed to get Salesforce authorization URL.');
+        }
+      } else {
+        const errorData = await response.json();
+        console.error('❌ Salesforce auth error:', errorData);
+        alert(errorData.error || 'Failed to initiate Salesforce connection.');
+      }
+    } catch (error) {
+      console.error('❌ Exception connecting to Salesforce:', error);
+      alert('Error connecting to Salesforce. Please try again.');
+    }
+  }
+
+  // User-level Salesforce connection (for individual users)
   async function connectSalesforce() {
     try {
       console.log('🟣 Step 1: Connecting to Salesforce...');
@@ -3468,37 +3512,37 @@ The draft is now in your Outlook Drafts folder and ready to send.`);
                           {/* User Connect Tab */}
                           {salesforceHelpTab === 'user' && (
                             <div className="space-y-6">
+                              <div className="bg-purple-50 border border-purple-200 rounded-lg p-4">
+                                <h4 className="font-semibold text-purple-900 mb-2">User-Level Connection</h4>
+                                <p className="text-sm text-purple-800">
+                                  Connect your personal Salesforce account. This is useful if you have your own Salesforce instance
+                                  or want to use different CRM data than your organization's shared connection.
+                                </p>
+                              </div>
+
                               <div>
                                 <h3 className="text-lg font-semibold text-gray-900 mb-3">How to Connect Your Salesforce</h3>
                                 <ol className="list-decimal list-inside space-y-3 text-gray-700">
                                   <li className="pl-2">
-                                    <span className="font-medium">Click the "Connect" button</span> on the Salesforce card in the Connectors page
+                                    <span className="font-medium">Click the "Connect" button</span> on the Salesforce card above
                                   </li>
                                   <li className="pl-2">
-                                    <span className="font-medium">Sign in to your Salesforce account</span> when redirected
+                                    <span className="font-medium">Sign in to your Salesforce account</span> (can be any Salesforce org)
                                   </li>
                                   <li className="pl-2">
-                                    <span className="font-medium">Grant Curiosity Engine access</span> to your CRM data (read contacts, leads, opportunities)
+                                    <span className="font-medium">Grant Curiosity Engine access</span> to your CRM data
                                   </li>
                                   <li className="pl-2">
                                     <span className="font-medium">You'll be redirected back</span> to the dashboard with a success message
                                   </li>
                                 </ol>
                               </div>
-                              
-                              <div className="bg-green-50 border border-green-200 rounded-lg p-4">
-                                <h4 className="font-semibold text-green-900 mb-2">✓ What happens after connecting:</h4>
-                                <ul className="space-y-1 text-sm text-green-800">
-                                  <li>• AI can search your Salesforce contacts and leads</li>
-                                  <li>• Check if LinkedIn profiles exist in your CRM</li>
-                                  <li>• Get AI emails tailored as "follow-up" or "cold outreach"</li>
-                                  <li>• Auto-create contacts and leads from conversations</li>
-                                </ul>
-                              </div>
 
-                              <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
-                                <p className="text-sm text-blue-900">
-                                  <strong>Note:</strong> This is a user-level connection. Each team member connects their own Salesforce account for personalized access to their data.
+                              <div className="bg-gray-50 border border-gray-200 rounded-lg p-4">
+                                <h4 className="font-semibold text-gray-900 mb-2">Note</h4>
+                                <p className="text-sm text-gray-700">
+                                  Your personal connection takes priority over any organization-level connection. 
+                                  This means you'll always use YOUR Salesforce data when drafting emails.
                                 </p>
                               </div>
                             </div>
@@ -3507,276 +3551,107 @@ The draft is now in your Outlook Drafts folder and ready to send.`);
                           {/* Connect Org Tab */}
                           {salesforceHelpTab === 'org' && (
                             <div className="space-y-6">
-                              <div className="bg-orange-50 border border-orange-200 rounded-lg p-4">
-                                <p className="text-sm text-orange-900">
-                                  <strong>Admin Setup:</strong> This guide is for organization administrators with Salesforce admin access. Regular users should use the "User Connect" tab.
+                              <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
+                                <h4 className="font-semibold text-blue-900 mb-2">Organization-Level Connection</h4>
+                                <p className="text-sm text-blue-800">
+                                  Connect your Salesforce org once, and all team members will have access to CRM data.
+                                  This is recommended for teams sharing a single Salesforce instance.
                                 </p>
                               </div>
 
                               <div>
-                                <h3 className="text-lg font-semibold text-gray-900 mb-3">Step 1: Access Salesforce Setup</h3>
-                                <ol className="list-decimal list-inside space-y-2 text-gray-700 text-sm">
-                                  <li className="pl-2">Log in to your Salesforce account at <code className="bg-gray-100 px-2 py-0.5 rounded text-xs">login.salesforce.com</code></li>
-                                  <li className="pl-2">Click the ⚙️ <strong>Setup</strong> icon (gear icon in top right)</li>
-                                  <li className="pl-2">In the Quick Find search box, type <strong>"App Manager"</strong></li>
-                                  <li className="pl-2">Click <strong>New Connected App</strong> button</li>
-                                </ol>
+                                <h3 className="text-lg font-semibold text-gray-900 mb-3">Prerequisites</h3>
+                                <ul className="list-disc list-inside space-y-2 text-gray-700 text-sm">
+                                  <li>You must be a Salesforce administrator in your Salesforce org</li>
+                                  <li>You must have Organization Admin role in Curiosity Engine</li>
+                                  <li>Your Salesforce account must have permission to authorize third-party apps</li>
+                                </ul>
                               </div>
 
                               <div>
-                                <h3 className="text-lg font-semibold text-gray-900 mb-3">Step 2: Fill Out Basic Information</h3>
-                                <div className="bg-gray-50 border border-gray-200 rounded-lg p-4 space-y-3 text-sm">
-                                  <div className="grid grid-cols-2 gap-4">
-                                    <div>
-                                      <div className="font-semibold text-gray-900 mb-1">External Client App Name *</div>
-                                      <div className="bg-white px-3 py-2 rounded border border-gray-300 font-mono text-gray-700">
-                                        Sales Curiosity Engine
-                                      </div>
-                                    </div>
-                                    
-                                    <div>
-                                      <div className="font-semibold text-gray-900 mb-1">API Name *</div>
-                                      <div className="bg-white px-3 py-2 rounded border border-gray-300 font-mono text-gray-700">
-                                        Sales_Curiosity_Engine
-                                      </div>
-                                      <p className="text-xs text-gray-500 mt-1">(Auto-filled)</p>
-                                    </div>
-                                  </div>
-
-                                  <div className="grid grid-cols-2 gap-4">
-                                    <div>
-                                      <div className="font-semibold text-gray-900 mb-1">Contact Email *</div>
-                                      <div className="bg-white px-3 py-2 rounded border border-gray-300 text-gray-700">
-                                        hello@curiosityengine.io
-                                      </div>
-                                    </div>
-                                    
-                                    <div>
-                                      <div className="font-semibold text-gray-900 mb-1">Distribution State *</div>
-                                      <div className="bg-white px-3 py-2 rounded border border-gray-300 text-gray-700">
-                                        Packaged
-                                      </div>
-                                    </div>
-                                  </div>
-
-                                  <div className="grid grid-cols-2 gap-4">
-                                    <div>
-                                      <div className="font-semibold text-gray-900 mb-1">Contact Phone</div>
-                                      <div className="bg-white px-3 py-2 rounded border border-gray-300 text-gray-500 text-xs">
-                                        (Optional)
-                                      </div>
-                                    </div>
-                                    
-                                    <div>
-                                      <div className="font-semibold text-gray-900 mb-1">Info URL</div>
-                                      <div className="bg-white px-3 py-2 rounded border border-gray-300 text-gray-500 text-xs">
-                                        (Optional)
-                                      </div>
-                                    </div>
-                                  </div>
-
-                                  <div className="grid grid-cols-2 gap-4">
-                                    <div>
-                                      <div className="font-semibold text-gray-900 mb-1">Logo Image URL</div>
-                                      <div className="bg-white px-3 py-2 rounded border border-gray-300 text-gray-500 text-xs">
-                                        (Optional)
-                                      </div>
-                                    </div>
-                                    
-                                    <div>
-                                      <div className="font-semibold text-gray-900 mb-1">Icon URL</div>
-                                      <div className="bg-white px-3 py-2 rounded border border-gray-300 text-gray-500 text-xs">
-                                        (Optional)
-                                      </div>
-                                    </div>
-                                  </div>
-
-                                  <div>
-                                    <div className="font-semibold text-gray-900 mb-1">Description</div>
-                                    <div className="bg-white px-3 py-2 rounded border border-gray-300 text-gray-500 text-xs">
-                                      (Optional - Leave blank)
-                                    </div>
-                                  </div>
-                                </div>
-                              </div>
-
-                              <div>
-                                <h3 className="text-lg font-semibold text-gray-900 mb-3">Step 3: Configure OAuth Settings</h3>
-                                <div className="bg-gray-50 border border-gray-200 rounded-lg p-4 space-y-4 text-sm">
-                                  <div>
-                                    <div className="font-semibold text-gray-900 mb-2">☑️ Enable OAuth Settings</div>
-                                    <p className="text-gray-600 text-xs">Check this box to reveal OAuth configuration options below</p>
-                                  </div>
-
-                                  <div>
-                                    <div className="font-semibold text-gray-900 mb-2">Callback URL *</div>
-                                    <p className="text-gray-600 text-xs mb-2">Enter this exact URL:</p>
-                                    <div className="bg-white px-3 py-2 rounded border border-gray-300 font-mono text-xs text-gray-900">
-                                      https://www.curiosityengine.io/api/salesforce/user-callback
-                                    </div>
-                                    <p className="text-xs text-gray-500 mt-1">For local testing, also add on a new line:</p>
-                                    <div className="bg-white px-3 py-2 rounded border border-gray-300 font-mono text-xs text-gray-700 mt-1">
-                                      http://localhost:3000/api/salesforce/user-callback
-                                    </div>
-                                  </div>
-
-                                  <div>
-                                    <div className="font-semibold text-gray-900 mb-2">Selected OAuth Scopes *</div>
-                                    <p className="text-gray-600 text-xs mb-2">Move these scopes from "Available" to "Selected" using the arrow buttons:</p>
-                                    <div className="space-y-1 text-xs">
-                                      <div className="flex items-center gap-2">
-                                        <svg className="w-4 h-4 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
-                                        </svg>
-                                        <span>Access the identity URL service (id, profile, email, address, phone)</span>
-                                      </div>
-                                      <div className="flex items-center gap-2">
-                                        <svg className="w-4 h-4 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
-                                        </svg>
-                                        <span>Manage user data via APIs (api)</span>
-                                      </div>
-                                      <div className="flex items-center gap-2">
-                                        <svg className="w-4 h-4 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
-                                        </svg>
-                                        <span>Perform requests at any time (refresh_token, offline_access)</span>
-                                      </div>
-                                    </div>
-                                  </div>
-
-                                  <div className="border-t border-gray-300 pt-4 mt-4">
-                                    <div className="font-semibold text-gray-900 mb-3">Flow Enablement</div>
-                                    <p className="text-gray-600 text-xs mb-2">Leave all checkboxes unchecked (default settings are fine)</p>
-                                  </div>
-
-                                  <div className="border-t border-gray-300 pt-4">
-                                    <div className="font-semibold text-gray-900 mb-3">Security</div>
-                                    <p className="text-gray-600 text-xs mb-2">Check these boxes:</p>
-                                    <div className="space-y-2 text-xs">
-                                      <div className="flex items-center gap-2">
-                                        <div className="w-4 h-4 border-2 border-green-600 bg-green-100 rounded flex items-center justify-center">
-                                          <svg className="w-3 h-3 text-green-700" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M5 13l4 4L19 7" />
-                                          </svg>
-                                        </div>
-                                        <span className="font-medium">☑️ Require Secret for Web Server Flow</span>
-                                      </div>
-                                      <div className="flex items-center gap-2">
-                                        <div className="w-4 h-4 border-2 border-green-600 bg-green-100 rounded flex items-center justify-center">
-                                          <svg className="w-3 h-3 text-green-700" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M5 13l4 4L19 7" />
-                                          </svg>
-                                        </div>
-                                        <span className="font-medium">☑️ Require Secret for Refresh Token Flow</span>
-                                      </div>
-                                      <div className="flex items-center gap-2">
-                                        <div className="w-4 h-4 border-2 border-green-600 bg-green-100 rounded flex items-center justify-center">
-                                          <svg className="w-3 h-3 text-green-700" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M5 13l4 4L19 7" />
-                                          </svg>
-                                        </div>
-                                        <span className="font-medium">☑️ Require Proof Key for Code Exchange (PKCE)</span>
-                                      </div>
-                                      <div className="mt-2 text-xs text-gray-500">
-                                        Leave "Enable Refresh Token Rotation" and "JWT" unchecked
-                                      </div>
-                                    </div>
-                                  </div>
-                                </div>
-                              </div>
-
-                              <div>
-                                <h3 className="text-lg font-semibold text-gray-900 mb-3">Step 4: Save & Get Credentials</h3>
+                                <h3 className="text-lg font-semibold text-gray-900 mb-3">How to Connect</h3>
                                 <ol className="list-decimal list-inside space-y-3 text-gray-700 text-sm">
-                                  <li className="pl-2">Scroll to the bottom and click <strong>Save</strong></li>
-                                  <li className="pl-2">Wait for the page to load, then click <strong>Continue</strong></li>
                                   <li className="pl-2">
-                                    On the app details page, you'll see:
-                                    <div className="mt-2 bg-gray-50 border border-gray-200 rounded p-3 space-y-2">
-                                      <div>
-                                        <div className="text-xs text-gray-600">Consumer Key</div>
-                                        <div className="font-mono text-xs bg-white px-2 py-1 rounded border border-gray-300 mt-1">
-                                          [Long string starting with 3MVG...]
-                                        </div>
-                                        <p className="text-xs text-gray-500 mt-1">→ Copy this entire key and save it</p>
-                                      </div>
+                                    Click the <strong>"Connect"</strong> button on the Salesforce CRM card above
+                                  </li>
+                                  <li className="pl-2">
+                                    You'll be redirected to Salesforce login page
+                                  </li>
+                                  <li className="pl-2">
+                                    Sign in with your <strong>Salesforce administrator credentials</strong>
+                                  </li>
+                                  <li className="pl-2">
+                                    Review the permissions Curiosity Engine is requesting:
+                                    <div className="mt-2 bg-gray-50 border border-gray-200 rounded p-3 space-y-1 text-xs">
+                                      <div>• Access and manage your data (api)</div>
+                                      <div>• Perform requests on your behalf at any time (refresh_token)</div>
+                                      <div>• Access identity URL service (id, profile, email)</div>
                                     </div>
                                   </li>
                                   <li className="pl-2">
-                                    Click <strong>"Click to reveal"</strong> next to Consumer Secret, or click <strong>"Manage Consumer Details"</strong>
-                                    <div className="mt-2 bg-gray-50 border border-gray-200 rounded p-3">
-                                      <div className="text-xs text-gray-600">Consumer Secret</div>
-                                      <div className="font-mono text-xs bg-white px-2 py-1 rounded border border-gray-300 mt-1">
-                                        [Long string - will be hidden initially]
-                                      </div>
-                                      <p className="text-xs text-gray-500 mt-1">→ Copy this secret and save it securely</p>
-                                    </div>
+                                    Click <strong>"Allow"</strong> to authorize Curiosity Engine
+                                  </li>
+                                  <li className="pl-2">
+                                    You'll be redirected back to this dashboard with a success message
                                   </li>
                                 </ol>
                               </div>
 
                               <div>
-                                <h3 className="text-lg font-semibold text-gray-900 mb-3">Step 5: Configure App Policies (Important!)</h3>
+                                <h3 className="text-lg font-semibold text-gray-900 mb-3">What Happens After Connection</h3>
+                                <ul className="list-disc list-inside space-y-2 text-gray-700 text-sm">
+                                  <li>All team members can use Salesforce CRM data in AI email drafting</li>
+                                  <li>System will check if LinkedIn prospects exist in your Salesforce</li>
+                                  <li>New contacts will be automatically created in your Salesforce</li>
+                                  <li>AI emails will be tailored based on CRM context (follow-up vs cold outreach)</li>
+                                </ul>
+                              </div>
+
+                              <div>
+                                <h3 className="text-lg font-semibold text-gray-900 mb-3">Managing Permissions in Salesforce</h3>
+                                <p className="text-gray-700 text-sm mb-3">
+                                  After connecting, you can control which Salesforce users can authorize Curiosity Engine:
+                                </p>
                                 <ol className="list-decimal list-inside space-y-2 text-gray-700 text-sm">
-                                  <li className="pl-2">Go back to <strong>Setup</strong> → <strong>App Manager</strong></li>
-                                  <li className="pl-2">Find "Sales Curiosity Engine" → Click dropdown ▼ → <strong>Manage</strong></li>
-                                  <li className="pl-2">Click <strong>Edit Policies</strong> button</li>
                                   <li className="pl-2">
-                                    Set these critical settings:
+                                    In Salesforce, go to <strong>Setup</strong> → Search for <strong>"Connected Apps"</strong>
+                                  </li>
+                                  <li className="pl-2">
+                                    Find <strong>"Sales Curiosity Engine"</strong> in the list
+                                  </li>
+                                  <li className="pl-2">
+                                    Click <strong>Manage</strong> → <strong>Edit Policies</strong>
+                                  </li>
+                                  <li className="pl-2">
+                                    Under <strong>"Permitted Users"</strong>, you can choose:
                                     <div className="mt-2 bg-gray-50 border border-gray-200 rounded p-3 space-y-2 text-xs">
-                                      <div><strong>Permitted Users:</strong> All users may self-authorize</div>
-                                      <div><strong>IP Relaxation:</strong> Relax IP restrictions</div>
-                                      <div><strong>Refresh Token Policy:</strong> Refresh token is valid until revoked</div>
+                                      <div>
+                                        <strong>• All users may self-authorize</strong> - Any Salesforce user can connect (recommended)
+                                      </div>
+                                      <div>
+                                        <strong>• Admin approved users are pre-authorized</strong> - Only specific users/profiles
+                                      </div>
                                     </div>
                                   </li>
-                                  <li className="pl-2">Click <strong>Save</strong></li>
+                                  <li className="pl-2">
+                                    Set <strong>IP Relaxation</strong> to "Relax IP restrictions" for best compatibility
+                                  </li>
+                                  <li className="pl-2">
+                                    Set <strong>Refresh Token Policy</strong> to "Refresh token is valid until revoked"
+                                  </li>
+                                  <li className="pl-2">
+                                    Click <strong>Save</strong>
+                                  </li>
                                 </ol>
                               </div>
 
-                              <div>
-                                <h3 className="text-lg font-semibold text-gray-900 mb-3">Step 6: Share Credentials with Support</h3>
-                                <p className="text-gray-700 text-sm mb-4">
-                                  Once you have your Consumer Key and Consumer Secret, you'll need to share them with our support team to complete the integration.
-                                </p>
-                                
-                                <div className="bg-gray-50 border border-gray-200 rounded-lg p-4">
-                                  <p className="text-sm font-semibold text-gray-900 mb-3">Prepare these credentials to share:</p>
-                                  <div className="space-y-2 text-sm font-mono text-gray-700">
-                                    <div className="bg-white px-3 py-2 rounded border border-gray-200">
-                                      <div className="text-xs text-gray-500 mb-1">Consumer Key (Client ID)</div>
-                                      <div className="text-gray-900">[Your Consumer Key from Step 3]</div>
-                                    </div>
-                                    <div className="bg-white px-3 py-2 rounded border border-gray-200">
-                                      <div className="text-xs text-gray-500 mb-1">Consumer Secret</div>
-                                      <div className="text-gray-900">[Your Consumer Secret from Step 3]</div>
-                                    </div>
-                                    <div className="bg-white px-3 py-2 rounded border border-gray-200">
-                                      <div className="text-xs text-gray-500 mb-1">Callback URL</div>
-                                      <div className="text-gray-900">https://www.curiosityengine.io/api/salesforce/user-callback</div>
-                                    </div>
-                                  </div>
-                                </div>
-
-                                <div className="mt-4">
-                                  <button
-                                    onClick={() => {
-                                      window.location.href = 'mailto:hello@curiosityengine.io?subject=Salesforce Integration Setup&body=Hi Team,%0A%0AI have completed the Salesforce Connected App setup and am ready to share my credentials:%0A%0AConsumer Key: [paste here]%0AConsumer Secret: [paste here]%0ACallback URL: https://www.curiosityengine.io/api/salesforce/user-callback%0A%0APlease help me complete the integration.%0A%0AThanks!';
-                                    }}
-                                    className="w-full bg-[#F95B14] text-white px-6 py-3 rounded-lg font-semibold hover:bg-orange-600 transition-colors flex items-center justify-center gap-2"
-                                  >
-                                    <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
-                                    </svg>
-                                    Email Support Team
-                                  </button>
-                                </div>
-                              </div>
-
-                              <div className="bg-green-50 border border-green-200 rounded-lg p-4">
-                                <p className="text-sm text-green-900">
-                                  <strong>✅ Setup Complete!</strong> Users can now connect their own Salesforce accounts and get CRM-aware AI assistance.
-                                </p>
+                              <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-4">
+                                <h4 className="font-semibold text-yellow-900 mb-2">Important Notes</h4>
+                                <ul className="list-disc list-inside space-y-1 text-sm text-yellow-800">
+                                  <li>You can disconnect or revoke access anytime from Salesforce Connected Apps settings</li>
+                                  <li>Curiosity Engine never stores your Salesforce password - only OAuth tokens</li>
+                                  <li>We only access Contacts, Leads, and related activities - no opportunities or financial data</li>
+                                </ul>
                               </div>
                             </div>
                           )}

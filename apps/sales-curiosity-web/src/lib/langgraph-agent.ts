@@ -293,6 +293,10 @@ export async function invokeAgent(
       if (lastMessage instanceof AIMessage) {
         // Always send content if present (even if tool_calls also present)
         const content = typeof lastMessage.content === 'string' ? lastMessage.content : '';
+        console.log('💬 [Agent] AIMessage content type:', typeof lastMessage.content);
+        console.log('💬 [Agent] AIMessage content length:', content.length);
+        console.log('💬 [Agent] AIMessage content preview:', content.substring(0, 200));
+        
         if (content) {
           finalResponse += content;
           

@@ -157,10 +157,10 @@ function shouldContinue(state: typeof AgentState.State): string {
   const { messages } = state;
   const lastMessage = messages[messages.length - 1];
   
-  // If the last message has tool calls, go to tools node
+  // If the last message has tool calls, go to tool executor node
   if ('tool_calls' in lastMessage && lastMessage.tool_calls && lastMessage.tool_calls.length > 0) {
-    console.log('→ [Router] Routing to tools node');
-    return 'tools';
+    console.log('→ [Router] Routing to tool executor node');
+    return 'execute_tools';
   }
   
   // Otherwise, we're done
@@ -175,13 +175,13 @@ export function createAgentGraph(tools: DynamicStructuredTool[]) {
   // Create the state graph
   const workflow = new StateGraph(AgentState)
     .addNode('agent', agentNode)
-    .addNode('tools', toolsNode)
+    .addNode('execute_tools', toolsNode) // Renamed from 'tools' to avoid conflict with state attribute
     .addEdge(START, 'agent')
     .addConditionalEdges('agent', shouldContinue, {
-      tools: 'tools',
+      execute_tools: 'execute_tools',
       [END]: END,
     })
-    .addEdge('tools', 'agent'); // After tools, go back to agent for final response
+    .addEdge('execute_tools', 'agent'); // After tools, go back to agent for final response
   
   // Compile the graph
   const graph = workflow.compile();

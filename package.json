@@ -29,8 +29,12 @@
   },
   "dependencies": {
     "@heroui/react": "^2.8.5",
+    "@langchain/core": "^1.0.3",
+    "@langchain/langgraph": "^1.0.1",
+    "@langchain/openai": "^1.0.0",
     "framer-motion": "^12.23.22",
     "gsap": "^3.13.0",
+    "langchain": "^1.0.3",
     "mammoth": "^1.11.0",
     "pdf-parse": "^2.3.12"
   }

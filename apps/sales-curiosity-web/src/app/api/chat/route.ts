@@ -32,6 +32,12 @@ import {
 } from '@/lib/gmail';
 import { matchCalendarEventsToSalesforce, buildCalendarContext } from '@/lib/calendar-matcher';
 
+// LangGraph imports
+import { HumanMessage, SystemMessage } from '@langchain/core/messages';
+import { createAgentTools } from '@/lib/langgraph-tools';
+import { invokeAgent } from '@/lib/langgraph-agent';
+import { selectModel } from '@/lib/model-router';
+
 const supabase = createClient(
   process.env.NEXT_PUBLIC_SUPABASE_URL!,
   process.env.SUPABASE_SERVICE_ROLE_KEY!
@@ -655,14 +661,33 @@ When the user mentions vague references like "latest prospect", "that person", "
       { role: 'user', content: message }
     ];
 
-    console.log('🤖 Chat API - Making OpenAI request:', {
+    // Determine which model to use (respects user selection or uses auto-routing)
+    const actualModel = selectModel(message, model);
+    console.log('🤖 [Chat API] Model selection:', {
+      userSelected: model,
+      actualModel,
+      isAuto: model === 'auto',
       message: message.substring(0, 100) + '...',
-      toolsAvailable: availableTools.length > 0,
-      toolNames: availableTools.map(t => t.function?.name),
-      hasOutlook,
-      hasGmail,
-      hasSalesforce
+      toolsAvailable: hasSalesforce || hasGmail || hasOutlook
     });
+
+    // Create LangChain tools from available integrations
+    const langchainTools = createAgentTools(user.organization_id, user.id, {
+      hasSalesforce,
+      hasGmail,
+      hasOutlook,
+    });
+
+    console.log('🔧 [Chat API] Created', langchainTools.length, 'LangChain tools');
+
+    // Build LangChain messages from conversation history
+    const langchainMessages = [
+      new SystemMessage(systemPrompt),
+      ...conversationHistory.map((msg: any) => 
+        msg.role === 'user' ? new HumanMessage(msg.content) : new SystemMessage(msg.content)
+      ),
+      new HumanMessage(message),
+    ];
 
     // Create streaming response
     const stream = new ReadableStream({
@@ -683,158 +708,60 @@ When the user mentions vague references like "latest prospect", "that person", "
               })}\n\n`)
             );
           }
+
+          // Invoke LangGraph agent with streaming
+          console.log('🚀 [Chat API] Invoking LangGraph agent with model:', actualModel);
           
-          // Call SambaNova with streaming and tools
-          console.log('🚀 [Chat API] Calling SambaNova Cloud with model:', selectedModel);
-          const completion = await openai.chat.completions.create({
-            model: selectedModel,
-            messages,
-            tools: availableTools.length > 0 ? availableTools : undefined,
-            tool_choice: availableTools.length > 0 ? 'auto' : undefined,
-            stream: true,
-            max_tokens: 2000,
-          });
-
-          console.log('🤖 [Chat] OpenAI request made with tools:', {
-            toolsCount: availableTools.length,
-            toolNames: availableTools.map(t => t.function?.name)
-          });
-
-          let toolCalls: any[] = [];
-          let currentToolCall: any = null;
-
-          for await (const chunk of completion) {
-            const delta = chunk.choices[0]?.delta;
-
-            // Handle tool calls
-            if (delta?.tool_calls) {
-              for (const toolCall of delta.tool_calls) {
-                if (toolCall.index !== undefined) {
-                  if (!toolCalls[toolCall.index]) {
-                    toolCalls[toolCall.index] = {
-                      id: toolCall.id || '',
-                      type: 'function',
-                      function: { name: '', arguments: '' }
-                    };
-                    currentToolCall = toolCalls[toolCall.index];
-                  } else {
-                    currentToolCall = toolCalls[toolCall.index];
-                  }
-
-                  if (toolCall.function?.name) {
-                    currentToolCall.function.name += toolCall.function.name;
-                    // Send tool indicator to client
-                    controller.enqueue(
-                      encoder.encode(`data: ${JSON.stringify({
-                        type: 'tool_start',
-                        tool: toolCall.function.name
-                      })}\n\n`)
-                    );
-                  }
-
-                  if (toolCall.function?.arguments) {
-                    currentToolCall.function.arguments += toolCall.function.arguments;
-                  }
-                }
-              }
-            }
-
-            // Handle regular content
-            if (delta?.content) {
-              controller.enqueue(
-                encoder.encode(`data: ${JSON.stringify({
-                  type: 'content',
-                  content: delta.content
-                })}\n\n`)
-              );
-            }
-
-            // Handle finish
-            if (chunk.choices[0]?.finish_reason === 'tool_calls') {
-              // Execute tool calls
-              for (const toolCall of toolCalls) {
-                const toolName = toolCall.function.name;
-                const toolArgs = JSON.parse(toolCall.function.arguments);
-
-                controller.enqueue(
-                  encoder.encode(`data: ${JSON.stringify({
-                    type: 'tool_executing',
-                    tool: toolName
-                  })}\n\n`)
-                );
-
-                console.log('🔧 [Chat] Executing tool:', { toolName, toolArgs });
-                
-                let result: string;
-                try {
-                  result = await executeTool(
-                    toolName,
-                    toolArgs,
-                    user.organization_id,
-                    user.id
-                  );
-                  console.log('✅ [Chat] Tool execution completed:', { toolName, resultLength: result.length });
-                } catch (error) {
-                  console.error('❌ [Chat] Tool execution failed:', { toolName, error });
-                  result = `❌ Error executing ${toolName}: ${error instanceof Error ? error.message : String(error)}`;
-                }
-
-                // Add tool result to messages and continue
-                messages.push({
-                  role: 'assistant',
-                  content: null,
-                  tool_calls: [toolCall]
-                });
-                messages.push({
-                  role: 'tool',
-                  tool_call_id: toolCall.id,
-                  content: result
-                });
-
-                controller.enqueue(
-                  encoder.encode(`data: ${JSON.stringify({
-                    type: 'tool_result',
-                    tool: toolName,
-                    result: result
-                  })}\n\n`)
-                );
-              }
-
-              // Make another completion call with tool results
-              console.log('🔄 [Chat API] Follow-up call with model:', selectedModel);
-              const followUpCompletion = await openai.chat.completions.create({
-                model: selectedModel,
-                messages,
-                stream: true,
-                max_tokens: 1500,
-              });
-
-              for await (const followUpChunk of followUpCompletion) {
-                const followUpDelta = followUpChunk.choices[0]?.delta;
-                if (followUpDelta?.content) {
+          await invokeAgent(
+            langchainMessages,
+            langchainTools,
+            model, // Pass original user selection for fallback logic
+            (event) => {
+              // Stream events to frontend in SSE format
+              try {
+                if (event.type === 'content') {
                   controller.enqueue(
                     encoder.encode(`data: ${JSON.stringify({
                       type: 'content',
-                      content: followUpDelta.content
+                      content: event.content,
+                      model: event.model
+                    })}\n\n`)
+                  );
+                } else if (event.type === 'tool_start') {
+                  controller.enqueue(
+                    encoder.encode(`data: ${JSON.stringify({
+                      type: 'tool_start',
+                      tool: event.tool
+                    })}\n\n`)
+                  );
+                } else if (event.type === 'tool_result') {
+                  controller.enqueue(
+                    encoder.encode(`data: ${JSON.stringify({
+                      type: 'tool_result',
+                      result: event.result
+                    })}\n\n`)
+                  );
+                } else if (event.type === 'done') {
+                  controller.enqueue(
+                    encoder.encode(`data: ${JSON.stringify({ type: 'done' })}\n\n`)
+                  );
+                } else if (event.type === 'error') {
+                  controller.enqueue(
+                    encoder.encode(`data: ${JSON.stringify({
+                      type: 'error',
+                      error: event.content
                     })}\n\n`)
                   );
                 }
-
-                if (followUpChunk.choices[0]?.finish_reason === 'stop') {
-                  controller.enqueue(encoder.encode(`data: ${JSON.stringify({ type: 'done' })}\n\n`));
-                }
+              } catch (streamError) {
+                console.error('Error encoding stream event:', streamError);
               }
-              break;
             }
-
-            if (chunk.choices[0]?.finish_reason === 'stop') {
-              controller.enqueue(encoder.encode(`data: ${JSON.stringify({ type: 'done' })}\n\n`));
-            }
-          }
+          );
 
           controller.close();
         } catch (error) {
-          console.error('Streaming error:', error);
+          console.error('❌ [Chat API] Agent invocation error:', error);
           controller.enqueue(
             encoder.encode(`data: ${JSON.stringify({
               type: 'error',

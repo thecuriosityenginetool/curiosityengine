@@ -78,7 +78,7 @@ export default function DashboardPage() {
   const chatEndRef = useRef<HTMLDivElement>(null);
   
   // AI Model selection state
-  const [selectedModel, setSelectedModel] = useState('DeepSeek-R1-0528');
+  const [selectedModel, setSelectedModel] = useState('auto');
   const [showModelInfo, setShowModelInfo] = useState(false);
   const [modelSwitchNotification, setModelSwitchNotification] = useState('');
   const [showConversations, setShowConversations] = useState(true);
@@ -86,10 +86,11 @@ export default function DashboardPage() {
   
   // Available models from SambaNova Cloud (only models that support tool/function calling)
   const availableModels = [
+    { id: 'auto', name: '🤖 Auto (Recommended)', provider: 'SambaNova', description: 'Smart model selection based on task' },
     { id: 'DeepSeek-R1-0528', name: 'DeepSeek R1 (671B)', provider: 'SambaNova', description: 'Most powerful - Best for complex reasoning' },
+    { id: 'Llama-3.3-70B-Instruct', name: 'Llama 3.3 70B', provider: 'SambaNova', description: 'Fast & reliable - Best for tool use' },
+    { id: 'Qwen2.5-72B-Instruct', name: 'Qwen 2.5 72B', provider: 'SambaNova', description: 'Balanced performance' },
     { id: 'DeepSeek-V3-0324', name: 'DeepSeek V3', provider: 'SambaNova', description: 'Powerful general-purpose model' },
-    { id: 'DeepSeek-V3.1', name: 'DeepSeek V3.1', provider: 'SambaNova', description: 'Latest DeepSeek version' },
-    { id: 'Meta-Llama-3.3-70B-Instruct', name: 'Llama 3.3 70B', provider: 'SambaNova', description: 'Fast and efficient - Great balance' },
     { id: 'Meta-Llama-3.1-8B-Instruct', name: 'Llama 3.1 8B', provider: 'SambaNova', description: 'Ultra-fast - Simple tasks' },
   ];
   

@@ -85,12 +85,13 @@ export default function DashboardPage() {
   const [showModelDropdown, setShowModelDropdown] = useState(false);
   
   // Available models from SambaNova Cloud (only models that support tool/function calling)
+  // Model IDs must match SambaNova Cloud exactly
   const availableModels = [
     { id: 'auto', name: '🤖 Auto (Recommended)', provider: 'SambaNova', description: 'Smart model selection based on task' },
     { id: 'DeepSeek-R1-0528', name: 'DeepSeek R1 (671B)', provider: 'SambaNova', description: 'Most powerful - Best for complex reasoning' },
-    { id: 'Llama-3.3-70B-Instruct', name: 'Llama 3.3 70B', provider: 'SambaNova', description: 'Fast & reliable - Best for tool use' },
-    { id: 'Qwen2.5-72B-Instruct', name: 'Qwen 2.5 72B', provider: 'SambaNova', description: 'Balanced performance' },
+    { id: 'Meta-Llama-3.3-70B-Instruct', name: 'Llama 3.3 70B', provider: 'SambaNova', description: 'Fast & reliable - Best for tool use' },
     { id: 'DeepSeek-V3-0324', name: 'DeepSeek V3', provider: 'SambaNova', description: 'Powerful general-purpose model' },
+    { id: 'DeepSeek-V3.1', name: 'DeepSeek V3.1', provider: 'SambaNova', description: 'Latest DeepSeek version' },
     { id: 'Meta-Llama-3.1-8B-Instruct', name: 'Llama 3.1 8B', provider: 'SambaNova', description: 'Ultra-fast - Simple tasks' },
   ];
   

@@ -7,12 +7,14 @@
  * 2. "Auto" mode → Smart routing based on request type
  */
 
-// Available models
+// Available models (must match SambaNova Cloud model IDs exactly)
 export const MODELS = {
   AUTO: 'auto',
   DEEPSEEK_R1: 'DeepSeek-R1-0528',
-  LLAMA_3_3: 'Llama-3.3-70B-Instruct',
-  QWEN_2_5: 'Qwen2.5-72B-Instruct',
+  LLAMA_3_3: 'Meta-Llama-3.3-70B-Instruct', // Correct SambaNova model ID
+  LLAMA_3_1_8B: 'Meta-Llama-3.1-8B-Instruct', // Also available
+  DEEPSEEK_V3: 'DeepSeek-V3-0324',
+  DEEPSEEK_V3_1: 'DeepSeek-V3.1',
 } as const;
 
 // Tool-based keywords that indicate need for function calling
@@ -107,14 +109,14 @@ export function getFallbackModel(
   
   // If DeepSeek failed, fallback to Llama (more reliable for tools)
   if (currentModel === MODELS.DEEPSEEK_R1) {
-    console.log('🔄 [Model Router] DeepSeek-R1 timeout → Falling back to Llama-3.3-70B');
+    console.log('🔄 [Model Router] DeepSeek-R1 timeout → Falling back to Meta-Llama-3.3-70B');
     return MODELS.LLAMA_3_3;
   }
   
-  // If Llama failed, try Qwen as last resort
+  // If Llama failed, try smaller Llama as last resort
   if (currentModel === MODELS.LLAMA_3_3) {
-    console.log('🔄 [Model Router] Llama-3.3-70B timeout → Falling back to Qwen2.5-72B');
-    return MODELS.QWEN_2_5;
+    console.log('🔄 [Model Router] Meta-Llama-3.3-70B timeout → Falling back to Meta-Llama-3.1-8B');
+    return MODELS.LLAMA_3_1_8B;
   }
   
   // No more fallbacks
@@ -140,14 +142,20 @@ export const MODEL_OPTIONS = [
   },
   {
     id: MODELS.LLAMA_3_3,
-    name: 'Llama 3.3 (70B)',
+    name: 'Meta-Llama 3.3 (70B)',
     description: 'Fast & reliable - Best for tool use',
     icon: '🔧'
   },
   {
-    id: MODELS.QWEN_2_5,
-    name: 'Qwen 2.5 (72B)',
-    description: 'Balanced performance',
+    id: MODELS.DEEPSEEK_V3,
+    name: 'DeepSeek V3',
+    description: 'Powerful general-purpose model',
+    icon: '💡'
+  },
+  {
+    id: MODELS.LLAMA_3_1_8B,
+    name: 'Meta-Llama 3.1 (8B)',
+    description: 'Ultra-fast - Simple tasks',
     icon: '⚡'
   }
 ];

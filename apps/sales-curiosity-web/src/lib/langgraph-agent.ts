@@ -69,16 +69,18 @@ async function agentNode(state: typeof AgentState.State) {
   
   console.log(`🤖 [Agent Node] Using model: ${selectedModel}`);
   
-  // Initialize the model with SambaNova API
+  // Initialize the model with SambaNova API (OpenAI-compatible)
   const model = new ChatOpenAI({
     modelName: selectedModel,
-    openAIApiKey: process.env.SAMBANOVA_API_KEY,
+    apiKey: process.env.SAMBANOVA_API_KEY, // Use apiKey for custom endpoints
     configuration: {
       baseURL: 'https://api.sambanova.ai/v1',
     },
     temperature: 0.1,
     streaming: true,
   });
+  
+  console.log('🔑 [Agent Node] API Key present:', !!process.env.SAMBANOVA_API_KEY);
   
   // Bind tools if available
   const modelWithTools = tools.length > 0 ? model.bindTools(tools) : model;

@@ -288,9 +288,13 @@ export async function invokeAgent(
       
       const lastMessage = stateMessages[stateMessages.length - 1];
       console.log(`📨 [Agent] Iteration ${iterationCount}: Last message type:`, lastMessage.constructor.name);
+      console.log(`📨 [Agent] Message _getType():`, (lastMessage as any)._getType?.());
       
-      // Handle AI responses
-      if (lastMessage instanceof AIMessage) {
+      // Handle AI responses - use _getType() for minified builds
+      const messageType = (lastMessage as any)._getType?.() || lastMessage.constructor.name;
+      const isAIMessage = messageType === 'ai' || lastMessage instanceof AIMessage;
+      
+      if (isAIMessage) {
         // Always send content if present (even if tool_calls also present)
         const content = typeof lastMessage.content === 'string' ? lastMessage.content : '';
         console.log('💬 [Agent] AIMessage content type:', typeof lastMessage.content);
@@ -342,8 +346,10 @@ export async function invokeAgent(
         }
       }
       
-      // Handle tool results
-      if (lastMessage instanceof ToolMessage) {
+      // Handle tool results - use _getType() for minified builds
+      const isToolMessage = (lastMessage as any)._getType?.() === 'tool' || lastMessage instanceof ToolMessage;
+      
+      if (isToolMessage) {
         const result = typeof lastMessage.content === 'string' ? lastMessage.content : '';
         if (onStream) {
           onStream({

@@ -91,18 +91,25 @@ async function agentNode(state: typeof AgentState.State) {
   
   console.log('🔧 [Agent Node] Tools bound:', shouldBindTools, 'Tools count:', tools.length);
   
-  // If tools were already executed, add instruction to summarize
+  // If tools were already executed, add strong instruction to generate final response
   let messagesToSend = messages;
   if (toolsExecuted && !shouldBindTools) {
-    console.log('📝 [Agent Node] Adding final summary instruction');
+    console.log('📝 [Agent Node] Tools already executed - forcing final response');
+    // Add a system message to force the agent to respond with summary
     messagesToSend = [
       ...messages,
-      new SystemMessage('Tool results received above. Provide a concise summary of what you did for the user. Do NOT call any more tools.')
+      new HumanMessage('Based on the tool results above, provide a helpful response to my original question. Be concise and actionable.')
     ];
   }
   
+  console.log('📤 [Agent Node] Calling model with', messagesToSend.length, 'messages');
+  
   // Call the model
   const response = await modelWithTools.invoke(messagesToSend);
+  
+  console.log('📥 [Agent Node] Model response received');
+  console.log('📥 [Agent Node] Response has content:', !!response.content);
+  console.log('📥 [Agent Node] Response has tool_calls:', !!(response as any).tool_calls);
   
   return {
     messages: [response],
@@ -262,18 +269,20 @@ export async function invokeAgent(
     let finalResponse = '';
     let toolsExecuted: string[] = [];
     let fullThinking = '';
+    let iterationCount = 0;
     
     console.log('🔄 [Agent] Starting stream processing...');
     
     for await (const event of stream) {
+      iterationCount++;
       const { messages: stateMessages, modelUsed } = event;
       
-      console.log('📨 [Agent] Stream event received, messages count:', stateMessages?.length || 0);
+      console.log(`📨 [Agent] Iteration ${iterationCount}: Stream event received, messages count:`, stateMessages?.length || 0);
       
       if (!stateMessages || stateMessages.length === 0) continue;
       
       const lastMessage = stateMessages[stateMessages.length - 1];
-      console.log('📨 [Agent] Last message type:', lastMessage.constructor.name);
+      console.log(`📨 [Agent] Iteration ${iterationCount}: Last message type:`, lastMessage.constructor.name);
       
       // Handle AI responses
       if (lastMessage instanceof AIMessage) {
@@ -297,6 +306,7 @@ export async function invokeAgent(
           
           // Send the final content (without thinking tags)
           if (onStream && finalContent) {
+            console.log('💬 [Agent] Sending content chunk, length:', finalContent.length);
             onStream({
               type: 'content',
               content: finalContent,
@@ -307,8 +317,10 @@ export async function invokeAgent(
         
         // Also check for tool calls
         if ('tool_calls' in lastMessage && lastMessage.tool_calls && lastMessage.tool_calls.length > 0) {
+          console.log('🔧 [Agent] Found', lastMessage.tool_calls.length, 'tool calls');
           for (const toolCall of lastMessage.tool_calls) {
             toolsExecuted.push(toolCall.name);
+            console.log('🔧 [Agent] Tool call:', toolCall.name);
             if (onStream) {
               onStream({
                 type: 'tool_start',
@@ -316,6 +328,8 @@ export async function invokeAgent(
               });
             }
           }
+        } else {
+          console.log('📝 [Agent] No tool calls in this message - should be final response');
         }
       }
       

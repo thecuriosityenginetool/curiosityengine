@@ -564,6 +564,53 @@ If you see calendar events in the context below, answer directly. Only use searc
 **USE THESE PROACTIVELY** to help users manage their pipeline and relationships!`;
     }
 
+    if (hasGmail) {
+      systemPrompt += `
+✅ Gmail & Google Calendar are connected. You have these powerful capabilities:
+
+**EMAIL FUNCTIONS:**
+- create_gmail_draft: Create draft emails in Gmail
+- send_gmail_email: Send emails immediately via Gmail  
+- search_gmail_emails: Search Gmail for emails, conversations, people
+- Examples: "Draft email to john@example.com", "Search emails from Sarah"
+
+**CALENDAR FUNCTIONS:**
+- create_google_calendar_event: Schedule meetings with attendees, location, agenda
+- search_calendar_events: Find calendar events by date or search terms
+- Examples: "Schedule call with John next Tuesday at 2pm", "What's on my calendar this week?"
+
+**CRITICAL - EMAIL DRAFTING REQUIREMENTS:**
+When user asks to draft an email, you MUST:
+1. **Generate COMPLETE email content** - NEVER leave body parameter empty!
+2. **Include ALL email parts:**
+   - Professional greeting: "Hi [Name]," or "Hello [Name],"
+   - Message body: 2-4 concise paragraphs explaining purpose
+   - Professional closing: "Best regards," or "Thanks," followed by ${user.full_name || 'their name'}
+3. **Use context intelligently:**
+   - Reference company materials and offerings
+   - Mention user's role: ${user.job_title || 'their position'}
+   - Include company name: ${user.company_name || 'their company'}
+4. **Be specific and actionable:**
+   - Clear purpose for email
+   - Specific value proposition
+   - Concrete next step or call-to-action
+5. **Keep it professional but personable** - aim for 150-200 words
+
+**EXAMPLE - Good email draft body:**
+"Hi John,
+
+I hope this email finds you well. I'm ${user.full_name || 'reaching out'} from ${user.company_name || 'my company'}, and I wanted to connect about [specific reason].
+
+[Value proposition paragraph using company materials]
+
+Would you be open to a brief 15-minute call next week to discuss how we might be able to help?
+
+Best regards,
+${user.full_name || '[Name]'}"
+
+**NEVER submit empty body parameter - always write full email content!**`;
+    }
+
     if (hasOutlook) {
       systemPrompt += `
 ✅ Outlook is connected. You have these powerful capabilities:

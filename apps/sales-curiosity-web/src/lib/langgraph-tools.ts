@@ -209,11 +209,11 @@ export function createAgentTools(
     tools.push(
       new DynamicStructuredTool({
         name: 'create_gmail_draft',
-        description: 'Create an email draft in Gmail. The draft will be saved in the user\'s Gmail Drafts folder.',
+        description: 'Create an email draft in Gmail with COMPLETE email content. The draft will be saved in Gmail Drafts folder. ALWAYS include greeting, message body, and closing - NEVER leave body empty!',
         schema: z.object({
           to: z.string().describe('Recipient email address'),
           subject: z.string().describe('Email subject line'),
-          body: z.string().describe('Email body content (can include HTML formatting)'),
+          body: z.string().describe('COMPLETE email body with greeting, message (2-4 paragraphs), and professional closing. Include sender name at end. REQUIRED - cannot be empty!'),
         }),
         func: async (input) => {
           try {
@@ -343,11 +343,11 @@ export function createAgentTools(
     tools.push(
       new DynamicStructuredTool({
         name: 'create_email_draft',
-        description: 'Create an email draft in Outlook. The draft will be saved in the user\'s Outlook Drafts folder.',
+        description: 'Create an email draft in Outlook with COMPLETE email content. The draft will be saved in Outlook Drafts folder. ALWAYS include greeting, message body, and closing - NEVER leave body empty!',
         schema: z.object({
           to: z.string().describe('Recipient email address'),
           subject: z.string().describe('Email subject line'),
-          body: z.string().describe('Email body content (HTML supported)'),
+          body: z.string().describe('COMPLETE email body with greeting, message (2-4 paragraphs), and professional closing. Include sender name at end. REQUIRED - cannot be empty!'),
         }),
         func: async (input) => {
           try {

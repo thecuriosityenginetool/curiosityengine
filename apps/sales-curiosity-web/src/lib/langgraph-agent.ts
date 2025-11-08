@@ -43,13 +43,17 @@ const AgentState = Annotation.Root({
     reducer: (_, right) => right,
     default: () => false,
   }),
+  toolsExecuted: Annotation<boolean>({
+    reducer: (_, right) => right,
+    default: () => false,
+  }),
 });
 
 /**
  * Agent Node - Main reasoning node that calls the LLM
  */
 async function agentNode(state: typeof AgentState.State) {
-  const { messages, userSelectedModel, retryCount, tools, timeout, modelUsed } = state;
+  const { messages, userSelectedModel, retryCount, tools, timeout, modelUsed, toolsExecuted } = state;
   
   // Use the model that was already selected (from state)
   let selectedModel = modelUsed;
@@ -74,15 +78,31 @@ async function agentNode(state: typeof AgentState.State) {
     },
     temperature: 0.1,
     streaming: true,
+    maxTokens: 2000, // Limit response length
   });
   
   console.log('🔑 [Agent Node] API Key present:', !!process.env.SAMBANOVA_API_KEY);
+  console.log('🔁 [Agent Node] Tools executed before:', toolsExecuted);
   
-  // Bind tools if available
-  const modelWithTools = tools.length > 0 ? model.bindTools(tools) : model;
+  // Only bind tools on FIRST call, not after tools have been executed
+  // This forces the agent to provide a final summary without calling more tools
+  const shouldBindTools = tools.length > 0 && !toolsExecuted;
+  const modelWithTools = shouldBindTools ? model.bindTools(tools) : model;
+  
+  console.log('🔧 [Agent Node] Tools bound:', shouldBindTools, 'Tools count:', tools.length);
+  
+  // If tools were already executed, add instruction to summarize
+  let messagesToSend = messages;
+  if (toolsExecuted && !shouldBindTools) {
+    console.log('📝 [Agent Node] Adding final summary instruction');
+    messagesToSend = [
+      ...messages,
+      new SystemMessage('Tool results received above. Provide a concise summary of what you did for the user. Do NOT call any more tools.')
+    ];
+  }
   
   // Call the model
-  const response = await modelWithTools.invoke(messages);
+  const response = await modelWithTools.invoke(messagesToSend);
   
   return {
     messages: [response],
@@ -95,6 +115,8 @@ async function agentNode(state: typeof AgentState.State) {
  */
 async function toolsNode(state: typeof AgentState.State) {
   const { messages, tools } = state;
+  
+  console.log('🔧 [Tools Node] Executing tools...');
   
   // Get the last AIMessage which should contain tool calls
   const lastMessage = messages[messages.length - 1];
@@ -145,7 +167,12 @@ async function toolsNode(state: typeof AgentState.State) {
     }
   }
   
-  return { messages: toolResults };
+  console.log('✅ [Tools Node] All tools executed, returning', toolResults.length, 'results');
+  
+  return { 
+    messages: toolResults,
+    toolsExecuted: true // Mark that tools have been executed
+  };
 }
 
 /**
@@ -223,11 +250,13 @@ export async function invokeAgent(
       retryCount: 0,
       timeout: false,
       modelUsed: selectedModel, // Use the resolved model name directly
+      toolsExecuted: false, // Track if tools have been executed
     };
     
-    // Stream the graph execution
+    // Stream the graph execution with recursion limit
     const stream = await graph.stream(initialState, {
       streamMode: 'values',
+      recursionLimit: 10, // Limit to 10 iterations to prevent infinite loops
     });
     
     let finalResponse = '';

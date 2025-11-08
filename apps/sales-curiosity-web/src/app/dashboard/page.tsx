@@ -604,19 +604,32 @@ export default function DashboardPage() {
       let agentSteps = ''; // Track agent steps for thinking display
       let inThinkingTag = false;
 
+      console.log('📖 Starting to read stream...', reader ? 'Reader available' : 'No reader!');
+
       if (reader) {
+        let chunkCount = 0;
         while (true) {
           const { done, value } = await reader.read();
-          if (done) break;
+          chunkCount++;
+          
+          console.log(`📦 Chunk ${chunkCount}:`, done ? 'Stream done' : `${value?.length || 0} bytes`);
+          
+          if (done) {
+            console.log('✅ Stream finished after', chunkCount, 'chunks');
+            break;
+          }
 
           const chunk = decoder.decode(value);
+          console.log(`📝 Decoded chunk ${chunkCount}:`, chunk.substring(0, 100));
           const lines = chunk.split('\n');
 
           for (const line of lines) {
             if (line.startsWith('data: ')) {
               const data = line.slice(6);
+              console.log('📨 Parsing SSE data:', data.substring(0, 100));
               try {
                 const parsed = JSON.parse(data);
+                console.log('✅ Parsed event type:', parsed.type);
 
                 if (parsed.type === 'context_loaded') {
                   // Add context sources to agent steps

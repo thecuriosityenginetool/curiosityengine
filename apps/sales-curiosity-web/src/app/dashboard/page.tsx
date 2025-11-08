@@ -136,6 +136,13 @@ export default function DashboardPage() {
   const [selectedIntegration, setSelectedIntegration] = useState<'salesforce' | 'gmail' | 'outlook' | 'linkedin' | 'hubspot' | null>(null);
   const [salesforceHelpTab, setSalesforceHelpTab] = useState<'tools' | 'user' | 'org'>('tools');
   
+  // Salesforce credentials state
+  const [sfClientId, setSfClientId] = useState('');
+  const [sfClientSecret, setSfClientSecret] = useState('');
+  const [sfCredentialsSaved, setSfCredentialsSaved] = useState(false);
+  const [sfCredentialsLoading, setSfCredentialsLoading] = useState(false);
+  const [sfCredentialsMessage, setSfCredentialsMessage] = useState('');
+  
   // Chrome extension detection
   const [hasChromeExtension, setHasChromeExtension] = useState<boolean | null>(null);
   
@@ -206,6 +213,13 @@ export default function DashboardPage() {
   useEffect(() => {
     chatEndRef.current?.scrollIntoView({ behavior: 'smooth' });
   }, [chatMessages]);
+
+  // Check Salesforce credentials when showing org tab
+  useEffect(() => {
+    if (showIntegrationHelp && selectedIntegration === 'salesforce' && salesforceHelpTab === 'org' && user) {
+      checkSalesforceCredentials();
+    }
+  }, [showIntegrationHelp, selectedIntegration, salesforceHelpTab, user]);
 
   // Close event menu when clicking outside
   useEffect(() => {
@@ -1389,6 +1403,63 @@ Format with markdown for readability.`;
     }
   }
 
+  // Check Salesforce credentials status
+  async function checkSalesforceCredentials() {
+    try {
+      const response = await fetch('/api/salesforce/credentials');
+      if (response.ok) {
+        const data = await response.json();
+        setSfCredentialsSaved(data.hasCredentials || false);
+        return data.hasCredentials;
+      }
+    } catch (error) {
+      console.error('Error checking Salesforce credentials:', error);
+    }
+    return false;
+  }
+
+  // Save Salesforce credentials
+  async function saveSalesforceCredentials() {
+    if (!sfClientId || !sfClientSecret) {
+      setSfCredentialsMessage('Please enter both Consumer Key and Consumer Secret');
+      return;
+    }
+
+    setSfCredentialsLoading(true);
+    setSfCredentialsMessage('');
+
+    try {
+      const response = await fetch('/api/salesforce/credentials', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        credentials: 'include',
+        body: JSON.stringify({
+          clientId: sfClientId,
+          clientSecret: sfClientSecret,
+        }),
+      });
+
+      if (response.ok) {
+        const data = await response.json();
+        setSfCredentialsSaved(true);
+        setSfCredentialsMessage('✅ Credentials saved! You can now click "Connect Salesforce" below.');
+        // Clear form
+        setSfClientId('');
+        setSfClientSecret('');
+      } else {
+        const errorData = await response.json();
+        setSfCredentialsMessage('❌ ' + (errorData.error || 'Failed to save credentials'));
+      }
+    } catch (error) {
+      console.error('Error saving credentials:', error);
+      setSfCredentialsMessage('❌ Error saving credentials. Please try again.');
+    } finally {
+      setSfCredentialsLoading(false);
+    }
+  }
+
   // Organization-level Salesforce connection (for org admins)
   async function connectSalesforceOrg() {
     try {
@@ -1415,7 +1486,12 @@ Format with markdown for readability.`;
       } else {
         const errorData = await response.json();
         console.error('❌ Salesforce auth error:', errorData);
-        alert(errorData.error || 'Failed to initiate Salesforce connection.');
+        
+        if (errorData.needsCredentials) {
+          alert('Please enter your Salesforce Consumer Key and Consumer Secret first (scroll up in the "Connect Org" tab).');
+        } else {
+          alert(errorData.error || 'Failed to initiate Salesforce connection.');
+        }
       }
     } catch (error) {
       console.error('❌ Exception connecting to Salesforce:', error);
@@ -3559,6 +3635,108 @@ The draft is now in your Outlook Drafts folder and ready to send.`);
                                 </p>
                               </div>
 
+                              {/* Step 1: Enter Credentials */}
+                              <div className="border border-orange-200 rounded-lg p-6 bg-orange-50">
+                                <div className="flex items-start gap-3 mb-4">
+                                  <div className="w-8 h-8 rounded-full bg-orange-600 text-white flex items-center justify-center font-bold flex-shrink-0">
+                                    1
+                                  </div>
+                                  <div className="flex-1">
+                                    <h3 className="text-lg font-semibold text-gray-900 mb-2">Enter Your Salesforce Credentials</h3>
+                                    <p className="text-sm text-gray-700 mb-4">
+                                      After creating your Connected App in Salesforce (see instructions below), enter the credentials here:
+                                    </p>
+                                  </div>
+                                </div>
+                                
+                                {sfCredentialsSaved ? (
+                                  <div className="bg-green-50 border border-green-200 rounded-lg p-4">
+                                    <p className="text-sm text-green-800 font-medium">
+                                      ✅ Credentials saved! You can proceed to Step 2 below.
+                                    </p>
+                                  </div>
+                                ) : (
+                                  <div className="space-y-4">
+                                    <div>
+                                      <label className="block text-sm font-medium text-gray-700 mb-2">
+                                        Consumer Key (Client ID) <span className="text-red-500">*</span>
+                                      </label>
+                                      <input
+                                        type="text"
+                                        value={sfClientId}
+                                        onChange={(e) => setSfClientId(e.target.value)}
+                                        placeholder="3MVG9..."
+                                        className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-orange-500 font-mono text-sm"
+                                      />
+                                    </div>
+                                    
+                                    <div>
+                                      <label className="block text-sm font-medium text-gray-700 mb-2">
+                                        Consumer Secret (Client Secret) <span className="text-red-500">*</span>
+                                      </label>
+                                      <input
+                                        type="password"
+                                        value={sfClientSecret}
+                                        onChange={(e) => setSfClientSecret(e.target.value)}
+                                        placeholder="Enter your Consumer Secret"
+                                        className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-orange-500 font-mono text-sm"
+                                      />
+                                    </div>
+                                    
+                                    {sfCredentialsMessage && (
+                                      <div className={`p-3 rounded-lg text-sm ${
+                                        sfCredentialsMessage.includes('✅') 
+                                          ? 'bg-green-50 text-green-800 border border-green-200' 
+                                          : 'bg-red-50 text-red-800 border border-red-200'
+                                      }`}>
+                                        {sfCredentialsMessage}
+                                      </div>
+                                    )}
+                                    
+                                    <button
+                                      onClick={saveSalesforceCredentials}
+                                      disabled={sfCredentialsLoading || !sfClientId || !sfClientSecret}
+                                      className="w-full bg-orange-600 text-white px-6 py-3 rounded-lg font-semibold hover:bg-orange-700 transition-colors disabled:bg-gray-300 disabled:cursor-not-allowed"
+                                    >
+                                      {sfCredentialsLoading ? 'Saving...' : 'Save Credentials'}
+                                    </button>
+                                  </div>
+                                )}
+                              </div>
+
+                              {/* Step 2: Complete OAuth */}
+                              <div className="border border-blue-200 rounded-lg p-6 bg-blue-50">
+                                <div className="flex items-start gap-3 mb-4">
+                                  <div className="w-8 h-8 rounded-full bg-blue-600 text-white flex items-center justify-center font-bold flex-shrink-0">
+                                    2
+                                  </div>
+                                  <div className="flex-1">
+                                    <h3 className="text-lg font-semibold text-gray-900 mb-2">Connect to Salesforce</h3>
+                                    <p className="text-sm text-gray-700 mb-4">
+                                      After saving your credentials above, click this button to authorize Curiosity Engine in your Salesforce org:
+                                    </p>
+                                  </div>
+                                </div>
+                                
+                                <button
+                                  onClick={connectSalesforceOrg}
+                                  disabled={!sfCredentialsSaved}
+                                  className="w-full bg-blue-600 text-white px-6 py-3 rounded-lg font-semibold hover:bg-blue-700 transition-colors disabled:bg-gray-300 disabled:cursor-not-allowed flex items-center justify-center gap-2"
+                                >
+                                  <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13.828 10.172a4 4 0 00-5.656 0l-4 4a4 4 0 105.656 5.656l1.102-1.101m-.758-4.899a4 4 0 005.656 0l4-4a4 4 0 00-5.656-5.656l-1.1 1.1" />
+                                  </svg>
+                                  {sfCredentialsSaved ? 'Connect Salesforce' : 'Save Credentials First (Step 1)'}
+                                </button>
+                              </div>
+
+                              <div className="border-t border-gray-200 pt-6">
+                                <h3 className="text-lg font-semibold text-gray-900 mb-3">How to Get Your Credentials</h3>
+                                <p className="text-sm text-gray-700 mb-4">
+                                  Follow these steps in your Salesforce org to create a Connected App and get your Consumer Key and Secret:
+                                </p>
+                              </div>
+
                               <div>
                                 <h3 className="text-lg font-semibold text-gray-900 mb-3">Prerequisites</h3>
                                 <ul className="list-disc list-inside space-y-2 text-gray-700 text-sm">
@@ -3569,37 +3747,84 @@ The draft is now in your Outlook Drafts folder and ready to send.`);
                               </div>
 
                               <div>
-                                <h3 className="text-lg font-semibold text-gray-900 mb-3">How to Connect</h3>
+                                <h3 className="text-lg font-semibold text-gray-900 mb-3">Step A: Create Connected App in Salesforce</h3>
                                 <ol className="list-decimal list-inside space-y-3 text-gray-700 text-sm">
                                   <li className="pl-2">
-                                    Click the <strong>"Connect"</strong> button on the Salesforce CRM card above
+                                    Log into your Salesforce org at <strong>login.salesforce.com</strong>
                                   </li>
                                   <li className="pl-2">
-                                    You'll be redirected to Salesforce login page
+                                    Click the <strong>⚙️ Setup</strong> icon (gear in top right)
                                   </li>
                                   <li className="pl-2">
-                                    Sign in with your <strong>Salesforce administrator credentials</strong>
+                                    In Quick Find, search for <strong>"App Manager"</strong>
                                   </li>
                                   <li className="pl-2">
-                                    Review the permissions Curiosity Engine is requesting:
+                                    Click <strong>"New Connected App"</strong>
+                                  </li>
+                                  <li className="pl-2">
+                                    Fill in basic information:
                                     <div className="mt-2 bg-gray-50 border border-gray-200 rounded p-3 space-y-1 text-xs">
-                                      <div>• Access and manage your data (api)</div>
-                                      <div>• Perform requests on your behalf at any time (refresh_token)</div>
-                                      <div>• Access identity URL service (id, profile, email)</div>
+                                      <div>• <strong>Connected App Name:</strong> Curiosity Engine</div>
+                                      <div>• <strong>API Name:</strong> Curiosity_Engine (auto-filled)</div>
+                                      <div>• <strong>Contact Email:</strong> Your email</div>
                                     </div>
                                   </li>
                                   <li className="pl-2">
-                                    Click <strong>"Allow"</strong> to authorize Curiosity Engine
+                                    Check <strong>"Enable OAuth Settings"</strong>
                                   </li>
                                   <li className="pl-2">
-                                    You'll be redirected back to this dashboard with a success message
+                                    <strong>Callback URL:</strong> Enter this EXACT URL:
+                                    <div className="mt-2 bg-white border border-gray-300 rounded p-2 font-mono text-xs">
+                                      https://www.curiosityengine.io/api/salesforce/callback
+                                    </div>
+                                  </li>
+                                  <li className="pl-2">
+                                    <strong>Selected OAuth Scopes:</strong> Add these three scopes:
+                                    <div className="mt-2 bg-gray-50 border border-gray-200 rounded p-3 space-y-1 text-xs">
+                                      <div>• Access the identity URL service (id, profile, email, address, phone)</div>
+                                      <div>• Manage user data via APIs (api)</div>
+                                      <div>• Perform requests at any time (refresh_token, offline_access)</div>
+                                    </div>
+                                  </li>
+                                  <li className="pl-2">
+                                    Check <strong>"Require Secret for Web Server Flow"</strong>
+                                  </li>
+                                  <li className="pl-2">
+                                    Click <strong>"Save"</strong> → Then click <strong>"Continue"</strong>
                                   </li>
                                 </ol>
                               </div>
 
                               <div>
-                                <h3 className="text-lg font-semibold text-gray-900 mb-3">What Happens After Connection</h3>
-                                <ul className="list-disc list-inside space-y-2 text-gray-700 text-sm">
+                                <h3 className="text-lg font-semibold text-gray-900 mb-3">Step B: Get Your Credentials</h3>
+                                <ol className="list-decimal list-inside space-y-3 text-gray-700 text-sm">
+                                  <li className="pl-2">
+                                    You'll see your <strong>Consumer Key</strong> - copy it
+                                  </li>
+                                  <li className="pl-2">
+                                    Click <strong>"Manage Consumer Details"</strong> to reveal <strong>Consumer Secret</strong> - copy it
+                                  </li>
+                                  <li className="pl-2">
+                                    Go to <strong>Setup</strong> → <strong>App Manager</strong> → Find your app → <strong>Manage</strong> → <strong>"Edit Policies"</strong>
+                                  </li>
+                                  <li className="pl-2">
+                                    Set <strong>"Permitted Users"</strong> to <strong>"All users may self-authorize"</strong>
+                                  </li>
+                                  <li className="pl-2">
+                                    Set <strong>"IP Relaxation"</strong> to <strong>"Relax IP restrictions"</strong>
+                                  </li>
+                                  <li className="pl-2">
+                                    Click <strong>"Save"</strong>
+                                  </li>
+                                  <li className="pl-2">
+                                    Return to this page and enter your credentials in <strong>Step 1</strong> above
+                                  </li>
+                                </ol>
+                              </div>
+
+                              <div className="bg-green-50 border border-green-200 rounded-lg p-4">
+                                <h4 className="font-semibold text-green-900 mb-2">✅ What Happens After Connection</h4>
+                                <ul className="list-disc list-inside space-y-1 text-sm text-green-800">
                                   <li>All team members can use Salesforce CRM data in AI email drafting</li>
                                   <li>System will check if LinkedIn prospects exist in your Salesforce</li>
                                   <li>New contacts will be automatically created in your Salesforce</li>
@@ -3607,50 +3832,13 @@ The draft is now in your Outlook Drafts folder and ready to send.`);
                                 </ul>
                               </div>
 
-                              <div>
-                                <h3 className="text-lg font-semibold text-gray-900 mb-3">Managing Permissions in Salesforce</h3>
-                                <p className="text-gray-700 text-sm mb-3">
-                                  After connecting, you can control which Salesforce users can authorize Curiosity Engine:
-                                </p>
-                                <ol className="list-decimal list-inside space-y-2 text-gray-700 text-sm">
-                                  <li className="pl-2">
-                                    In Salesforce, go to <strong>Setup</strong> → Search for <strong>"Connected Apps"</strong>
-                                  </li>
-                                  <li className="pl-2">
-                                    Find <strong>"Sales Curiosity Engine"</strong> in the list
-                                  </li>
-                                  <li className="pl-2">
-                                    Click <strong>Manage</strong> → <strong>Edit Policies</strong>
-                                  </li>
-                                  <li className="pl-2">
-                                    Under <strong>"Permitted Users"</strong>, you can choose:
-                                    <div className="mt-2 bg-gray-50 border border-gray-200 rounded p-3 space-y-2 text-xs">
-                                      <div>
-                                        <strong>• All users may self-authorize</strong> - Any Salesforce user can connect (recommended)
-                                      </div>
-                                      <div>
-                                        <strong>• Admin approved users are pre-authorized</strong> - Only specific users/profiles
-                                      </div>
-                                    </div>
-                                  </li>
-                                  <li className="pl-2">
-                                    Set <strong>IP Relaxation</strong> to "Relax IP restrictions" for best compatibility
-                                  </li>
-                                  <li className="pl-2">
-                                    Set <strong>Refresh Token Policy</strong> to "Refresh token is valid until revoked"
-                                  </li>
-                                  <li className="pl-2">
-                                    Click <strong>Save</strong>
-                                  </li>
-                                </ol>
-                              </div>
-
-                              <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-4">
-                                <h4 className="font-semibold text-yellow-900 mb-2">Important Notes</h4>
-                                <ul className="list-disc list-inside space-y-1 text-sm text-yellow-800">
-                                  <li>You can disconnect or revoke access anytime from Salesforce Connected Apps settings</li>
-                                  <li>Curiosity Engine never stores your Salesforce password - only OAuth tokens</li>
-                                  <li>We only access Contacts, Leads, and related activities - no opportunities or financial data</li>
+                              <div className="bg-gray-50 border border-gray-200 rounded-lg p-4">
+                                <h4 className="font-semibold text-gray-900 mb-2">🔒 Security & Privacy</h4>
+                                <ul className="list-disc list-inside space-y-1 text-sm text-gray-700">
+                                  <li>We never store your Salesforce password - only secure OAuth tokens</li>
+                                  <li>We only access Contacts, Leads, and related activities</li>
+                                  <li>You can revoke access anytime from Salesforce Connected Apps settings</li>
+                                  <li>Your credentials are encrypted and stored securely in our database</li>
                                 </ul>
                               </div>
                             </div>

@@ -60,8 +60,13 @@ export interface SalesforceSearchResult {
 
 /**
  * Generate Salesforce OAuth URL
+ * Supports both organization-specific credentials and fallback to env vars
  */
-export function getSalesforceAuthUrl(state: string, isUserLevel: boolean = false): string {
+export function getSalesforceAuthUrl(
+  state: string, 
+  isUserLevel: boolean = false,
+  customClientId?: string
+): string {
   // Use different callback URL for user-level vs org-level
   // For user-level, use dedicated env var or fallback to NEXT_PUBLIC_APP_URL
   const userCallbackUri = process.env.SALESFORCE_USER_REDIRECT_URI || `${process.env.NEXT_PUBLIC_APP_URL}/api/salesforce/user-callback`;
@@ -69,9 +74,12 @@ export function getSalesforceAuthUrl(state: string, isUserLevel: boolean = false
     ? userCallbackUri
     : SALESFORCE_REDIRECT_URI;
     
+  // Use custom client ID if provided, otherwise fall back to env var
+  const clientId = customClientId || SALESFORCE_CLIENT_ID;
+    
   const params = new URLSearchParams({
     response_type: 'code',
-    client_id: SALESFORCE_CLIENT_ID,
+    client_id: clientId,
     redirect_uri: redirectUri,
     state,
     prompt: 'consent',
@@ -82,12 +90,18 @@ export function getSalesforceAuthUrl(state: string, isUserLevel: boolean = false
 
 /**
  * Exchange authorization code for tokens
+ * Supports both organization-specific credentials and fallback to env vars
  */
-export async function exchangeCodeForTokens(code: string, redirectUri?: string): Promise<SalesforceTokens> {
+export async function exchangeCodeForTokens(
+  code: string, 
+  redirectUri?: string,
+  customClientId?: string,
+  customClientSecret?: string
+): Promise<SalesforceTokens> {
   const params = new URLSearchParams({
     grant_type: 'authorization_code',
-    client_id: SALESFORCE_CLIENT_ID,
-    client_secret: SALESFORCE_CLIENT_SECRET,
+    client_id: customClientId || SALESFORCE_CLIENT_ID,
+    client_secret: customClientSecret || SALESFORCE_CLIENT_SECRET,
     redirect_uri: redirectUri || SALESFORCE_REDIRECT_URI,
     code,
   });
@@ -110,12 +124,18 @@ export async function exchangeCodeForTokens(code: string, redirectUri?: string):
 
 /**
  * Refresh Salesforce access token
+ * Supports both organization-specific credentials and fallback to env vars
  */
-export async function refreshAccessToken(refreshToken: string, instanceUrl: string): Promise<SalesforceTokens> {
+export async function refreshAccessToken(
+  refreshToken: string, 
+  instanceUrl: string,
+  customClientId?: string,
+  customClientSecret?: string
+): Promise<SalesforceTokens> {
   const params = new URLSearchParams({
     grant_type: 'refresh_token',
-    client_id: SALESFORCE_CLIENT_ID,
-    client_secret: SALESFORCE_CLIENT_SECRET,
+    client_id: customClientId || SALESFORCE_CLIENT_ID,
+    client_secret: customClientSecret || SALESFORCE_CLIENT_SECRET,
     refresh_token: refreshToken,
   });
 

@@ -67,16 +67,40 @@ export async function GET(req: NextRequest) {
       );
     }
 
-    // Exchange code for tokens
-    const tokens = await exchangeCodeForTokens(code);
-
-    // Store tokens in database
+    // Get org-specific Salesforce credentials
     const { data: existing } = await supabase
       .from('organization_integrations')
-      .select('id')
+      .select('id, configuration')
       .eq('organization_id', organizationId)
       .eq('integration_type', 'salesforce')
-      .single();
+      .maybeSingle();
+
+    const existingConfig = existing?.configuration as any || {};
+    const orgClientId = existingConfig.client_id;
+    const orgClientSecret = existingConfig.client_secret;
+
+    if (!orgClientId || !orgClientSecret) {
+      console.error('❌ [Salesforce Callback] No credentials found for organization');
+      return NextResponse.redirect(
+        new URL(
+          '/dashboard?tab=integrations&error=' + encodeURIComponent('Salesforce credentials not found. Please configure them first.'),
+          process.env.NEXT_PUBLIC_APP_URL
+        )
+      );
+    }
+
+    console.log('🟪 [Salesforce Callback] Using org-specific credentials for token exchange');
+
+    // Exchange code for tokens using org-specific credentials
+    const tokens = await exchangeCodeForTokens(code, undefined, orgClientId, orgClientSecret);
+
+    // Merge OAuth tokens with existing configuration (preserve credentials)
+    const updatedConfig = {
+      ...existingConfig,
+      ...tokens,
+      connected_at: new Date().toISOString(),
+      connected_by: userId,
+    };
 
     if (existing) {
       // Update existing integration
@@ -84,7 +108,7 @@ export async function GET(req: NextRequest) {
         .from('organization_integrations')
         .update({
           is_enabled: true,
-          configuration: tokens,
+          configuration: updatedConfig,
           enabled_at: new Date().toISOString(),
           enabled_by: userId,
           updated_at: new Date().toISOString(),
@@ -98,7 +122,7 @@ export async function GET(req: NextRequest) {
           organization_id: organizationId,
           integration_type: 'salesforce',
           is_enabled: true,
-          configuration: tokens,
+          configuration: updatedConfig,
           enabled_at: new Date().toISOString(),
           enabled_by: userId,
         });
@@ -112,10 +136,10 @@ export async function GET(req: NextRequest) {
       p_details: { integration_type: 'salesforce' },
     });
 
-    // Redirect to admin dashboard with success message
+    // Redirect to dashboard integrations tab with success message
     return NextResponse.redirect(
       new URL(
-        '/admin/organization?success=Salesforce connected successfully',
+        '/dashboard?tab=integrations&success=' + encodeURIComponent('Salesforce connected successfully! Your team can now use CRM data.'),
         process.env.NEXT_PUBLIC_APP_URL
       )
     );

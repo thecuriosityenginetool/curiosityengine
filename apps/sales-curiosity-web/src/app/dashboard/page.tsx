@@ -178,8 +178,35 @@ export default function DashboardPage() {
     if (status === 'authenticated' && session?.user) {
       checkAuth();
       
-      // Check for URL parameters from extension
+      // Check for URL parameters from extension or OAuth redirects
       const params = new URLSearchParams(window.location.search);
+      
+      // Handle OAuth success/error messages
+      const successMessage = params.get('success');
+      const errorMessage = params.get('error');
+      const tabParam = params.get('tab');
+      
+      if (successMessage) {
+        console.log('✅ OAuth Success:', successMessage);
+        // Show success message briefly
+        setTimeout(() => {
+          // Refresh connections after OAuth success
+          if (user) {
+            checkConnections();
+          }
+        }, 500);
+        
+        // Switch to integrations tab if specified
+        if (tabParam === 'integrations') {
+          setActiveTab('integrations');
+        }
+      }
+      
+      if (errorMessage) {
+        console.error('❌ OAuth Error:', errorMessage);
+      }
+      
+      // Check for extension chat opening
       if (params.get('openChat') === 'true') {
         const profileName = params.get('profile');
         const analysis = params.get('analysis');
@@ -191,7 +218,7 @@ export default function DashboardPage() {
         }
       }
     }
-  }, [status, session]);
+  }, [status, session, user]);
 
   useEffect(() => {
     if (user) {
@@ -205,6 +232,8 @@ export default function DashboardPage() {
       loadLeads();
     } else if (activeTab === 'integrations' && user) {
       checkChromeExtension();
+      // Refresh connections when viewing integrations tab
+      checkConnections();
     } else if (activeTab === 'logs' && user) {
       loadActivityLogs();
     } else if (activeTab === 'context' && user) {

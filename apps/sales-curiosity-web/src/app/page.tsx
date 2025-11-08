@@ -440,7 +440,7 @@ export default function Home() {
                 10x Your Sales Productivity
               </span>
               
-              <h1 className="text-4xl font-bold tracking-tight text-black sm:text-5xl lg:text-6xl mb-6 leading-tight animate-fade-in-up" style={{animationDelay: '0.3s'}}>
+              <h1 className="text-3xl font-bold tracking-tight text-black sm:text-4xl md:text-5xl lg:text-6xl mb-6 leading-tight animate-fade-in-up break-words" style={{animationDelay: '0.3s'}}>
                 The AI Sales Assistant for{' '}
                 <span className="text-[#F95B14] inline-block whitespace-nowrap">
                   {currentRole}
@@ -505,7 +505,7 @@ export default function Home() {
         {/* AI Voice Learning Section */}
         <section className="relative mx-auto max-w-7xl px-6 py-24 bg-white">
           <GSAPReveal>
-            <h2 className="text-4xl font-bold tracking-tight text-black text-center mb-16 headline">
+            <h2 className="text-3xl sm:text-4xl lg:text-5xl font-bold tracking-tight text-black text-center mb-16 leading-tight">
               Curiosity Engine learns your voice from sent emails
             </h2>
           </GSAPReveal>
@@ -583,7 +583,7 @@ export default function Home() {
               🚀 Chrome Extension
             </div>
             <GSAPReveal>
-              <h2 className="text-4xl sm:text-5xl font-bold text-gray-900 mb-6 headline">
+              <h2 className="text-3xl sm:text-4xl lg:text-5xl font-bold text-gray-900 mb-6 leading-tight">
                 Your company's LLM in action
               </h2>
             </GSAPReveal>
@@ -671,7 +671,7 @@ export default function Home() {
               🔌 Connectors
             </div>
             <GSAPReveal>
-              <h2 className="text-4xl sm:text-5xl font-bold text-black mb-6 headline">
+              <h2 className="text-3xl sm:text-4xl lg:text-5xl font-bold text-black mb-6 leading-tight">
                 Curiosity Engine works with every tool you use
               </h2>
             </GSAPReveal>
@@ -1011,7 +1011,7 @@ export default function Home() {
             <div className="inline-flex items-center rounded-full bg-[#F95B14]/10 px-4 py-1.5 text-sm font-medium text-[#F95B14] ring-1 ring-inset ring-[#F95B14]/20 mb-6 relative z-10">
               ⚡ Intelligent Automation
             </div>
-            <h2 className="text-4xl sm:text-5xl font-bold text-black mb-6">
+            <h2 className="text-3xl sm:text-4xl lg:text-5xl font-bold text-black mb-6 leading-tight">
               Why top performers choose Curiosity Engine
             </h2>
             <p className="text-xl text-gray-700 max-w-2xl mx-auto">
@@ -1134,7 +1134,7 @@ export default function Home() {
         <section className="relative mx-auto max-w-7xl px-6 py-24">
           <div className="rounded-3xl border border-gray-200 bg-gradient-to-b from-[#F95B14]/10 via-white to-white p-12 text-center relative overflow-hidden">
             <div className="relative z-10">
-              <h2 className="text-4xl sm:text-5xl font-bold text-black mb-6">
+              <h2 className="text-3xl sm:text-4xl lg:text-5xl font-bold text-black mb-6 leading-tight">
                 Transform Your Sales Game Today
               </h2>
               <p className="text-xl text-gray-700 mb-8 max-w-2xl mx-auto">

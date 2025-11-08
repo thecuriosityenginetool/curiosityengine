@@ -695,6 +695,10 @@ When the user mentions vague references like "latest prospect", "that person", "
       toolsAvailable: hasSalesforce || hasGmail || hasOutlook
     });
 
+    // Check if LangGraph is enabled (can be disabled via env var for debugging)
+    const useLangGraph = process.env.USE_LANGGRAPH !== 'false';
+    console.log('🔀 [Chat API] LangGraph enabled:', useLangGraph);
+
     // Create LangChain tools from available integrations
     const langchainTools = createAgentTools(user.organization_id, user.id, {
       hasSalesforce,
@@ -739,12 +743,41 @@ When the user mentions vague references like "latest prospect", "that person", "
             );
           }
 
-          // Invoke LangGraph agent with streaming
-          console.log('🚀 [Chat API] Invoking LangGraph agent with model:', actualModel);
-          console.log('🚀 [Chat API] Tools available:', langchainTools.map(t => t.name));
+          //  Check if we should use LangGraph or direct API
+          const shouldUseLangGraph = useLangGraph && langchainTools.length > 0;
           
-          try {
-            await invokeAgent(
+          if (!shouldUseLangGraph) {
+            // No tools available or LangGraph disabled - use direct API call
+            console.log('📞 [Chat API] Using direct OpenAI API (no LangGraph)');
+            
+            const completion = await openai.chat.completions.create({
+              model: actualModel,
+              messages,
+              stream: true,
+              max_tokens: 2000,
+            });
+            
+            for await (const chunk of completion) {
+              const delta = chunk.choices[0]?.delta;
+              if (delta?.content) {
+                controller.enqueue(
+                  encoder.encode(`data: ${JSON.stringify({
+                    type: 'content',
+                    content: delta.content
+                  })}\n\n`)
+                );
+              }
+              if (chunk.choices[0]?.finish_reason === 'stop') {
+                controller.enqueue(encoder.encode(`data: ${JSON.stringify({ type: 'done' })}\n\n`));
+              }
+            }
+          } else {
+            // Use LangGraph for tool-based interactions
+            console.log('🚀 [Chat API] Invoking LangGraph agent with model:', actualModel);
+            console.log('🚀 [Chat API] Tools available:', langchainTools.map(t => t.name));
+            
+            try {
+              await invokeAgent(
               langchainMessages,
               langchainTools,
               actualModel, // Pass the resolved model name (not "auto")
@@ -811,9 +844,10 @@ When the user mentions vague references like "latest prospect", "that person", "
             controller.enqueue(
               encoder.encode(`data: ${JSON.stringify({
                 type: 'error',
-                error: agentError instanceof Error ? agentError.message : 'Agent execution failed'
-              })}\n\n`)
-            );
+              error: agentError instanceof Error ? agentError.message : 'Agent execution failed'
+            })}\n\n`)
+          );
+        }
           }
 
           controller.close();

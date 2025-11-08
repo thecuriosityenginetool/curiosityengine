@@ -618,6 +618,12 @@ export default function DashboardPage() {
                     });
                     agentSteps += '\n';
                   }
+                } else if (parsed.type === 'thinking') {
+                  // Handle thinking content from LangGraph/DeepSeek-R1
+                  if (parsed.content) {
+                    agentSteps += '\n**AI Reasoning:**\n' + parsed.content + '\n';
+                    console.log('🧠 Received thinking content');
+                  }
                 } else if (parsed.type === 'content') {
                   accumulatedContent += parsed.content;
                   

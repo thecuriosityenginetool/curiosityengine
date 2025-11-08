@@ -232,13 +232,19 @@ export async function invokeAgent(
     
     let finalResponse = '';
     let toolsExecuted: string[] = [];
+    let fullThinking = '';
+    
+    console.log('🔄 [Agent] Starting stream processing...');
     
     for await (const event of stream) {
       const { messages: stateMessages, modelUsed } = event;
       
+      console.log('📨 [Agent] Stream event received, messages count:', stateMessages?.length || 0);
+      
       if (!stateMessages || stateMessages.length === 0) continue;
       
       const lastMessage = stateMessages[stateMessages.length - 1];
+      console.log('📨 [Agent] Last message type:', lastMessage.constructor.name);
       
       // Handle AI responses
       if (lastMessage instanceof AIMessage) {
@@ -246,10 +252,25 @@ export async function invokeAgent(
         const content = typeof lastMessage.content === 'string' ? lastMessage.content : '';
         if (content) {
           finalResponse += content;
-          if (onStream) {
+          
+          // Parse DeepSeek-R1 thinking tags if present
+          const thinkMatch = content.match(/<think>([\s\S]*?)<\/think>/);
+          const thinking = thinkMatch ? thinkMatch[1].trim() : '';
+          let finalContent = content;
+          
+          if (thinking) {
+            // Remove thinking tags from main content
+            finalContent = content.replace(/<think>[\s\S]*?<\/think>/g, '').trim();
+            fullThinking += thinking;
+            
+            console.log('🧠 [Agent] Parsed thinking:', thinking.substring(0, 100) + '...');
+          }
+          
+          // Send the final content (without thinking tags)
+          if (onStream && finalContent) {
             onStream({
               type: 'content',
-              content,
+              content: finalContent,
               model: modelUsed,
             });
           }
@@ -281,14 +302,29 @@ export async function invokeAgent(
       }
     }
     
+    console.log('✅ [Agent] Stream processing complete');
+    console.log('✅ [Agent] Final response length:', finalResponse.length);
+    console.log('✅ [Agent] Tools executed:', toolsExecuted);
+    console.log('✅ [Agent] Thinking length:', fullThinking.length);
+    
+    // Send thinking if we captured any
+    if (onStream && fullThinking) {
+      onStream({
+        type: 'thinking',
+        content: fullThinking,
+      });
+    }
+    
     // Send done event
     if (onStream) {
+      console.log('🏁 [Agent] Sending done event');
       onStream({ type: 'done' });
     }
     
     return {
       response: finalResponse,
       toolsUsed: toolsExecuted,
+      thinking: fullThinking,
     };
     
   } catch (error) {

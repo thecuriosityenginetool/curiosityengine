@@ -242,7 +242,20 @@ export async function invokeAgent(
       
       // Handle AI responses
       if (lastMessage instanceof AIMessage) {
-        // Check for tool calls
+        // Always send content if present (even if tool_calls also present)
+        const content = typeof lastMessage.content === 'string' ? lastMessage.content : '';
+        if (content) {
+          finalResponse += content;
+          if (onStream) {
+            onStream({
+              type: 'content',
+              content,
+              model: modelUsed,
+            });
+          }
+        }
+        
+        // Also check for tool calls
         if ('tool_calls' in lastMessage && lastMessage.tool_calls && lastMessage.tool_calls.length > 0) {
           for (const toolCall of lastMessage.tool_calls) {
             toolsExecuted.push(toolCall.name);
@@ -250,19 +263,6 @@ export async function invokeAgent(
               onStream({
                 type: 'tool_start',
                 tool: toolCall.name,
-              });
-            }
-          }
-        } else {
-          // Regular content
-          const content = typeof lastMessage.content === 'string' ? lastMessage.content : '';
-          if (content) {
-            finalResponse += content;
-            if (onStream) {
-              onStream({
-                type: 'content',
-                content,
-                model: modelUsed,
               });
             }
           }

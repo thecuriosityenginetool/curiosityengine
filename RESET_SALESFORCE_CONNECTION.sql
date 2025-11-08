@@ -46,14 +46,5 @@ WHERE organization_id = 'f802b263-f05d-4b09-a085-cbcd8b6490e1';
 -- 2. Click "Connect Salesforce" 
 -- 3. Complete the OAuth flow fresh
 -- 4. Tokens should save properly this time
-
--- DEBUG: If OAuth still fails, run this to see the exact error:
-SELECT 
-    created_at,
-    level,
-    msg
-FROM logs
-WHERE msg LIKE '%Salesforce%'
-ORDER BY created_at DESC
-LIMIT 20;
+-- 5. Check Vercel logs for detailed OAuth flow logging
 

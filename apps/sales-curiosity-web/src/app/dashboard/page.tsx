@@ -2321,14 +2321,15 @@ The draft is now in your Outlook Drafts folder and ready to send.`);
                           </p>
                         </button>
 
-                        {/* Email Prompt */}
+                        {/* Email Prompt - Dynamic based on connected provider */}
                         <button
                           onClick={() => {
-                            if (!hasOutlookConnection) {
-                              setChatInput("I want to draft an email but I haven't connected Outlook yet. Can you explain what email features are available and guide me to set it up?");
+                            if (!hasGmailConnection && !hasOutlookConnection) {
+                              setChatInput("I want to draft an email but I haven't connected Gmail or Outlook yet. Can you explain what email features are available and guide me to set up an email integration?");
                               setTimeout(() => sendChatMessage(), 100);
                             } else {
-                              setChatInput("Help me draft a follow-up email to my latest prospect");
+                              const provider = hasGmailConnection ? "Gmail" : "Outlook";
+                              setChatInput(`Help me draft a follow-up email to my latest prospect using ${provider}`);
                               setTimeout(() => sendChatMessage(), 100);
                             }
                           }}
@@ -2336,18 +2337,29 @@ The draft is now in your Outlook Drafts folder and ready to send.`);
                         >
                           <div className="flex items-center gap-3 mb-3">
                             <div className="flex items-center gap-2">
-                              {/* Gmail Icon */}
-                              <img
-                                src="/gmail-icon.svg"
-                                alt="Gmail"
-                                className="w-7 h-7"
-                              />
-                              {/* Outlook Icon */}
-                              <img
-                                src="/Outlook_icon.svg"
-                                alt="Outlook"
-                                className="w-7 h-7"
-                              />
+                              {/* Show Gmail icon if connected */}
+                              {hasGmailConnection && (
+                                <img
+                                  src="/gmail-icon.svg"
+                                  alt="Gmail"
+                                  className="w-7 h-7"
+                                />
+                              )}
+                              {/* Show Outlook icon if connected */}
+                              {hasOutlookConnection && (
+                                <img
+                                  src="/Outlook_icon.svg"
+                                  alt="Outlook"
+                                  className="w-7 h-7"
+                                />
+                              )}
+                              {/* Show both if neither connected */}
+                              {!hasGmailConnection && !hasOutlookConnection && (
+                                <>
+                                  <img src="/gmail-icon.svg" alt="Gmail" className="w-7 h-7 opacity-40" />
+                                  <img src="/Outlook_icon.svg" alt="Outlook" className="w-7 h-7 opacity-40" />
+                                </>
+                              )}
                             </div>
                           </div>
                           <h3 className="text-base font-semibold text-gray-900 mb-2 group-hover:text-blue-600 transition-colors">

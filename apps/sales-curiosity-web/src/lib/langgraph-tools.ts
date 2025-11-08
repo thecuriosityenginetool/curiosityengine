@@ -7,6 +7,7 @@
 
 import { DynamicStructuredTool } from '@langchain/core/tools';
 import { z } from 'zod';
+import { createClient } from '@supabase/supabase-js';
 
 // Import existing tool executors
 import {
@@ -32,6 +33,37 @@ import {
   createCalendarEvent,
   searchEmails,
 } from './outlook';
+
+// Supabase client for activity logging
+const supabase = createClient(
+  process.env.NEXT_PUBLIC_SUPABASE_URL!,
+  process.env.SUPABASE_SERVICE_ROLE_KEY!
+);
+
+/**
+ * Log activity to activity_logs table
+ */
+async function logActivity(
+  organizationId: string,
+  userId: string,
+  actionType: string,
+  resourceType: string,
+  details: any
+): Promise<void> {
+  try {
+    await supabase.from('activity_logs').insert({
+      organization_id: organizationId,
+      user_id: userId,
+      action_type: actionType,
+      resource_type: resourceType,
+      details,
+      created_at: new Date().toISOString(),
+    });
+  } catch (error) {
+    console.error('❌ Failed to log activity:', error);
+    // Don't throw - activity logging failure shouldn't break tool execution
+  }
+}
 
 /**
  * Create LangChain tools based on available integrations
@@ -86,6 +118,16 @@ export function createAgentTools(
         func: async (input) => {
           try {
             const result = await createSalesforceLead(organizationId, input, userId);
+            
+            // Log activity
+            await logActivity(organizationId, userId, 'lead_created', 'crm', {
+              provider: 'salesforce',
+              name: `${input.firstName} ${input.lastName}`,
+              company: input.company,
+              email: input.email,
+              recordId: result.id
+            });
+            
             return `✅ Lead created successfully!\nName: ${input.firstName} ${input.lastName}\nCompany: ${input.company}\nRecord ID: ${result.id}`;
           } catch (error) {
             return `Error creating lead: ${error instanceof Error ? error.message : 'Unknown error'}`;
@@ -107,6 +149,16 @@ export function createAgentTools(
         func: async (input) => {
           try {
             const result = await createSalesforceContact(organizationId, input, userId);
+            
+            // Log activity
+            await logActivity(organizationId, userId, 'contact_created', 'crm', {
+              provider: 'salesforce',
+              name: `${input.firstName} ${input.lastName}`,
+              company: input.company,
+              email: input.email,
+              recordId: result.id
+            });
+            
             return `✅ Contact created successfully!\nName: ${input.firstName} ${input.lastName}\n${input.company ? `Company: ${input.company}\n` : ''}Record ID: ${result.id}`;
           } catch (error) {
             return `Error creating contact: ${error instanceof Error ? error.message : 'Unknown error'}`;
@@ -166,6 +218,15 @@ export function createAgentTools(
         func: async (input) => {
           try {
             const result = await createGmailDraft(organizationId, input, userId);
+            
+            // Log activity
+            await logActivity(organizationId, userId, 'email_draft_created', 'email', {
+              provider: 'gmail',
+              to: input.to,
+              subject: input.subject,
+              draftId: result.id
+            });
+            
             return `✅ Email draft created successfully in Gmail!\nTo: ${input.to}\nSubject: ${input.subject}\nDraft ID: ${result.id}\n\nThe draft is now in your Gmail Drafts folder and ready to send.`;
           } catch (error) {
             return `Error creating Gmail draft: ${error instanceof Error ? error.message : 'Unknown error'}`;
@@ -184,6 +245,14 @@ export function createAgentTools(
         func: async (input) => {
           try {
             await sendGmailEmail(organizationId, input, userId);
+            
+            // Log activity
+            await logActivity(organizationId, userId, 'email_sent', 'email', {
+              provider: 'gmail',
+              to: input.to,
+              subject: input.subject
+            });
+            
             return `✅ Email sent successfully via Gmail!\nTo: ${input.to}\nSubject: ${input.subject}\n\nThe email has been sent.`;
           } catch (error) {
             return `Error sending Gmail email: ${error instanceof Error ? error.message : 'Unknown error'}`;
@@ -216,6 +285,16 @@ export function createAgentTools(
               },
               userId
             );
+            
+            // Log activity
+            await logActivity(organizationId, userId, 'meeting_scheduled', 'calendar', {
+              provider: 'google',
+              title: input.title,
+              start: input.start,
+              attendees: input.attendees,
+              eventId: result.id
+            });
+            
             return `✅ Calendar event created successfully in Google Calendar!\nTitle: ${input.title}\nStart: ${new Date(input.start).toLocaleString()}\nEnd: ${new Date(input.end).toLocaleString()}\n${input.attendees ? `Attendees: ${input.attendees.join(', ')}\n` : ''}Event ID: ${result.id}`;
           } catch (error) {
             return `Error creating Google Calendar event: ${error instanceof Error ? error.message : 'Unknown error'}`;
@@ -273,6 +352,15 @@ export function createAgentTools(
         func: async (input) => {
           try {
             const result = await createEmailDraft(organizationId, input, userId);
+            
+            // Log activity
+            await logActivity(organizationId, userId, 'email_draft_created', 'email', {
+              provider: 'outlook',
+              to: input.to,
+              subject: input.subject,
+              draftId: result.id
+            });
+            
             return `✅ Email draft created successfully in Outlook!\nTo: ${input.to}\nSubject: ${input.subject}\nDraft ID: ${result.id}\n\nThe draft is now in your Outlook Drafts folder.`;
           } catch (error) {
             return `Error creating Outlook draft: ${error instanceof Error ? error.message : 'Unknown error'}`;
@@ -312,6 +400,16 @@ export function createAgentTools(
         func: async (input) => {
           try {
             const result = await createCalendarEvent(organizationId, input, userId);
+            
+            // Log activity
+            await logActivity(organizationId, userId, 'meeting_scheduled', 'calendar', {
+              provider: 'outlook',
+              title: input.subject,
+              start: input.start,
+              attendees: input.attendees,
+              eventId: result.id
+            });
+            
             return `✅ Calendar event created successfully in Outlook!\nSubject: ${input.subject}\nStart: ${new Date(input.start).toLocaleString()}\nEnd: ${new Date(input.end).toLocaleString()}\n${input.attendees ? `Attendees: ${input.attendees.join(', ')}\n` : ''}Event ID: ${result.id}`;
           } catch (error) {
             return `Error creating Outlook calendar event: ${error instanceof Error ? error.message : 'Unknown error'}`;

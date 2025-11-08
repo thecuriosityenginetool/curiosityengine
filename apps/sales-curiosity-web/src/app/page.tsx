@@ -64,34 +64,60 @@ export default function Home() {
   const [isTyping, setIsTyping] = useState(false);
   const [hasAnimated, setHasAnimated] = useState(false);
   const emailRef = useRef<HTMLDivElement>(null);
+  const typeIntervalRef = useRef<NodeJS.Timeout | null>(null);
+  const fallbackTimerRef = useRef<NodeJS.Timeout | null>(null);
+  
+  // Typing animation function
+  const startTypingAnimation = () => {
+    if (hasAnimated) return; // Prevent multiple animations
+    
+    console.log('Starting typing animation...');
+    setHasAnimated(true);
+    setIsTyping(true);
+    setEmailText('');
+    
+    const fullText = "Hey Sarah,\n\nI noticed you're expanding into the enterprise market—congrats on the Series B! 🥳\n\nWe helped a similar company in your space reduce their sales cycle by 40%. Would love to show you how...";
+    let currentIndex = 0;
+    
+    // Clear any existing interval
+    if (typeIntervalRef.current) {
+      clearInterval(typeIntervalRef.current);
+    }
+    
+    typeIntervalRef.current = setInterval(() => {
+      if (currentIndex <= fullText.length) {
+        setEmailText(fullText.slice(0, currentIndex));
+        currentIndex++;
+      } else {
+        if (typeIntervalRef.current) {
+          clearInterval(typeIntervalRef.current);
+          typeIntervalRef.current = null;
+        }
+        setTimeout(() => {
+          setIsTyping(false);
+        }, 1000);
+      }
+    }, 50);
+  };
   
   // Fallback: Start animation after component mounts
   useEffect(() => {
-    const timer = setTimeout(() => {
+    fallbackTimerRef.current = setTimeout(() => {
       if (!hasAnimated) {
         console.log('Fallback: Starting typing animation...');
-        setHasAnimated(true);
-        setIsTyping(true);
-        setEmailText('');
-        const fullText = "Hey Sarah,\n\nI noticed you're expanding into the enterprise market—congrats on the Series B! 🥳\n\nWe helped a similar company in your space reduce their sales cycle by 40%. Would love to show you how...";
-        let currentIndex = 0;
-        
-        const typeInterval = setInterval(() => {
-          if (currentIndex <= fullText.length) {
-            setEmailText(fullText.slice(0, currentIndex));
-            currentIndex++;
-          } else {
-            clearInterval(typeInterval);
-            setTimeout(() => {
-              setIsTyping(false);
-            }, 1000);
-          }
-        }, 50);
+        startTypingAnimation();
       }
-    }, 2000); // Start after 2 seconds if intersection observer doesn't trigger
+    }, 2000);
     
-    return () => clearTimeout(timer);
-  }, [hasAnimated]);
+    return () => {
+      if (fallbackTimerRef.current) {
+        clearTimeout(fallbackTimerRef.current);
+      }
+      if (typeIntervalRef.current) {
+        clearInterval(typeIntervalRef.current);
+      }
+    };
+  }, []);
   
   const [userData, setUserData] = useState<any>(null);
   const [activeTab, setActiveTab] = useState<TabType>('home');
@@ -167,49 +193,36 @@ export default function Home() {
     return () => window.removeEventListener('mousemove', handleMouseMove);
   }, []);
 
-  // Typing animation effect for email text
+  // Typing animation effect for email text with IntersectionObserver
   useEffect(() => {
     const observer = new IntersectionObserver(
       (entries) => {
         entries.forEach((entry) => {
-          // console.log('Intersection observer triggered:', entry.isIntersecting, hasAnimated);
           if (entry.isIntersecting && !hasAnimated) {
-            console.log('Starting typing animation...');
-            setHasAnimated(true);
-            setIsTyping(true);
-            setEmailText(''); // Reset text
-            const fullText = "Hey Sarah,\n\nI noticed you're expanding into the enterprise market—congrats on the Series B! 🥳\n\nWe helped a similar company in your space reduce their sales cycle by 40%. Would love to show you how...";
-            let currentIndex = 0;
-            
-            const typeInterval = setInterval(() => {
-              if (currentIndex <= fullText.length) {
-                setEmailText(fullText.slice(0, currentIndex));
-                currentIndex++;
-              } else {
-                clearInterval(typeInterval);
-                // Keep the cursor for a moment after typing is complete
-                setTimeout(() => {
-                  setIsTyping(false);
-                }, 1000);
-              }
-            }, 50); // Slightly slower for better readability
+            // Clear fallback timer if intersection observer triggers first
+            if (fallbackTimerRef.current) {
+              clearTimeout(fallbackTimerRef.current);
+              fallbackTimerRef.current = null;
+            }
+            startTypingAnimation();
           }
         });
       },
-      { threshold: 0.1 } // Lower threshold to trigger earlier
+      { threshold: 0.1 }
     );
 
-    if (emailRef.current) {
-      // console.log('Observing email element');
-      observer.observe(emailRef.current);
+    const currentEmailRef = emailRef.current;
+    if (currentEmailRef) {
+      observer.observe(currentEmailRef);
     }
 
     return () => {
-      if (emailRef.current) {
-        observer.unobserve(emailRef.current);
+      if (currentEmailRef) {
+        observer.unobserve(currentEmailRef);
       }
+      observer.disconnect();
     };
-  }, []); // Remove hasAnimated dependency to prevent recreating observer
+  }, [hasAnimated]);
 
   // Removed complex checkAuth - NextAuth handles it all!
 

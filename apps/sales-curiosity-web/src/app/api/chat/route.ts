@@ -698,6 +698,11 @@ When the user mentions vague references like "latest prospect", "that person", "
     // Check if LangGraph is enabled (can be disabled via env var for debugging)
     const useLangGraph = process.env.USE_LANGGRAPH !== 'false';
     console.log('🔀 [Chat API] LangGraph enabled:', useLangGraph);
+    
+    // Detect if this specific message needs tools (not just if tools exist)
+    const { isToolBasedRequest } = await import('@/lib/model-router');
+    const messageNeedsTools = isToolBasedRequest(message);
+    console.log('🔍 [Chat API] Message needs tools:', messageNeedsTools);
 
     // Create LangChain tools from available integrations
     const langchainTools = createAgentTools(user.organization_id, user.id, {
@@ -744,13 +749,18 @@ When the user mentions vague references like "latest prospect", "that person", "
           }
 
           //  Check if we should use LangGraph or direct API
-          const shouldUseLangGraph = useLangGraph && langchainTools.length > 0;
+          // Only use LangGraph if: enabled + tools exist + message actually needs tools
+          const shouldUseLangGraph = useLangGraph && langchainTools.length > 0 && messageNeedsTools;
           
           let contentSent = false; // Track if any content was sent
           
           if (!shouldUseLangGraph) {
-            // No tools available or LangGraph disabled - use direct API call
-            console.log('📞 [Chat API] Using direct OpenAI API (no LangGraph)');
+            // No tools needed or LangGraph disabled - use direct API call
+            console.log('📞 [Chat API] Using direct OpenAI API (no LangGraph), reason:', 
+              !messageNeedsTools ? 'message doesnt need tools' : 
+              langchainTools.length === 0 ? 'no tools available' : 
+              'LangGraph disabled'
+            );
             
             const completion = await openai.chat.completions.create({
               model: actualModel,

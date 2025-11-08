@@ -40,6 +40,13 @@ const REASONING_KEYWORDS = [
 function isToolBasedRequest(message: string): boolean {
   const lowerMessage = message.toLowerCase();
   
+  // Short greetings/simple messages don't need tools
+  const simpleGreetings = ['hi', 'hello', 'hey', 'thanks', 'thank you', 'ok', 'okay', 'yes', 'no'];
+  if (simpleGreetings.some(greeting => lowerMessage.trim() === greeting)) {
+    console.log('🗣️ [Model Router] Simple greeting detected - no tools needed');
+    return false;
+  }
+  
   // Count tool-related keywords
   const toolScore = TOOL_KEYWORDS.reduce((score, keyword) => {
     return score + (lowerMessage.includes(keyword) ? 1 : 0);
@@ -51,14 +58,16 @@ function isToolBasedRequest(message: string): boolean {
   }, 0);
   
   // If tool score is higher, it's tool-based
-  // If reasoning score is higher or equal, it's reasoning-based
-  // Default to tool-based if no clear signal (safer for function calling)
+  // If reasoning score is higher, it's reasoning-based
+  // If both are 0, default to REASONING (DeepSeek for general chat)
   if (toolScore === 0 && reasoningScore === 0) {
-    // No clear signal - default to tool-based (Llama is more reliable)
-    return true;
+    console.log('💭 [Model Router] No clear signal - defaulting to reasoning mode');
+    return false; // Use DeepSeek for general conversation
   }
   
-  return toolScore > reasoningScore;
+  const isToolBased = toolScore > reasoningScore;
+  console.log('📊 [Model Router] Scores - Tool:', toolScore, 'Reasoning:', reasoningScore, '→', isToolBased ? 'TOOL' : 'REASONING');
+  return isToolBased;
 }
 
 /**

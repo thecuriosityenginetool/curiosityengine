@@ -48,24 +48,43 @@ export async function GET(req: NextRequest) {
         Buffer.from(state, 'base64url').toString('utf-8')
       );
     } catch (e) {
+      console.error('❌ [Salesforce Callback] Invalid state parameter:', e);
       return NextResponse.redirect(
         new URL(
-          '/admin/organization?error=Invalid state parameter',
+          '/dashboard?error=Invalid state parameter',
           process.env.NEXT_PUBLIC_APP_URL
         )
       );
     }
 
-    const { organizationId, userId } = stateData;
+    const { organizationId, userId, type } = stateData;
+    
+    console.log('🟪 [Salesforce Callback] Decoded state:', { organizationId, userId, type });
 
+    // Validate this is org-level callback
+    // Accept both type='org' (new) and missing type (legacy) for backward compatibility
     if (!organizationId || !userId) {
+      console.error('❌ [Salesforce Callback] Missing required state data:', stateData);
       return NextResponse.redirect(
         new URL(
-          '/admin/organization?error=Invalid state data',
+          '/dashboard?error=Invalid callback data - missing organizationId or userId',
           process.env.NEXT_PUBLIC_APP_URL
         )
       );
     }
+    
+    // If type is explicitly set, verify it's 'org'
+    if (type && type !== 'org') {
+      console.error('❌ [Salesforce Callback] Wrong callback type:', type);
+      return NextResponse.redirect(
+        new URL(
+          '/dashboard?error=Invalid callback - wrong connection type',
+          process.env.NEXT_PUBLIC_APP_URL
+        )
+      );
+    }
+    
+    console.log('✅ [Salesforce Callback] Valid org-level callback');
 
     // Get org-specific Salesforce credentials
     const { data: existing } = await supabase
@@ -90,9 +109,17 @@ export async function GET(req: NextRequest) {
     }
 
     console.log('🟪 [Salesforce Callback] Using org-specific credentials for token exchange');
+    console.log('🟪 [Salesforce Callback] Client ID:', orgClientId?.substring(0, 10) + '...');
 
     // Exchange code for tokens using org-specific credentials
+    console.log('🟪 [Salesforce Callback] Exchanging authorization code...');
     const tokens = await exchangeCodeForTokens(code, undefined, orgClientId, orgClientSecret);
+    console.log('✅ [Salesforce Callback] Token exchange successful!');
+    console.log('🟪 [Salesforce Callback] Received tokens:', {
+      hasAccessToken: !!tokens.access_token,
+      hasRefreshToken: !!tokens.refresh_token,
+      hasInstanceUrl: !!tokens.instance_url,
+    });
 
     // Merge OAuth tokens with existing configuration (preserve credentials)
     const updatedConfig = {
@@ -102,9 +129,12 @@ export async function GET(req: NextRequest) {
       connected_by: userId,
     };
 
+    console.log('🟪 [Salesforce Callback] Merged config keys:', Object.keys(updatedConfig));
+
     if (existing) {
       // Update existing integration
-      await supabase
+      console.log('🟪 [Salesforce Callback] Updating existing integration ID:', existing.id);
+      const { error: updateError } = await supabase
         .from('organization_integrations')
         .update({
           is_enabled: true,
@@ -114,9 +144,16 @@ export async function GET(req: NextRequest) {
           updated_at: new Date().toISOString(),
         })
         .eq('id', existing.id);
+      
+      if (updateError) {
+        console.error('❌ [Salesforce Callback] Update error:', updateError);
+        throw updateError;
+      }
+      console.log('✅ [Salesforce Callback] Integration updated successfully');
     } else {
       // Create new integration
-      await supabase
+      console.log('🟪 [Salesforce Callback] Creating new integration...');
+      const { error: insertError } = await supabase
         .from('organization_integrations')
         .insert({
           organization_id: organizationId,
@@ -126,6 +163,12 @@ export async function GET(req: NextRequest) {
           enabled_at: new Date().toISOString(),
           enabled_by: userId,
         });
+      
+      if (insertError) {
+        console.error('❌ [Salesforce Callback] Insert error:', insertError);
+        throw insertError;
+      }
+      console.log('✅ [Salesforce Callback] Integration created successfully');
     }
 
     // Log audit event

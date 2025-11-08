@@ -54,16 +54,17 @@ export async function GET(req: NextRequest) {
       );
     }
 
-    // Create state token with organization_id and user_id
+    // Create state token with organization_id, user_id, and type marker
     const state = Buffer.from(
       JSON.stringify({
         organizationId: user.organization_id,
         userId: user.id,
+        type: 'org', // Mark this as org-level connection
         timestamp: Date.now(),
       })
     ).toString('base64url');
 
-    console.log('🟪 [Salesforce Auth-Org] Generated state token');
+    console.log('🟪 [Salesforce Auth-Org] Generated state token with type=org');
 
     // Get org-specific Salesforce credentials
     const { data: integration } = await supabase

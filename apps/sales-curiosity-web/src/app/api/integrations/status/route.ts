@@ -59,22 +59,52 @@ export async function GET(req: NextRequest) {
     }
 
     console.log('🔍 [Integration Status] Found integrations:', 
-      integrations?.map(i => i.integration_type) || []
+      integrations?.map(i => ({ type: i.integration_type, enabled: i.is_enabled })) || []
     );
 
-    // Check each integration type
-    const gmail = integrations?.find(i => i.integration_type === 'gmail_user' && i.is_enabled);
+    // Check each integration type - include disabled ones for debugging
+    const gmail = integrations?.find(i => i.integration_type === 'gmail_user');
     const outlook = integrations?.find(i => 
-      (i.integration_type === 'outlook' || i.integration_type === 'outlook_user') && i.is_enabled
+      (i.integration_type === 'outlook' || i.integration_type === 'outlook_user')
     );
     const salesforce = integrations?.find(i => 
-      (i.integration_type === 'salesforce' || i.integration_type === 'salesforce_user') && i.is_enabled
+      (i.integration_type === 'salesforce' || i.integration_type === 'salesforce_user')
     );
+    
+    console.log('🔍 [Integration Status] Raw integration data:', {
+      gmail: gmail ? { type: gmail.integration_type, enabled: gmail.is_enabled, hasConfig: !!gmail.configuration } : null,
+      outlook: outlook ? { type: outlook.integration_type, enabled: outlook.is_enabled, hasConfig: !!outlook.configuration } : null,
+      salesforce: salesforce ? { type: salesforce.integration_type, enabled: salesforce.is_enabled, hasConfig: !!salesforce.configuration } : null,
+    });
 
     // Check if user has tokens in configuration
-    const gmailHasTokens = gmail && gmail.configuration && (gmail.configuration as any)[userData.id]?.access_token;
-    const outlookHasTokens = outlook && outlook.configuration && (outlook.configuration as any)[userData.id]?.access_token;
-    const salesforceHasTokens = salesforce && salesforce.configuration && (salesforce.configuration as any)[userData.id]?.access_token;
+    // Handle both user-level tokens (configuration[userId]) and org-level tokens (configuration.access_token)
+    const gmailConfig = gmail?.configuration as any;
+    const gmailHasTokens = gmail && gmailConfig && (
+      gmailConfig[userData.id]?.access_token || // User-level
+      gmailConfig.access_token // Org-level
+    );
+    
+    const outlookConfig = outlook?.configuration as any;
+    const outlookHasTokens = outlook && outlookConfig && (
+      outlookConfig[userData.id]?.access_token || // User-level
+      outlookConfig.access_token // Org-level
+    );
+    
+    const salesforceConfig = salesforce?.configuration as any;
+    const salesforceHasTokens = salesforce && salesforceConfig && (
+      salesforceConfig[userData.id]?.access_token || // User-level
+      salesforceConfig.access_token // Org-level
+    );
+    
+    console.log('🔍 [Integration Status] Token check:', {
+      salesforceIntegrationType: salesforce?.integration_type,
+      salesforceEnabled: salesforce?.is_enabled,
+      salesforceHasConfig: !!salesforceConfig,
+      salesforceHasOrgTokens: !!salesforceConfig?.access_token,
+      salesforceHasUserTokens: !!salesforceConfig?.[userData.id]?.access_token,
+      salesforceConfigKeys: salesforceConfig ? Object.keys(salesforceConfig).slice(0, 5) : []
+    });
 
     const status = {
       gmail: {

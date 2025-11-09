@@ -40,6 +40,53 @@ const supabase = createClient(
   process.env.SUPABASE_SERVICE_ROLE_KEY!
 );
 
+function sanitizeEmailBody(body: string): string {
+  if (!body) {
+    return '';
+  }
+
+  let sanitized = body.replace(/\r/g, '').replace(/\u00a0/g, ' ');
+
+  const metadataPatterns = [
+    /(^|\n)date\s*:\s?[^\n]*(?=\n|$)/gi,
+    /(^|\n)message-?id\s*:\s?[^\n]*(?=\n|$)/gi,
+    /(^|\n)from\s*:\s?[^\n]*(?=\n|$)/gi,
+    /(^|\n)model\s*:\s?[^\n]*(?=\n|$)/gi,
+    /(^|\n)(?:parsed event type|chunk|stream|auth bridge)[^\n]*(?=\n|$)/gi,
+  ];
+
+  metadataPatterns.forEach((pattern) => {
+    sanitized = sanitized.replace(pattern, '');
+  });
+
+  const unicodeMap: Record<string, string> = {
+    '\u2018': "'",
+    '\u2019': "'",
+    '\u201C': '"',
+    '\u201D': '"',
+    '\u2013': '-',
+    '\u2014': '-',
+    'â€™': "'",
+    'â€œ': '"',
+    'â€\u009d': '"',
+    'â€“': '-',
+    'â€”': '-',
+  };
+
+  Object.entries(unicodeMap).forEach(([key, value]) => {
+    sanitized = sanitized.split(key).join(value);
+  });
+
+  sanitized = sanitized
+    .split('\n')
+    .map((line) => line.trimEnd())
+    .join('\n');
+
+  sanitized = sanitized.replace(/\n{3,}/g, '\n\n').trim();
+
+  return sanitized;
+}
+
 /**
  * Log activity to activity_logs table
  */
@@ -217,7 +264,12 @@ export function createAgentTools(
         }),
         func: async (input) => {
           try {
-            const result = await createGmailDraft(organizationId, input, userId);
+            const sanitizedBody = sanitizeEmailBody(input.body);
+            const result = await createGmailDraft(
+              organizationId,
+              { ...input, body: sanitizedBody },
+              userId
+            );
             
             // Log activity
             await logActivity(organizationId, userId, 'email_draft_created', 'email', {
@@ -244,7 +296,12 @@ export function createAgentTools(
         }),
         func: async (input) => {
           try {
-            await sendGmailEmail(organizationId, input, userId);
+            const sanitizedBody = sanitizeEmailBody(input.body);
+            await sendGmailEmail(
+              organizationId,
+              { ...input, body: sanitizedBody },
+              userId
+            );
             
             // Log activity
             await logActivity(organizationId, userId, 'email_sent', 'email', {
@@ -351,7 +408,12 @@ export function createAgentTools(
         }),
         func: async (input) => {
           try {
-            const result = await createEmailDraft(organizationId, input, userId);
+            const sanitizedBody = sanitizeEmailBody(input.body);
+            const result = await createEmailDraft(
+              organizationId,
+              { ...input, body: sanitizedBody },
+              userId
+            );
             
             // Log activity
             await logActivity(organizationId, userId, 'email_draft_created', 'email', {
@@ -378,7 +440,12 @@ export function createAgentTools(
         }),
         func: async (input) => {
           try {
-            await sendEmail(organizationId, input, userId);
+            const sanitizedBody = sanitizeEmailBody(input.body);
+            await sendEmail(
+              organizationId,
+              { ...input, body: sanitizedBody },
+              userId
+            );
             return `✅ Email sent successfully via Outlook!\nTo: ${input.to}\nSubject: ${input.subject}\n\nThe email has been sent.`;
           } catch (error) {
             return `Error sending Outlook email: ${error instanceof Error ? error.message : 'Unknown error'}`;

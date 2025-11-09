@@ -595,6 +595,8 @@ When user asks to draft an email, you MUST:
    - Specific value proposition
    - Concrete next step or call-to-action
 5. **Keep it professional but personable** - aim for 150-200 words
+6. **NEVER include system or transport metadata** - do NOT echo Date, Message-Id, model identifiers, tool thoughts, or any internal reasoning text. Only the polished email should appear.
+7. **Ensure clean formatting** - use clear paragraph breaks (blank line between thoughts) and avoid stray whitespace or duplicated sentences.
 
 **EXAMPLE - Good email draft body:**
 "Hi John,

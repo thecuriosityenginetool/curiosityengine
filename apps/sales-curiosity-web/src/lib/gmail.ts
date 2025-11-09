@@ -68,7 +68,10 @@ function convertToHtml(body: string): string {
   }
 
   return paragraphs
-    .map((paragraph) => `<p>${escapeHtml(paragraph).replace(/\n/g, '<br>')}</p>`)
+    .map((paragraph) => {
+      // Add proper paragraph spacing with inline styles for better rendering
+      return `<p style="margin: 0 0 12px 0; font-family: Arial, sans-serif; font-size: 14px; line-height: 1.5;">${escapeHtml(paragraph).replace(/\n/g, '<br>')}</p>`;
+    })
     .join('');
 }
 
@@ -328,15 +331,16 @@ async function getGmailDefaultSignature(
  * Create email message in RFC 2822 format and encode to base64url
  */
 function createEmailMessage(to: string, subject: string, body: string, from?: string): string {
-  // Wrap body in proper HTML document structure for Gmail
+  // Wrap body in proper HTML document structure for Gmail with professional styling
   const htmlBody = body.trim().startsWith('<html') 
     ? body 
     : `<!DOCTYPE html>
 <html>
 <head>
 <meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
 </head>
-<body>
+<body style="font-family: Arial, sans-serif; font-size: 14px; line-height: 1.6; color: #333333; margin: 0; padding: 20px;">
 ${body}
 </body>
 </html>`;

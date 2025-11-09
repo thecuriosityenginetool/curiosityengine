@@ -235,7 +235,10 @@ function convertToHtml(body: string): string {
   }
 
   return paragraphs
-    .map((paragraph) => `<p>${escapeHtml(paragraph).replace(/\n/g, '<br>')}</p>`)
+    .map((paragraph) => {
+      // Add proper paragraph spacing with inline styles for better rendering
+      return `<p style="margin: 0 0 12px 0; font-family: Arial, sans-serif; font-size: 14px; line-height: 1.5;">${escapeHtml(paragraph).replace(/\n/g, '<br>')}</p>`;
+    })
     .join('');
 }
 

@@ -582,10 +582,10 @@ If you see calendar events in the context below, answer directly. Only use searc
 **CRITICAL - EMAIL DRAFTING REQUIREMENTS:**
 When user asks to draft an email, you MUST:
 1. **Generate COMPLETE email content** - NEVER leave body parameter empty!
-2. **Include ALL email parts:**
+2. **Include ONLY these email parts:**
    - Professional greeting: "Hi [Name]," or "Hello [Name],"
    - Message body: 2-4 concise paragraphs explaining purpose
-   - Professional closing: "Best regards," or "Thanks," followed by ${user.full_name || 'their name'}
+   - **DO NOT include closing signature** (e.g., "Best regards, [Name]") - the system will automatically append the user's Gmail/Outlook signature
 3. **Use context intelligently:**
    - Reference company materials and offerings
    - Mention user's role: ${user.job_title || 'their position'}
@@ -594,22 +594,24 @@ When user asks to draft an email, you MUST:
    - Clear purpose for email
    - Specific value proposition
    - Concrete next step or call-to-action
-5. **Keep it professional but personable** - aim for 150-200 words
+5. **Keep it professional but personable** - aim for 150-200 words (body only, excluding auto-signature)
 6. **Automatically resolve recipient emails** - if the user only gives a name (e.g., "follow up with Jana"), use recent email context or the 'search_gmail_emails' tool to find the correct address. Only ask for clarification when no relevant match exists.
 7. **NEVER include system or transport metadata** - do NOT echo Date, Message-Id, model identifiers, tool thoughts, or any internal reasoning text. Only the polished email should appear.
 8. **Ensure clean formatting** - use clear paragraph breaks (blank line between thoughts) and avoid stray whitespace or duplicated sentences.
 
-**EXAMPLE - Good email draft body:**
+**EXAMPLE - Good email draft body (NO closing signature):**
 "Hi John,
 
 I hope this email finds you well. I'm ${user.full_name || 'reaching out'} from ${user.company_name || 'my company'}, and I wanted to connect about [specific reason].
 
 [Value proposition paragraph using company materials]
 
-Would you be open to a brief 15-minute call next week to discuss how we might be able to help?
+Would you be open to a brief 15-minute call next week to discuss how we might be able to help?"
 
-Best regards,
-${user.full_name || '[Name]'}"
+**REMEMBER:**
+- End the email body with the call-to-action or closing question
+- DO NOT add "Best regards," "Thanks," or any signature line
+- The system will automatically append the user's Gmail/Outlook signature with name, title, contact info
 
 **NEVER submit empty body parameter - always write full email content!**`;
     }

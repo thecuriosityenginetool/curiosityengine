@@ -490,15 +490,31 @@ export async function POST(req: NextRequest) {
         ).join('\n')}`;
       }
     } else if (calendarEvents.length > 0) {
-      calendarContext = `\n\n📅 **YOUR UPCOMING CALENDAR EVENTS (Today: ${currentDate}):**\n${calendarEvents.map((event: any) => {
+      calendarContext = `
+
+================================
+📅 YOUR UPCOMING CALENDAR EVENTS
+================================
+Current Date: ${currentDate}
+Total Events: ${calendarEvents.length}
+
+${calendarEvents.map((event: any, index: number) => {
         const eventDate = new Date(event.start);
         const eventDateStr = eventDate.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
         const eventTimeStr = eventDate.toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit', hour12: true, timeZone: 'America/New_York' });
-        const attendeesStr = event.attendees && event.attendees.length > 0 ? ` with ${event.attendees.join(', ')}` : '';
-        return `- ${event.title} on ${eventDateStr} at ${eventTimeStr}${attendeesStr}${event.location ? ' at ' + event.location : ''}${event.description ? ' (' + event.description + ')' : ''}`;
-      }).join('\n')}
+        const attendeesStr = event.attendees && event.attendees.length > 0 ? `\n   Attendees: ${event.attendees.join(', ')}` : '';
+        const locationStr = event.location ? `\n   Location: ${event.location}` : '';
+        const descStr = event.description ? `\n   Details: ${event.description}` : '';
+        return `${index + 1}. ${event.title}
+   Date: ${eventDateStr}
+   Time: ${eventTimeStr}${attendeesStr}${locationStr}${descStr}`;
+      }).join('\n\n')}
 
-IMPORTANT: You can see all upcoming events listed above. When user asks about "tomorrow's meetings" or "upcoming events", reference these directly from the list above. You DO NOT need tools to answer about these events - they are already provided in your context.`;
+================================
+
+🚨 CRITICAL: When user asks "what meetings?" or "check my calendar", answer DIRECTLY from the ${calendarEvents.length} events listed above.
+DO NOT say "functions are insufficient" - the events are RIGHT HERE in your context!
+Simply summarize the events you see above. NO TOOLS NEEDED for viewing.`;
     }
 
     // Get recent emails if Outlook is connected

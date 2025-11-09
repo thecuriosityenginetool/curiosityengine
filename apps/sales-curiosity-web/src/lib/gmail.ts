@@ -328,6 +328,19 @@ async function getGmailDefaultSignature(
  * Create email message in RFC 2822 format and encode to base64url
  */
 function createEmailMessage(to: string, subject: string, body: string, from?: string): string {
+  // Wrap body in proper HTML document structure for Gmail
+  const htmlBody = body.trim().startsWith('<html') 
+    ? body 
+    : `<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+</head>
+<body>
+${body}
+</body>
+</html>`;
+
   const messageParts = [
     from ? `From: ${from}` : '',
     `To: ${to}`,
@@ -335,10 +348,19 @@ function createEmailMessage(to: string, subject: string, body: string, from?: st
     'MIME-Version: 1.0',
     'Content-Type: text/html; charset=utf-8',
     '',
-    body
+    htmlBody
   ].filter(Boolean);
 
   const message = messageParts.join('\r\n');
+  
+  console.log('📧 [Gmail] Creating email message', {
+    to,
+    subject,
+    from,
+    bodyLength: htmlBody.length,
+    messageLength: message.length
+  });
+  
   // Use base64url encoding (replace + with -, / with _, remove padding =)
   return Buffer.from(message)
     .toString('base64')
@@ -366,13 +388,13 @@ export async function createGmailDraft(
       sendAsEmail,
     });
 
+    // Convert body to HTML (signature is already HTML from Gmail, don't convert it again!)
     const bodyHtml = convertToHtml(emailData.body);
-    const signatureHtml = signature ? convertToHtml(signature) : null;
-    const bodyWithSignature = appendSignature(bodyHtml, signatureHtml);
+    const bodyWithSignature = appendSignature(bodyHtml, signature);
 
     console.log('📧 [Gmail] Draft body lengths', {
       bodyHtmlLength: bodyHtml.length,
-      signatureLength: signatureHtml?.length ?? 0,
+      signatureLength: signature?.length ?? 0,
       finalLength: bodyWithSignature.length,
     });
 
@@ -392,9 +414,14 @@ export async function createGmailDraft(
       userId
     );
 
+    console.log('✅ [Gmail] Draft created successfully', { 
+      draftId: result.id,
+      threadId: result.message?.threadId 
+    });
+
     return { id: result.id, success: true };
   } catch (error) {
-    console.error('Error creating Gmail draft:', error);
+    console.error('❌ [Gmail] Error creating draft:', error);
     throw error;
   }
 }
@@ -418,13 +445,13 @@ export async function sendGmailEmail(
       sendAsEmail,
     });
 
+    // Convert body to HTML (signature is already HTML from Gmail, don't convert it again!)
     const bodyHtml = convertToHtml(emailData.body);
-    const signatureHtml = signature ? convertToHtml(signature) : null;
-    const bodyWithSignature = appendSignature(bodyHtml, signatureHtml);
+    const bodyWithSignature = appendSignature(bodyHtml, signature);
 
     console.log('📧 [Gmail] Send body lengths', {
       bodyHtmlLength: bodyHtml.length,
-      signatureLength: signatureHtml?.length ?? 0,
+      signatureLength: signature?.length ?? 0,
       finalLength: bodyWithSignature.length,
     });
     const encodedMessage = createEmailMessage(emailData.to, emailData.subject, bodyWithSignature, sendAsEmail);
@@ -441,9 +468,14 @@ export async function sendGmailEmail(
       userId
     );
 
+    console.log('✅ [Gmail] Email sent successfully', { 
+      messageId: result.id,
+      threadId: result.threadId 
+    });
+
     return { id: result.id, success: true };
   } catch (error) {
-    console.error('Error sending Gmail email:', error);
+    console.error('❌ [Gmail] Error sending email:', error);
     throw error;
   }
 }

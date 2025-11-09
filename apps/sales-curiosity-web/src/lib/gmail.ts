@@ -382,20 +382,34 @@ export async function createGmailDraft(
   userId: string
 ): Promise<{ id: string; success: boolean }> {
   try {
+    console.log('🔵 [Gmail] Creating draft with input:', {
+      to: emailData.to,
+      subject: emailData.subject,
+      bodyLength: emailData.body?.length ?? 0,
+      bodyPreview: emailData.body?.substring(0, 100)
+    });
+
     const { signature, sendAsEmail } = await getGmailDefaultSignature(organizationId, userId);
     console.log('📧 [Gmail] Draft signature info', {
       hasSignature: !!signature,
       sendAsEmail,
+      signaturePreview: signature?.substring(0, 100)
     });
 
     // Convert body to HTML (signature is already HTML from Gmail, don't convert it again!)
     const bodyHtml = convertToHtml(emailData.body);
-    const bodyWithSignature = appendSignature(bodyHtml, signature);
+    console.log('🔄 [Gmail] Body converted to HTML:', {
+      originalLength: emailData.body?.length ?? 0,
+      htmlLength: bodyHtml.length,
+      htmlPreview: bodyHtml.substring(0, 150)
+    });
 
-    console.log('📧 [Gmail] Draft body lengths', {
-      bodyHtmlLength: bodyHtml.length,
+    const bodyWithSignature = appendSignature(bodyHtml, signature);
+    console.log('✨ [Gmail] Signature appended:', {
+      bodyLength: bodyHtml.length,
       signatureLength: signature?.length ?? 0,
       finalLength: bodyWithSignature.length,
+      finalPreview: bodyWithSignature.substring(0, 200)
     });
 
     const encodedMessage = createEmailMessage(emailData.to, emailData.subject, bodyWithSignature, sendAsEmail);

@@ -66,7 +66,7 @@ export async function GET(req: NextRequest) {
 
     console.log('🟪 [Salesforce Auth-Org] Generated state token with type=org');
 
-    // Get org-specific Salesforce credentials
+    // Get org-specific Salesforce credentials (if configured)
     const { data: integration } = await supabase
       .from('organization_integrations')
       .select('configuration')
@@ -77,20 +77,15 @@ export async function GET(req: NextRequest) {
     const config = integration?.configuration as any || {};
     const orgClientId = config.client_id;
 
+    // Fall back to global credentials if org-specific not configured
     if (!orgClientId) {
-      console.error('❌ [Salesforce Auth-Org] No credentials configured for this organization');
-      return NextResponse.json(
-        { 
-          error: 'Salesforce credentials not configured. Please enter your Consumer Key and Consumer Secret first.',
-          needsCredentials: true 
-        },
-        { status: 400 }
-      );
+      console.log('🟪 [Salesforce Auth-Org] No org-specific credentials, using global env vars');
+    } else {
+      console.log('🟪 [Salesforce Auth-Org] Using org-specific credentials');
     }
 
-    console.log('🟪 [Salesforce Auth-Org] Using org-specific credentials');
-
     // Generate Salesforce OAuth URL (isUserLevel = false for org connection)
+    // Will use orgClientId if provided, otherwise falls back to env var
     const authUrl = getSalesforceAuthUrl(state, false, orgClientId);
     console.log('🟪 [Salesforce Auth-Org] Generated auth URL');
 

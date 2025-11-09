@@ -86,7 +86,7 @@ export async function GET(req: NextRequest) {
     
     console.log('✅ [Salesforce Callback] Valid org-level callback');
 
-    // Get org-specific Salesforce credentials
+    // Get org-specific Salesforce credentials (if configured)
     const { data: existing } = await supabase
       .from('organization_integrations')
       .select('id, configuration')
@@ -98,22 +98,24 @@ export async function GET(req: NextRequest) {
     const orgClientId = existingConfig.client_id;
     const orgClientSecret = existingConfig.client_secret;
 
-    if (!orgClientId || !orgClientSecret) {
-      console.error('❌ [Salesforce Callback] No credentials found for organization');
-      return NextResponse.redirect(
-        new URL(
-          '/dashboard?tab=integrations&error=' + encodeURIComponent('Salesforce credentials not found. Please configure them first.'),
-          process.env.NEXT_PUBLIC_APP_URL
-        )
-      );
+    // Fall back to global env vars if org-specific credentials not configured
+    const useGlobalCreds = !orgClientId || !orgClientSecret;
+    
+    if (useGlobalCreds) {
+      console.log('🟪 [Salesforce Callback] No org-specific credentials, using global env vars');
+    } else {
+      console.log('🟪 [Salesforce Callback] Using org-specific credentials for token exchange');
+      console.log('🟪 [Salesforce Callback] Client ID:', orgClientId?.substring(0, 10) + '...');
     }
 
-    console.log('🟪 [Salesforce Callback] Using org-specific credentials for token exchange');
-    console.log('🟪 [Salesforce Callback] Client ID:', orgClientId?.substring(0, 10) + '...');
-
-    // Exchange code for tokens using org-specific credentials
+    // Exchange code for tokens (will use org credentials if provided, otherwise env vars)
     console.log('🟪 [Salesforce Callback] Exchanging authorization code...');
-    const tokens = await exchangeCodeForTokens(code, undefined, orgClientId, orgClientSecret);
+    const tokens = await exchangeCodeForTokens(
+      code, 
+      undefined, 
+      useGlobalCreds ? undefined : orgClientId,
+      useGlobalCreds ? undefined : orgClientSecret
+    );
     console.log('✅ [Salesforce Callback] Token exchange successful!');
     console.log('🟪 [Salesforce Callback] Received tokens:', {
       hasAccessToken: !!tokens.access_token,

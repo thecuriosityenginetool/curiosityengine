@@ -683,12 +683,30 @@ export async function createGoogleCalendarEvent(
     description?: string;
     location?: string;
     attendees?: string[];
+    timeZone?: string; // Optional explicit timezone
   },
   userId: string
 ): Promise<{ id: string; success: boolean }> {
   try {
-    // Get user's timezone (default to America/New_York if not available)
-    const userTimeZone = Intl.DateTimeFormat().resolvedOptions().timeZone || 'America/New_York';
+    // Extract timezone from ISO string or use provided timezone or default to EST
+    const extractTimezone = (isoString: string): string => {
+      // Check if ISO string has timezone offset (e.g., 2024-01-15T15:00:00-05:00)
+      const tzMatch = isoString.match(/([+-]\d{2}:\d{2}|Z)$/);
+      if (tzMatch) {
+        // Convert offset to timezone name
+        const offset = tzMatch[1];
+        if (offset === 'Z' || offset === '+00:00') return 'UTC';
+        if (offset === '-05:00') return 'America/New_York';  // EST/EDT
+        if (offset === '-06:00') return 'America/Chicago';   // CST/CDT
+        if (offset === '-07:00') return 'America/Denver';    // MST/MDT
+        if (offset === '-08:00') return 'America/Los_Angeles'; // PST/PDT
+        if (offset === '-04:00') return 'America/New_York';  // EDT
+      }
+      return eventData.timeZone || 'America/New_York'; // Default to EST
+    };
+    
+    const userTimeZone = extractTimezone(eventData.start);
+    console.log('🕐 Using timezone for Gmail event:', userTimeZone, 'for datetime:', eventData.start);
     
     const event = {
       summary: eventData.summary,
@@ -696,11 +714,11 @@ export async function createGoogleCalendarEvent(
       location: eventData.location || '',
       start: {
         dateTime: eventData.start,
-        timeZone: userTimeZone // Use user's actual timezone, not UTC
+        timeZone: userTimeZone
       },
       end: {
         dateTime: eventData.end,
-        timeZone: userTimeZone // Use user's actual timezone, not UTC
+        timeZone: userTimeZone
       },
       attendees: eventData.attendees?.map(email => ({ email })) || [],
       reminders: {

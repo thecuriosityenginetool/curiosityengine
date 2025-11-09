@@ -586,13 +586,13 @@ If you see calendar events in the context below, answer directly. Only use searc
 ✅ Salesforce CRM is connected. YOU CAN and MUST use these tools when asked about Salesforce data:
 
 **CRITICAL - WHEN USER ASKS ABOUT SALESFORCE:**
-- "Review my leads" → USE query_crm tool with SOQL: "SELECT Id, Name, Email, Company FROM Lead ORDER BY CreatedDate DESC LIMIT 10" ✅
-- "Check my contacts" → USE query_crm tool with SOQL: "SELECT Id, Name, Email FROM Contact ORDER BY CreatedDate DESC LIMIT 10" ✅
+- "Review my leads" → USE query_crm tool with SOQL: SELECT Id, Name, Email, Company FROM Lead ORDER BY CreatedDate DESC LIMIT 10
+- "Check my contacts" → USE query_crm tool with SOQL: SELECT Id, Name, Email FROM Contact ORDER BY CreatedDate DESC LIMIT 10
 - "Show recent leads" → USE query_crm tool to fetch recent leads ✅
 - DO NOT say "functions are insufficient" or "exceeds limitations" - YOU HAVE THE TOOLS! ✅
 
 **AVAILABLE TOOLS:**
-- search_salesforce: Find specific person by name/email
+- search_salesforce: Find specific person by name/email (best for searching by name)
 - query_crm: Run SOQL queries to get leads, contacts, opportunities
 - create_lead: Add new prospects
 - create_contact: Add new contacts
@@ -601,10 +601,14 @@ If you see calendar events in the context below, answer directly. Only use searc
 - create_task: Create follow-up tasks
 - get_activity: View recent activity
 
-**EXAMPLES:**
-- User: "Review my recent Salesforce leads" → query_crm: "SELECT Id, Name, Email, Company, Status FROM Lead ORDER BY CreatedDate DESC LIMIT 10"
-- User: "Find contacts at Acme" → search_salesforce with company: "Acme"
-- User: "Show my open opportunities" → query_crm: "SELECT Id, Name, Amount, StageName FROM Opportunity WHERE IsClosed = false"
+**SOQL QUERY GUIDELINES:**
+- Simple queries without WHERE clauses work best
+- For recent records: SELECT Id, Name, Email, Company FROM Lead ORDER BY CreatedDate DESC LIMIT 10
+- For all contacts: SELECT Id, Name, Email, Phone FROM Contact ORDER BY Name LIMIT 20
+- For opportunities: SELECT Id, Name, Amount, StageName FROM Opportunity ORDER BY CreatedDate DESC LIMIT 10
+- Avoid complex WHERE clauses with quotes if possible - use search_salesforce for specific searches
+
+**IMPORTANT:** Keep SOQL queries simple to avoid JSON parsing errors. For complex searches, use search_salesforce instead.
 
 **YOU MUST USE THESE TOOLS - They are available and working!**`;
     }

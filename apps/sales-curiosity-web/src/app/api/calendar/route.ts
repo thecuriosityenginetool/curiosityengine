@@ -74,16 +74,46 @@ export async function GET(req: NextRequest) {
         );
 
         // Transform Outlook events to our format
-        events = outlookEvents.map((event: any) => ({
-          id: event.id,
-          title: event.subject,
-          start: event.start.dateTime,
-          end: event.end.dateTime,
-          description: event.bodyPreview || event.body?.content,
-          type: 'meeting',
-          attendees: event.attendees?.map((a: any) => a.emailAddress.address) || [],
-          location: event.location?.displayName
-        }));
+        // Outlook returns datetime without offset, need to construct proper ISO 8601 with timezone
+        events = outlookEvents.map((event: any) => {
+          // Get timezone from event or default to EST
+          const timezone = event.start.timeZone || event.originalStartTimeZone || 'America/New_York';
+          
+          // Convert datetime to proper ISO 8601 with timezone offset
+          const startDateTime = event.start.dateTime;
+          const endDateTime = event.end.dateTime;
+          
+          // Parse and add timezone offset if not present
+          const formatWithTimezone = (dateTimeStr: string, tz: string) => {
+            if (!dateTimeStr) return dateTimeStr;
+            // If already has timezone offset, return as-is
+            if (dateTimeStr.match(/([+-]\d{2}:\d{2}|Z)$/)) return dateTimeStr;
+            
+            // Map timezone to offset
+            const tzOffsets: Record<string, string> = {
+              'America/New_York': '-05:00',      // EST (use -04:00 for EDT in summer)
+              'America/Chicago': '-06:00',       // CST
+              'America/Denver': '-07:00',        // MST
+              'America/Los_Angeles': '-08:00',   // PST
+              'UTC': '+00:00',
+              'GMT': '+00:00'
+            };
+            
+            const offset = tzOffsets[tz] || '-05:00'; // Default to EST
+            return dateTimeStr + offset;
+          };
+          
+          return {
+            id: event.id,
+            title: event.subject,
+            start: formatWithTimezone(startDateTime, timezone),
+            end: formatWithTimezone(endDateTime, timezone),
+            description: event.bodyPreview || event.body?.content,
+            type: 'meeting',
+            attendees: event.attendees?.map((a: any) => a.emailAddress.address) || [],
+            location: event.location?.displayName
+          };
+        });
 
         console.log(`✅ Fetched ${events.length} events from Outlook`);
       } catch (outlookError) {
@@ -106,16 +136,43 @@ export async function GET(req: NextRequest) {
         );
 
         // Transform Google Calendar events to our format
-        events = googleEvents.map((event: any) => ({
-          id: event.id,
-          title: event.summary,
-          start: event.start.dateTime || event.start.date,
-          end: event.end.dateTime || event.end.date,
-          description: event.description,
-          type: 'meeting',
-          attendees: event.attendees?.map((a: any) => a.email) || [],
-          location: event.location
-        }));
+        // Google Calendar returns datetime with timezone, ensure it's formatted properly
+        events = googleEvents.map((event: any) => {
+          const startDateTime = event.start.dateTime || event.start.date;
+          const endDateTime = event.end.dateTime || event.end.date;
+          const timezone = event.start.timeZone || event.end.timeZone || 'America/New_York';
+          
+          // Add timezone offset if not present
+          const formatWithTimezone = (dateTimeStr: string, tz: string) => {
+            if (!dateTimeStr) return dateTimeStr;
+            // If already has timezone offset, return as-is
+            if (dateTimeStr.match(/([+-]\d{2}:\d{2}|Z)$/)) return dateTimeStr;
+            
+            // Map timezone to offset
+            const tzOffsets: Record<string, string> = {
+              'America/New_York': '-05:00',
+              'America/Chicago': '-06:00',
+              'America/Denver': '-07:00',
+              'America/Los_Angeles': '-08:00',
+              'UTC': '+00:00',
+              'GMT': '+00:00'
+            };
+            
+            const offset = tzOffsets[tz] || '-05:00';
+            return dateTimeStr + offset;
+          };
+          
+          return {
+            id: event.id,
+            title: event.summary,
+            start: formatWithTimezone(startDateTime, timezone),
+            end: formatWithTimezone(endDateTime, timezone),
+            description: event.description,
+            type: 'meeting',
+            attendees: event.attendees?.map((a: any) => a.email) || [],
+            location: event.location
+          };
+        });
 
         console.log(`✅ Fetched ${events.length} events from Google Calendar`);
       } catch (gmailError) {

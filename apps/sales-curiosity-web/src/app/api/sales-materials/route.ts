@@ -3,6 +3,7 @@ import { createClient } from '@supabase/supabase-js';
 import { auth } from '@/lib/auth';
 import pdf from 'pdf-parse-fork';
 import mammoth from 'mammoth';
+import * as XLSX from 'xlsx';
 
 function corsHeaders(origin?: string) {
   return {
@@ -209,7 +210,7 @@ export async function POST(req: NextRequest) {
     // Extract text from file based on file type
     let fileText = '';
     const fileExt = file.name.split('.').pop()?.toLowerCase() || 'txt';
-    const fileType = ['pdf', 'docx', 'txt', 'pptx', 'doc'].includes(fileExt) ? fileExt : 'txt';
+    const fileType = ['pdf', 'docx', 'txt', 'pptx', 'doc', 'xlsx', 'xls'].includes(fileExt) ? fileExt : 'txt';
 
     try {
       const arrayBuffer = await file.arrayBuffer();
@@ -240,6 +241,89 @@ export async function POST(req: NextRequest) {
           // In a production environment, you might want to use a library like 'pptx2json'
           fileText = 'PowerPoint content extraction not yet implemented. Please convert to PDF or DOCX for better text extraction.';
           break;
+        case 'xlsx':
+        case 'xls':
+          try {
+            console.log('📊 Extracting data from Excel file...');
+            const buffer = Buffer.from(arrayBuffer);
+            const workbook = XLSX.read(buffer, { type: 'buffer' });
+            
+            let excelText = `Excel Spreadsheet: ${file.name}\n\n`;
+            
+            // Process each sheet
+            workbook.SheetNames.forEach((sheetName, sheetIndex) => {
+              const sheet = workbook.Sheets[sheetName];
+              
+              // Get the range of the sheet
+              const range = XLSX.utils.decode_range(sheet['!ref'] || 'A1');
+              
+              excelText += `=== Sheet ${sheetIndex + 1}: ${sheetName} ===\n\n`;
+              
+              // Convert sheet to array of arrays for better structure
+              const data = XLSX.utils.sheet_to_json(sheet, { header: 1 }) as any[][];
+              
+              if (data.length === 0) {
+                excelText += '(Empty sheet)\n\n';
+                return;
+              }
+              
+              // Get headers (first row)
+              const headers = data[0] || [];
+              const hasHeaders = headers.some((h: any) => h !== undefined && h !== null && h !== '');
+              
+              if (hasHeaders) {
+                excelText += `Columns: ${headers.map((h: any) => h || '(empty)').join(' | ')}\n`;
+                excelText += '-'.repeat(80) + '\n';
+              }
+              
+              // Process data rows (skip header if it exists)
+              const startRow = hasHeaders ? 1 : 0;
+              const maxRows = Math.min(data.length, startRow + 1000); // Limit to 1000 rows for performance
+              
+              for (let i = startRow; i < maxRows; i++) {
+                const row = data[i];
+                if (!row || row.every((cell: any) => cell === undefined || cell === null || cell === '')) {
+                  continue; // Skip empty rows
+                }
+                
+                if (hasHeaders) {
+                  // Format as key-value pairs
+                  const rowData = headers.map((header: any, idx: number) => {
+                    const value = row[idx];
+                    if (value === undefined || value === null || value === '') return null;
+                    return `${header || `Col${idx + 1}`}: ${value}`;
+                  }).filter(Boolean).join(' | ');
+                  
+                  if (rowData) {
+                    excelText += `Row ${i}: ${rowData}\n`;
+                  }
+                } else {
+                  // Format as simple row data
+                  const rowData = row.map((cell: any, idx: number) => {
+                    if (cell === undefined || cell === null || cell === '') return null;
+                    return `${cell}`;
+                  }).filter(Boolean).join(' | ');
+                  
+                  if (rowData) {
+                    excelText += `Row ${i + 1}: ${rowData}\n`;
+                  }
+                }
+              }
+              
+              if (data.length > maxRows) {
+                excelText += `\n... (${data.length - maxRows} more rows not shown for performance)\n`;
+              }
+              
+              excelText += '\n';
+            });
+            
+            fileText = excelText;
+            console.log(`✅ Extracted ${fileText.length} characters from Excel file with ${workbook.SheetNames.length} sheet(s)`);
+          } catch (excelError) {
+            console.error('Excel extraction error:', excelError);
+            fileText = `Excel file uploaded: ${file.name}. Text extraction failed but file is stored and can be referenced by name.`;
+          }
+          break;
         default:
           fileText = await file.text().catch(() => '');
       }
@@ -255,7 +339,7 @@ export async function POST(req: NextRequest) {
         user_id: user.id,
         organization_id: user.organization_id,
         file_name: file.name,
-        file_type: fileType === 'doc' ? 'docx' : fileType, // Store .doc as .docx in database
+        file_type: fileType === 'doc' ? 'docx' : fileType === 'xls' ? 'xlsx' : fileType, // Store .doc as .docx and .xls as .xlsx in database
         file_size: file.size,
         file_url: urlData.publicUrl,
         extracted_text: fileText.substring(0, 50000), // Limit to 50k chars

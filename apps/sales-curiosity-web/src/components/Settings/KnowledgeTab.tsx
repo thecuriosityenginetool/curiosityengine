@@ -36,7 +36,7 @@ export default function KnowledgeTab({
       <div className="bg-white rounded-lg border border-gray-200 p-6">
         <h3 className="text-lg font-semibold text-gray-900 mb-4">Upload Knowledge Base Materials</h3>
         <p className="text-sm text-gray-600 mb-4">
-          Upload PDFs, presentations, or documents that contain sales guides, product information, or company materials. 
+          Upload PDFs, Excel spreadsheets, presentations, or documents that contain sales guides, product information, pricing lists, or company materials. 
           The AI will use this information to provide better assistance.
         </p>
         
@@ -53,7 +53,7 @@ export default function KnowledgeTab({
         <div className="border-2 border-dashed border-gray-300 rounded-lg p-8 text-center hover:border-[#F95B14] transition-colors">
           <input
             type="file"
-            accept=".pdf,.docx,.txt,.pptx"
+            accept=".pdf,.docx,.txt,.pptx,.xlsx,.xls"
             className="hidden"
             id="knowledge-upload"
             onChange={onFileUpload}
@@ -74,7 +74,7 @@ export default function KnowledgeTab({
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12" />
                 </svg>
                 <p className="text-sm font-medium text-gray-900">Click to upload files</p>
-                <p className="text-xs text-gray-500 mt-1">PDF, DOCX, TXT, PPTX (Max 10MB)</p>
+                <p className="text-xs text-gray-500 mt-1">PDF, DOCX, TXT, PPTX, XLSX (Max 50MB)</p>
               </>
             )}
           </label>

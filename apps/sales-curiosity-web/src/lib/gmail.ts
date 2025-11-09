@@ -358,15 +358,23 @@ ${body}
     subject,
     from,
     bodyLength: htmlBody.length,
-    messageLength: message.length
+    messageLength: message.length,
+    messagePreview: message.substring(0, 300)
   });
   
   // Use base64url encoding (replace + with -, / with _, remove padding =)
-  return Buffer.from(message)
+  const encoded = Buffer.from(message)
     .toString('base64')
     .replace(/\+/g, '-')
     .replace(/\//g, '_')
     .replace(/=+$/, '');
+  
+  console.log('🔐 [Gmail] Encoded message:', {
+    encodedLength: encoded.length,
+    encodedPreview: encoded.substring(0, 200)
+  });
+  
+  return encoded;
 }
 
 /**
@@ -414,6 +422,12 @@ export async function createGmailDraft(
 
     const encodedMessage = createEmailMessage(emailData.to, emailData.subject, bodyWithSignature, sendAsEmail);
 
+    console.log('📤 [Gmail] Sending draft to Gmail API:', {
+      endpoint: '/users/me/drafts',
+      method: 'POST',
+      encodedMessageLength: encodedMessage.length
+    });
+
     const result = await gmailApiRequest(
       organizationId,
       '/users/me/drafts',
@@ -430,7 +444,9 @@ export async function createGmailDraft(
 
     console.log('✅ [Gmail] Draft created successfully', { 
       draftId: result.id,
-      threadId: result.message?.threadId 
+      threadId: result.message?.threadId,
+      messageId: result.message?.id,
+      fullResult: JSON.stringify(result).substring(0, 500)
     });
 
     return { id: result.id, success: true };

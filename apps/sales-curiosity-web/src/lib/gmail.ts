@@ -331,6 +331,19 @@ async function getGmailDefaultSignature(
  * Create email message in RFC 2822 format and encode to base64url
  */
 function createEmailMessage(to: string, subject: string, body: string, from?: string): string {
+  // Validate required fields
+  if (!to || !to.trim() || !to.includes('@')) {
+    throw new Error(`Invalid or missing recipient email address: "${to}". Please provide a valid email address.`);
+  }
+  
+  if (!subject || !subject.trim()) {
+    throw new Error('Email subject is required and cannot be empty.');
+  }
+  
+  if (!body || !body.trim()) {
+    throw new Error('Email body is required and cannot be empty.');
+  }
+  
   // Wrap body in proper HTML document structure for Gmail with professional styling
   const htmlBody = body.trim().startsWith('<html') 
     ? body 
@@ -348,8 +361,8 @@ ${body}
   // Build headers array, filtering out empty 'From' if not provided
   const headers = [
     from ? `From: ${from}` : null,
-    `To: ${to}`,
-    `Subject: ${subject}`,
+    `To: ${to.trim()}`,
+    `Subject: ${subject.trim()}`,
     'MIME-Version: 1.0',
     'Content-Type: text/html; charset=utf-8'
   ].filter(Boolean);

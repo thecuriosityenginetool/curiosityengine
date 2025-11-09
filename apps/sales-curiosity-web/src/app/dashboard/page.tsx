@@ -2461,17 +2461,47 @@ The draft is now in your Outlook Drafts folder and ready to send.`);
                         {msg.role === 'assistant' && msg.thinking && (
                           <div className="mb-3">
                             {msg.showThinking && (
-                              <div className="mb-2 p-3 bg-gradient-to-r from-purple-50 to-blue-50 border border-purple-200 rounded-lg shadow-sm animate-pulse">
-                                <div className="flex items-center gap-2 mb-2">
-                                  <div className="flex items-center justify-center w-5 h-5 bg-purple-500 rounded-full animate-spin">
-                                    <svg className="w-3 h-3 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z" />
-                                    </svg>
+                              <div className="mb-2 p-3 bg-gradient-to-r from-purple-50 to-blue-50 border border-purple-200 rounded-lg shadow-sm">
+                                <div className="flex items-center justify-between mb-3">
+                                  <div className="flex items-center gap-2">
+                                    <div className="flex items-center justify-center w-5 h-5 bg-purple-500 rounded-full">
+                                      <svg className="w-3 h-3 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z" />
+                                      </svg>
+                                    </div>
+                                    <span className="text-sm font-semibold text-purple-900">Thinking Summary</span>
                                   </div>
-                                  <span className="text-sm font-semibold text-purple-900">AI is thinking...</span>
+                                  <button
+                                    onClick={() => {
+                                      setChatMessages(prev => prev.map((m, i) => 
+                                        i === idx ? { ...m, showThinking: false } : m
+                                      ));
+                                    }}
+                                    className="text-purple-600 hover:text-purple-900 transition-colors"
+                                  >
+                                    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                                    </svg>
+                                  </button>
                                 </div>
-                                <div className="text-xs text-purple-800 whitespace-pre-wrap leading-relaxed pl-7 font-mono">
-                                  {msg.thinking}
+                                <div className="text-xs text-purple-800 leading-relaxed space-y-2">
+                                  {msg.thinking.split('\n').filter(line => line.trim()).map((line, i) => {
+                                    // Convert technical logs to natural language
+                                    const naturalLine = line
+                                      .replace(/🔧.*Calling tool: web search/i, '🔍 Searching the web for current information...')
+                                      .replace(/🔧.*Calling tool: search_gmail_emails/i, '📧 Looking through your Gmail for relevant emails...')
+                                      .replace(/🔧.*Calling tool: search_salesforce/i, '🔍 Searching Salesforce CRM for contacts...')
+                                      .replace(/🔧.*Calling tool: create_gmail_draft/i, '✉️ Creating email draft in Gmail...')
+                                      .replace(/🔧.*Calling tool: create_email_draft/i, '✉️ Creating email draft in Outlook...')
+                                      .replace(/🔧.*Calling tool: create_google_calendar_event/i, '📅 Adding event to your Google Calendar...')
+                                      .replace(/🔧.*Calling tool: create_calendar_event/i, '📅 Adding event to your Outlook Calendar...')
+                                      .replace(/🔧.*Calling tool: browse_url/i, '🌐 Visiting webpage to extract information...')
+                                      .replace(/✅ Complete:.*Found (\d+) results/i, '✅ Found $1 relevant results')
+                                      .replace(/✅ Complete:.*Error/i, '⚠️ Encountered an issue, adjusting approach...')
+                                      .replace(/✅ Tool result:/i, '✅ Retrieved information:');
+                                    
+                                    return <div key={i} className="pl-2">{naturalLine}</div>;
+                                  })}
                                 </div>
                               </div>
                             )}
@@ -2482,22 +2512,15 @@ The draft is now in your Outlook Drafts folder and ready to send.`);
                                     i === idx ? { ...m, showThinking: !m.showThinking } : m
                                   ));
                                 }}
-                                className="flex items-center gap-2 text-xs text-blue-600 hover:text-blue-800 font-medium transition-colors"
+                                className="inline-flex items-center gap-2 px-3 py-1.5 text-xs text-purple-700 hover:text-purple-900 bg-purple-50 hover:bg-purple-100 border border-purple-200 rounded-full font-medium transition-all hover:shadow-sm"
                               >
-                                <svg 
-                                  className={`w-3 h-3 transition-transform`} 
-                                  fill="none" 
-                                  stroke="currentColor" 
-                                  viewBox="0 0 24 24"
-                                >
-                                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+                                <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z" />
                                 </svg>
-                                <span className="flex items-center gap-1.5">
-                                  <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z" />
-                                  </svg>
-                                  View Thinking Process
-                                </span>
+                                View Thinking Summary
+                                <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+                                </svg>
                               </button>
                             )}
                           </div>

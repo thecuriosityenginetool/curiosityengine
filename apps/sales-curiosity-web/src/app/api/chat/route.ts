@@ -516,7 +516,11 @@ ${calendarEvents.map((event: any, index: number) => {
 
 ================================
 
-🚨 When user asks about meetings or calendar: Simply list the ${calendarEvents.length} events above. Keep it concise. No setup instructions needed.`;
+🚨 CRITICAL FORMATTING:
+- When listing meetings, format times as "3:00 PM" or "9:00 AM" (NOT as ISO strings like 2025-11-10T15:00:00)
+- Format dates as "Nov 10" or "tomorrow" (NOT as ISO dates)
+- Example: "Meeting with Paul tomorrow at 3:00 PM" (NOT "at 2025-11-10T15:00:00-05:00")
+- Be conversational and natural, like a human assistant would respond`;
 
       console.log('📅 Calendar context created with', calendarEvents.length, 'events');
       console.log('📅 Calendar context preview:', calendarContext.substring(0, 500));
@@ -557,13 +561,20 @@ ${currentDateTime}
 ISO Date: ${currentDate}
 Timezone: America/New_York (UTC-05:00 EST or UTC-04:00 EDT)
 
-CRITICAL TIMEZONE INSTRUCTIONS:
+🚨 CRITICAL RESPONSE FORMATTING:
+- NEVER show raw JSON, tool calls, or function parameters to the user
+- NEVER output strings like {"type": "function", "name": ...} - this is internal data only
+- When using tools, let them execute in the background, then provide a clean human response
+- Format all times in 12-hour format (3:00 PM, not 15:00 or T15:00:00-05:00)
+- Be conversational and natural - respond like a helpful human assistant would
+
+CRITICAL TIMEZONE INSTRUCTIONS (for tool calls only, not for display):
 - When creating calendar events, ALWAYS include timezone offset in ISO 8601 format
 - For EST/EDT times, use format: 2024-01-15T15:00:00-05:00 (EST) or 2024-01-15T15:00:00-04:00 (EDT)
-- If user says "3pm EST", output: ${currentDate}T15:00:00-05:00
-- If user says "2pm tomorrow", output: {tomorrow}T14:00:00-05:00
+- If user says "3pm EST", create tool input: ${currentDate}T15:00:00-05:00
+- If user says "2pm tomorrow", create tool input: {tomorrow}T14:00:00-05:00
 - If user mentions PST (-08:00), CST (-06:00), MST (-07:00), use those offsets
-- NEVER output datetime without timezone offset (e.g., don't use 2024-01-15T15:00:00 alone)
+- But when DISPLAYING times to user, format as "3:00 PM" or "2:00 PM tomorrow"
 
 IMPORTANT: When user asks about "today", use ${currentDate}. Don't overthink timezones - events are shown in their local timezone.
 If you see calendar events in the context below, answer directly. Only use search tools if the user asks to search for something specific.`;

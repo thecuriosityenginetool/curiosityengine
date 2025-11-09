@@ -183,15 +183,15 @@ The email has been sent and saved to your Sent Items.`;
 
       case 'create_calendar_event': {
         const result = await createOutlookCalendarEvent(organizationId, {
-          subject: args.title,
+          subject: args.subject,
           start: args.start,
           end: args.end,
-          body: args.description,
+          body: args.body,
           attendees: args.attendees,
           location: args.location
         }, userId);
         return `✅ Calendar event created successfully in Outlook!
-Title: ${args.title}
+Title: ${args.subject}
 Start: ${new Date(args.start).toLocaleString()}
 End: ${new Date(args.end).toLocaleString()}
 ${args.attendees ? `Attendees: ${args.attendees.join(', ')}` : ''}
@@ -228,7 +228,7 @@ The email has been sent.`;
 
       case 'create_google_calendar_event': {
         const result = await createGoogleCalendarEvent(organizationId, {
-          summary: args.title,
+          summary: args.summary,
           start: args.start,
           end: args.end,
           description: args.description,
@@ -236,7 +236,7 @@ The email has been sent.`;
           location: args.location
         }, userId);
         return `✅ Calendar event created successfully in Google Calendar!
-Title: ${args.title}
+Title: ${args.summary}
 Start: ${new Date(args.start).toLocaleString()}
 End: ${new Date(args.end).toLocaleString()}
 ${args.attendees ? `Attendees: ${args.attendees.join(', ')}` : ''}
@@ -490,14 +490,15 @@ export async function POST(req: NextRequest) {
         ).join('\n')}`;
       }
     } else if (calendarEvents.length > 0) {
-      calendarContext = `\n\n📅 **YOUR CALENDAR EVENTS (Today: ${currentDate}):**\n${calendarEvents.map((event: any) => {
+      calendarContext = `\n\n📅 **YOUR UPCOMING CALENDAR EVENTS (Today: ${currentDate}):**\n${calendarEvents.map((event: any) => {
         const eventDate = new Date(event.start);
         const eventDateStr = eventDate.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
-        const eventTimeStr = eventDate.toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit', hour12: true });
-        return `- ${event.title} on ${eventDateStr} at ${eventTimeStr}${event.description ? ' (' + event.description + ')' : ''}`;
+        const eventTimeStr = eventDate.toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit', hour12: true, timeZone: 'America/New_York' });
+        const attendeesStr = event.attendees && event.attendees.length > 0 ? ` with ${event.attendees.join(', ')}` : '';
+        return `- ${event.title} on ${eventDateStr} at ${eventTimeStr}${attendeesStr}${event.location ? ' at ' + event.location : ''}${event.description ? ' (' + event.description + ')' : ''}`;
       }).join('\n')}
 
-When asked about events, reference these directly. Only search if user asks to find specific events.`;
+IMPORTANT: You can see all upcoming events listed above. When user asks about "tomorrow's meetings" or "upcoming events", reference these directly from the list above. You DO NOT need tools to answer about these events - they are already provided in your context.`;
     }
 
     // Get recent emails if Outlook is connected

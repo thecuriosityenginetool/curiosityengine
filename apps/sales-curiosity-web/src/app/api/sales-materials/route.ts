@@ -185,10 +185,27 @@ export async function POST(req: NextRequest) {
 
     // Upload file to Supabase Storage (in user's folder)
     const fileName = `${user.id}/${Date.now()}-${file.name}`;
+    
+    // Get the file extension to determine content type
+    const fileExt = file.name.split('.').pop()?.toLowerCase();
+    
+    // Map file extensions to MIME types (handle Excel explicitly)
+    const contentTypeMap: Record<string, string> = {
+      'xlsx': 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+      'xls': 'application/vnd.ms-excel',
+      'pdf': 'application/pdf',
+      'docx': 'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
+      'doc': 'application/msword',
+      'txt': 'text/plain',
+      'pptx': 'application/vnd.openxmlformats-officedocument.presentationml.presentation',
+    };
+    
+    const contentType = contentTypeMap[fileExt || ''] || file.type || 'application/octet-stream';
+    
     const { data: uploadData, error: uploadError } = await supabase.storage
       .from('sales-materials')
       .upload(fileName, file, {
-        contentType: file.type,
+        contentType: contentType,
         upsert: false
       });
 

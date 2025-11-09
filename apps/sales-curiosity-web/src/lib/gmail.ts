@@ -361,8 +361,21 @@ export async function createGmailDraft(
 ): Promise<{ id: string; success: boolean }> {
   try {
     const { signature, sendAsEmail } = await getGmailDefaultSignature(organizationId, userId);
+    console.log('📧 [Gmail] Draft signature info', {
+      hasSignature: !!signature,
+      sendAsEmail,
+    });
+
     const bodyHtml = convertToHtml(emailData.body);
-    const bodyWithSignature = appendSignature(bodyHtml, signature);
+    const signatureHtml = signature ? convertToHtml(signature) : null;
+    const bodyWithSignature = appendSignature(bodyHtml, signatureHtml);
+
+    console.log('📧 [Gmail] Draft body lengths', {
+      bodyHtmlLength: bodyHtml.length,
+      signatureLength: signatureHtml?.length ?? 0,
+      finalLength: bodyWithSignature.length,
+    });
+
     const encodedMessage = createEmailMessage(emailData.to, emailData.subject, bodyWithSignature, sendAsEmail);
 
     const result = await gmailApiRequest(
@@ -400,8 +413,20 @@ export async function sendGmailEmail(
 ): Promise<{ id: string; success: boolean }> {
   try {
     const { signature, sendAsEmail } = await getGmailDefaultSignature(organizationId, userId);
+    console.log('📧 [Gmail] Send signature info', {
+      hasSignature: !!signature,
+      sendAsEmail,
+    });
+
     const bodyHtml = convertToHtml(emailData.body);
-    const bodyWithSignature = appendSignature(bodyHtml, signature);
+    const signatureHtml = signature ? convertToHtml(signature) : null;
+    const bodyWithSignature = appendSignature(bodyHtml, signatureHtml);
+
+    console.log('📧 [Gmail] Send body lengths', {
+      bodyHtmlLength: bodyHtml.length,
+      signatureLength: signatureHtml?.length ?? 0,
+      finalLength: bodyWithSignature.length,
+    });
     const encodedMessage = createEmailMessage(emailData.to, emailData.subject, bodyWithSignature, sendAsEmail);
 
     const result = await gmailApiRequest(

@@ -305,8 +305,17 @@ export async function createOutlookDraft(
   try {
     console.log('🔵 Creating Outlook draft:', { to: emailData.to, subject: emailData.subject });
     const signature = await getOutlookSignature(organizationId, userId);
+    console.log('📧 [Outlook] Draft signature info', {
+      hasSignature: !!signature,
+    });
+
     const bodyHtml = convertToHtml(emailData.body);
     const bodyWithSignature = appendSignature(bodyHtml, signature);
+    console.log('📧 [Outlook] Draft body lengths', {
+      bodyHtmlLength: bodyHtml.length,
+      signatureLength: signature?.length ?? 0,
+      finalLength: bodyWithSignature.length,
+    });
     
     const messagePayload = {
       subject: emailData.subject,
@@ -372,8 +381,17 @@ export async function sendOutlookEmail(
 ): Promise<{ success: boolean }> {
   try {
     const signature = await getOutlookSignature(organizationId, userId);
+    console.log('📧 [Outlook] Send signature info', {
+      hasSignature: !!signature,
+    });
+
     const bodyHtml = convertToHtml(emailData.body);
     const bodyWithSignature = appendSignature(bodyHtml, signature);
+    console.log('📧 [Outlook] Send body lengths', {
+      bodyHtmlLength: bodyHtml.length,
+      signatureLength: signature?.length ?? 0,
+      finalLength: bodyWithSignature.length,
+    });
 
     const messagePayload = {
       message: {

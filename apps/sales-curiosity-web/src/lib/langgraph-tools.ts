@@ -265,6 +265,17 @@ export function createAgentTools(
         func: async (input) => {
           try {
             const sanitizedBody = sanitizeEmailBody(input.body);
+            console.log('📧 [Tools] Preparing Gmail draft', {
+              to: input.to,
+              subject: input.subject,
+              originalLength: input.body?.length ?? 0,
+              sanitizedLength: sanitizedBody.length,
+            });
+
+            if (!sanitizedBody.trim()) {
+              throw new Error('Sanitized email body is empty. Regenerate a complete draft before saving.');
+            }
+
             const result = await createGmailDraft(
               organizationId,
               { ...input, body: sanitizedBody },
@@ -297,6 +308,17 @@ export function createAgentTools(
         func: async (input) => {
           try {
             const sanitizedBody = sanitizeEmailBody(input.body);
+            console.log('📧 [Tools] Sending Gmail email', {
+              to: input.to,
+              subject: input.subject,
+              originalLength: input.body?.length ?? 0,
+              sanitizedLength: sanitizedBody.length,
+            });
+
+            if (!sanitizedBody.trim()) {
+              throw new Error('Sanitized email body is empty. Regenerate a complete email before sending.');
+            }
+
             await sendGmailEmail(
               organizationId,
               { ...input, body: sanitizedBody },
@@ -409,6 +431,17 @@ export function createAgentTools(
         func: async (input) => {
           try {
             const sanitizedBody = sanitizeEmailBody(input.body);
+            console.log('📧 [Tools] Preparing Outlook draft', {
+              to: input.to,
+              subject: input.subject,
+              originalLength: input.body?.length ?? 0,
+              sanitizedLength: sanitizedBody.length,
+            });
+
+            if (!sanitizedBody.trim()) {
+              throw new Error('Sanitized email body is empty. Regenerate a complete draft before saving.');
+            }
+
             const result = await createEmailDraft(
               organizationId,
               { ...input, body: sanitizedBody },
@@ -441,6 +474,17 @@ export function createAgentTools(
         func: async (input) => {
           try {
             const sanitizedBody = sanitizeEmailBody(input.body);
+            console.log('📧 [Tools] Sending Outlook email', {
+              to: input.to,
+              subject: input.subject,
+              originalLength: input.body?.length ?? 0,
+              sanitizedLength: sanitizedBody.length,
+            });
+
+            if (!sanitizedBody.trim()) {
+              throw new Error('Sanitized email body is empty. Regenerate a complete email before sending.');
+            }
+
             await sendEmail(
               organizationId,
               { ...input, body: sanitizedBody },

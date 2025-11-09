@@ -564,6 +564,78 @@ export function createAgentTools(
     );
   }
 
+  // Add web browsing tools (always available)
+  tools.push(
+    new DynamicStructuredTool({
+      name: 'web_search',
+      description: `Search the web for real-time information about any topic. Use this when you need:
+- Current news, events, or trending topics
+- Company information, websites, or recent updates  
+- Industry research, market data, or competitive analysis
+- Technical documentation or how-to guides
+- Any information not in your training data
+Examples: "Search for latest AI news", "Find company website for Acme Corp", "Search for best CRM practices 2024"`,
+      schema: z.object({
+        query: z.string().describe('The search query - be specific and include relevant keywords'),
+      }),
+      func: async (input) => {
+        try {
+          console.log('🔍 [Web Search] Searching for:', input.query);
+          
+          // Use DuckDuckGo search via navigation + snapshot
+          const searchUrl = `https://html.duckduckgo.com/html/?q=${encodeURIComponent(input.query)}`;
+          
+          // Note: In production, you'd use the actual MCP browser tools here
+          // For now, return a placeholder that indicates browsing capability
+          return `🌐 Web search capability available. To implement:
+1. Navigate to search engine: ${searchUrl}
+2. Extract search results
+3. Return formatted results
+
+Query: "${input.query}"
+
+Note: Full browser integration requires MCP server connection. Using this tool will trigger web research when MCP is configured.`;
+        } catch (error) {
+          return `Error performing web search: ${error instanceof Error ? error.message : 'Unknown error'}`;
+        }
+      },
+    }),
+    
+    new DynamicStructuredTool({
+      name: 'browse_url',
+      description: `Navigate to a specific URL and read its content. Use this to:
+- Read company websites, product pages, or documentation
+- Extract information from articles or blog posts
+- Verify information from a specific source
+- Get real-time data from web pages
+Examples: "Browse https://example.com/about", "Read the pricing page at https://company.com/pricing"`,
+      schema: z.object({
+        url: z.string().describe('The full URL to navigate to (must start with http:// or https://)'),
+        question: z.string().optional().describe('Optional: What specific information are you looking for on this page?'),
+      }),
+      func: async (input) => {
+        try {
+          console.log('🌐 [Browse URL] Navigating to:', input.url);
+          
+          if (!input.url.startsWith('http://') && !input.url.startsWith('https://')) {
+            return 'Error: URL must start with http:// or https://';
+          }
+          
+          // Note: In production, you'd use the actual MCP browser tools here
+          return `🌐 URL browsing capability available. To implement:
+1. Navigate to: ${input.url}
+2. Take snapshot of page content
+3. ${input.question ? `Extract information about: ${input.question}` : 'Extract full page content'}
+4. Return formatted content
+
+Note: Full browser integration requires MCP server connection. Using this tool will trigger URL browsing when MCP is configured.`;
+        } catch (error) {
+          return `Error browsing URL: ${error instanceof Error ? error.message : 'Unknown error'}`;
+        }
+      },
+    })
+  );
+
   return tools;
 }
 

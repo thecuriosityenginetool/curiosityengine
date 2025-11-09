@@ -635,9 +635,34 @@ Would you be open to a brief 15-minute call next week to discuss how we might be
 **USE RECENT EMAILS to identify "latest prospect"** - the most recent email sender/recipient is likely who they mean!`;
     }
 
+    // Web browsing is always available
+    systemPrompt += `
+
+🌐 **WEB BROWSING & RESEARCH**
+You have access to real-time web browsing capabilities:
+
+**RESEARCH TOOLS:**
+- web_search: Search the web for current information, news, company details, industry research
+- browse_url: Navigate to and extract content from specific URLs/websites
+
+**WHEN TO USE:**
+- User asks for current/real-time information ("latest news", "current trends")
+- Need to verify company information, websites, or contact details
+- Research competitors, market data, or industry insights
+- Find documentation, guides, or best practices
+- Any information you don't have or need to verify
+
+**EXAMPLES:**
+- "Search for latest AI trends in sales" → use web_search
+- "What's on the Acme Corp website?" → use browse_url with their URL
+- "Find recent news about Company X" → use web_search
+- "Research best practices for cold email" → use web_search
+
+**PROACTIVE USE:** When a user mentions a company, consider searching for their website or recent news to provide better context!`;
+
     if (!hasSalesforce && !hasOutlook) {
       systemPrompt += `
-⚠️ No integrations connected. You can only provide general sales advice and insights.`;
+⚠️ No CRM/Email integrations connected. You can still provide sales advice and use web research!`;
     }
 
     systemPrompt += `

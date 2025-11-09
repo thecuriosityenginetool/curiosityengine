@@ -601,14 +601,23 @@ If you see calendar events in the context below, answer directly. Only use searc
 - create_task: Create follow-up tasks
 - get_activity: View recent activity
 
-**SOQL QUERY GUIDELINES:**
-- Simple queries without WHERE clauses work best
-- For recent records: SELECT Id, Name, Email, Company FROM Lead ORDER BY CreatedDate DESC LIMIT 10
-- For all contacts: SELECT Id, Name, Email, Phone FROM Contact ORDER BY Name LIMIT 20
-- For opportunities: SELECT Id, Name, Amount, StageName FROM Opportunity ORDER BY CreatedDate DESC LIMIT 10
-- Avoid complex WHERE clauses with quotes if possible - use search_salesforce for specific searches
+**🚨 CRITICAL SOQL RULES - MUST FOLLOW:**
+1. NEVER use WHERE clauses with text/string values (causes JSON parse errors)
+2. NEVER use quotes in SOQL queries (like Status = 'Open' or StageName = 'Closed Won')
+3. ONLY use simple queries: SELECT fields FROM object ORDER BY field LIMIT number
+4. For filtered searches (by status, stage, etc.) → USE search_salesforce tool instead, NOT query_crm
 
-**IMPORTANT:** Keep SOQL queries simple to avoid JSON parsing errors. For complex searches, use search_salesforce instead.
+**CORRECT EXAMPLES:**
+✅ query_crm: SELECT Id, Name, Email, Company FROM Lead ORDER BY CreatedDate DESC LIMIT 10
+✅ query_crm: SELECT Id, Name, Email FROM Contact ORDER BY Name LIMIT 20
+✅ query_crm: SELECT Id, Name, Amount FROM Opportunity ORDER BY CreatedDate DESC LIMIT 10
+
+**WRONG - DO NOT USE:**
+❌ query_crm with WHERE Status = 'value' (breaks JSON parser)
+❌ query_crm with WHERE StageName = 'value' (breaks JSON parser)
+❌ Any SOQL with single or double quotes in values
+
+**For filtered searches:** Use search_salesforce instead of query_crm with WHERE clauses.
 
 **YOU MUST USE THESE TOOLS - They are available and working!**`;
     }

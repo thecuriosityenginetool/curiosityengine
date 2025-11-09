@@ -2816,7 +2816,9 @@ The draft is now in your Outlook Drafts folder and ready to send.`);
                               month: 'short',
                               day: 'numeric',
                               hour: 'numeric',
-                              minute: '2-digit'
+                              minute: '2-digit',
+                              hour12: true,
+                              timeZone: Intl.DateTimeFormat().resolvedOptions().timeZone
                             })}
                           </p>
                           {event.description && event.description.trim() && (

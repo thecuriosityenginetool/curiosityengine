@@ -490,17 +490,20 @@ export async function createGoogleCalendarEvent(
   userId: string
 ): Promise<{ id: string; success: boolean }> {
   try {
+    // Get user's timezone (default to America/New_York if not available)
+    const userTimeZone = Intl.DateTimeFormat().resolvedOptions().timeZone || 'America/New_York';
+    
     const event = {
       summary: eventData.summary,
       description: eventData.description || '',
       location: eventData.location || '',
       start: {
         dateTime: eventData.start,
-        timeZone: 'UTC'
+        timeZone: userTimeZone // Use user's actual timezone, not UTC
       },
       end: {
         dateTime: eventData.end,
-        timeZone: 'UTC'
+        timeZone: userTimeZone // Use user's actual timezone, not UTC
       },
       attendees: eventData.attendees?.map(email => ({ email })) || [],
       reminders: {

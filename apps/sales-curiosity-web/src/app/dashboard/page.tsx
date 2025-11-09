@@ -663,8 +663,8 @@ export default function DashboardPage() {
                       ...lastMessage,
                       content: final,
                       thinking: fullThinking,
-                      // Collapse thinking once content starts streaming (after first 50 chars)
-                      showThinking: final.length < 50 ? lastMessage.showThinking : false,
+                      // Collapse thinking as soon as any real content starts (more than just whitespace)
+                      showThinking: final.trim().length === 0 ? lastMessage.showThinking : false,
                       model: selectedModel // Track which model generated this
                     };
                     return newMessages;
@@ -2533,6 +2533,17 @@ The draft is now in your Outlook Drafts folder and ready to send.`);
                               p: ({node, ...props}) => <p className="my-2 leading-relaxed" {...props} />,
                               ul: ({node, ...props}) => <ul className="my-2 space-y-1.5 list-none pl-0" {...props} />,
                               ol: ({node, ...props}) => <ol className="my-2 space-y-1.5 pl-6 list-decimal" {...props} />,
+                              a: ({node, href, children, ...props}) => (
+                                <a 
+                                  href={href} 
+                                  target="_blank" 
+                                  rel="noopener noreferrer"
+                                  className="text-blue-600 hover:text-blue-800 underline hover:no-underline transition-colors font-medium break-all"
+                                  {...props}
+                                >
+                                  {children}
+                                </a>
+                              ),
                               li: ({node, children, ...props}) => {
                                 const isOrdered = props.className?.includes('task-list-item') === false;
                                 return (

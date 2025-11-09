@@ -230,9 +230,9 @@ export function formatSearchResultsForAI(results: SearchResult[], query: string)
   
   sortedResults.forEach((result, index) => {
     formatted += `**[${index + 1}] ${result.title}**\n`;
-    formatted += `Source: ${result.url}\n`;
+    formatted += `🔗 Source: [${result.url}](${result.url})\n`;
     if (result.score) {
-      formatted += `Relevance: ${(result.score * 100).toFixed(0)}%\n`;
+      formatted += `📊 Relevance: ${(result.score * 100).toFixed(0)}%\n`;
     }
     formatted += `${result.snippet}\n\n`;
   });
@@ -241,7 +241,10 @@ export function formatSearchResultsForAI(results: SearchResult[], query: string)
   formatted += `- ALWAYS cite sources using [1], [2], [3] notation after statements\n`;
   formatted += `- Prioritize high-relevance sources (higher percentage = more relevant)\n`;
   formatted += `- List all cited sources in a "Sources:" section at the end\n`;
-  formatted += `- Format: [1] Title - URL\n`;
+  formatted += `- Format sources as clickable markdown links: [1] [Title](URL)\n`;
+  formatted += `- Example: **Sources:**\n`;
+  formatted += `  [1] [Article Title](https://example.com/article)\n`;
+  formatted += `  [2] [Company News](https://example.com/news)\n`;
   formatted += `- Acknowledge if results are insufficient or outdated\n`;
   
   return formatted;

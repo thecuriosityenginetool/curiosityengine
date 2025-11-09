@@ -536,6 +536,11 @@ export async function createOutlookCalendarEvent(
   }
 }
 
+// Backwards-compatible exports used throughout the codebase
+export const createEmailDraft = createOutlookDraft;
+export const sendEmail = sendOutlookEmail;
+export const createCalendarEvent = createOutlookCalendarEvent;
+
 /**
  * Get recent emails from Outlook
  */

@@ -345,7 +345,11 @@ export async function POST(req: NextRequest) {
 
     console.log('🤖 [Chat API] Parsing request body...');
     const { message, conversationHistory = [], userContext, calendarEvents = [], model } = await req.json();
-    console.log('🤖 [Chat API] Request parsed:', { hasMessage: !!message, eventsCount: calendarEvents.length });
+    console.log('🤖 [Chat API] Request parsed:', { 
+      hasMessage: !!message, 
+      eventsCount: calendarEvents.length,
+      events: calendarEvents.map((e: any) => ({ title: e.title, start: e.start }))
+    });
 
     if (!message) {
       return new Response(
@@ -515,6 +519,9 @@ ${calendarEvents.map((event: any, index: number) => {
 🚨 CRITICAL: When user asks "what meetings?" or "check my calendar", answer DIRECTLY from the ${calendarEvents.length} events listed above.
 DO NOT say "functions are insufficient" - the events are RIGHT HERE in your context!
 Simply summarize the events you see above. NO TOOLS NEEDED for viewing.`;
+
+      console.log('📅 Calendar context created with', calendarEvents.length, 'events');
+      console.log('📅 Calendar context preview:', calendarContext.substring(0, 500));
     }
 
     // Get recent emails if Outlook is connected

@@ -583,29 +583,30 @@ If you see calendar events in the context below, answer directly. Only use searc
 
     if (hasSalesforce) {
       systemPrompt += `
-✅ Salesforce CRM is connected. You have these powerful capabilities:
+✅ Salesforce CRM is connected. YOU CAN and MUST use these tools when asked about Salesforce data:
 
-**SEARCH & FIND:**
-- search_salesforce: Find contacts/leads by name, email, or company
-- query_crm: Execute custom SOQL queries for complex searches
-- Examples: "Find John Smith", "Who do I know at Acme Corp?"
+**CRITICAL - WHEN USER ASKS ABOUT SALESFORCE:**
+- "Review my leads" → USE query_crm tool with SOQL: "SELECT Id, Name, Email, Company FROM Lead ORDER BY CreatedDate DESC LIMIT 10" ✅
+- "Check my contacts" → USE query_crm tool with SOQL: "SELECT Id, Name, Email FROM Contact ORDER BY CreatedDate DESC LIMIT 10" ✅
+- "Show recent leads" → USE query_crm tool to fetch recent leads ✅
+- DO NOT say "functions are insufficient" or "exceeds limitations" - YOU HAVE THE TOOLS! ✅
 
-**CREATE RECORDS:**
-- create_lead: Add new prospects (requires: first name, last name, company)
-- create_contact: Add established relationships (requires: first name, last name)
-- Examples: "Add this person as a lead", "Create a contact for Jane Doe"
+**AVAILABLE TOOLS:**
+- search_salesforce: Find specific person by name/email
+- query_crm: Run SOQL queries to get leads, contacts, opportunities
+- create_lead: Add new prospects
+- create_contact: Add new contacts
+- update_record: Update existing records
+- add_note: Add notes to records
+- create_task: Create follow-up tasks
+- get_activity: View recent activity
 
-**UPDATE INFORMATION:**
-- update_record: Modify existing contact/lead fields (email, phone, title, status, etc.)
-- Examples: "Update John's email", "Change lead status to qualified"
+**EXAMPLES:**
+- User: "Review my recent Salesforce leads" → query_crm: "SELECT Id, Name, Email, Company, Status FROM Lead ORDER BY CreatedDate DESC LIMIT 10"
+- User: "Find contacts at Acme" → search_salesforce with company: "Acme"
+- User: "Show my open opportunities" → query_crm: "SELECT Id, Name, Amount, StageName FROM Opportunity WHERE IsClosed = false"
 
-**LOG ACTIVITY:**
-- add_note: Add notes about interactions, meetings, conversations
-- create_task: Set follow-up tasks with due dates and priority
-- get_activity: View recent tasks, events, notes for a person
-- Examples: "Add a note about our call", "Remind me to follow up Friday"
-
-**USE THESE PROACTIVELY** to help users manage their pipeline and relationships!`;
+**YOU MUST USE THESE TOOLS - They are available and working!**`;
     }
 
     if (hasGmail) {

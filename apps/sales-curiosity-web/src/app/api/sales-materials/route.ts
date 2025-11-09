@@ -226,8 +226,8 @@ export async function POST(req: NextRequest) {
 
     // Extract text from file based on file type
     let fileText = '';
-    const fileExt = file.name.split('.').pop()?.toLowerCase() || 'txt';
-    const fileType = ['pdf', 'docx', 'txt', 'pptx', 'doc', 'xlsx', 'xls'].includes(fileExt) ? fileExt : 'txt';
+    // fileExt already declared above for content type
+    const fileType = ['pdf', 'docx', 'txt', 'pptx', 'doc', 'xlsx', 'xls'].includes(fileExt || '') ? (fileExt || 'txt') : 'txt';
 
     try {
       const arrayBuffer = await file.arrayBuffer();

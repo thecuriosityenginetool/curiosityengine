@@ -2,83 +2,102 @@
  * Web Search and Browsing Utilities
  * 
  * Provides real-time web search and URL browsing capabilities
- * Uses DuckDuckGo HTML for search (no API key required)
+ * Uses Tavily Search API for production-ready, LLM-optimized results
  */
 
 interface SearchResult {
   title: string;
   url: string;
   snippet: string;
+  score?: number; // Relevance score from Tavily (0-1)
+}
+
+interface TavilySearchResult {
+  title: string;
+  url: string;
+  content: string;
+  score: number;
+  raw_content?: string;
 }
 
 /**
- * Search the web using DuckDuckGo
+ * Search the web using Tavily Search API
  */
 export async function searchWeb(query: string, maxResults: number = 5): Promise<{
   results: SearchResult[];
   searchUrl: string;
 }> {
   try {
-    console.log('🔍 [Web Search] Searching for:', query);
+    console.log('🔍 [Tavily Search] Searching for:', query);
     
-    // Try multiple search approaches
-    try {
-      // Approach 1: DuckDuckGo Lite (simpler HTML, less likely to block)
-      const searchUrl = `https://lite.duckduckgo.com/lite/?q=${encodeURIComponent(query)}`;
-      
-      const response = await fetch(searchUrl, {
-        headers: {
-          'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
-          'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,*/*;q=0.8',
-          'Accept-Language': 'en-US,en;q=0.5',
-          'Referer': 'https://duckduckgo.com/'
-        },
-        signal: AbortSignal.timeout(10000)
-      });
-      
-      if (response.ok) {
-        const html = await response.text();
-        const results = parseSearchResults(html, maxResults);
-        
-        if (results.length > 0) {
-          console.log('✅ [Web Search] Found', results.length, 'results');
-          return { results, searchUrl };
-        }
-      }
-    } catch (ddgError) {
-      console.warn('⚠️ [Web Search] DDG failed, trying fallback:', ddgError);
+    const apiKey = process.env.TAVILY_API_KEY;
+    
+    if (!apiKey || apiKey === '<your-api-key>') {
+      console.warn('⚠️ [Tavily] API key not configured, using fallback');
+      return {
+        results: generateFallbackResults(query, maxResults),
+        searchUrl: `https://tavily.com/search?q=${encodeURIComponent(query)}`
+      };
     }
     
-    // Approach 2: Use a public search API as fallback
-    // For now, return mock results to demonstrate the feature
-    console.log('⚠️ [Web Search] Using fallback search');
-    const mockResults = generateMockSearchResults(query, maxResults);
+    const response = await fetch('https://api.tavily.com/search', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        api_key: apiKey,
+        query: query,
+        max_results: maxResults,
+        search_depth: 'basic',
+        include_answer: false,
+        include_raw_content: false,
+      }),
+      signal: AbortSignal.timeout(15000)
+    });
+    
+    if (!response.ok) {
+      const errorText = await response.text();
+      console.error('❌ [Tavily] API error:', response.status, errorText);
+      throw new Error(`Tavily API error: ${response.status}`);
+    }
+    
+    const data = await response.json();
+    const tavilyResults: TavilySearchResult[] = data.results || [];
+    
+    const results: SearchResult[] = tavilyResults.map(result => ({
+      title: result.title,
+      url: result.url,
+      snippet: result.content,
+      score: result.score
+    }));
+    
+    console.log('✅ [Tavily Search] Found', results.length, 'results');
     return { 
-      results: mockResults, 
-      searchUrl: `https://duckduckgo.com/?q=${encodeURIComponent(query)}` 
+      results, 
+      searchUrl: `https://tavily.com/search?q=${encodeURIComponent(query)}` 
     };
     
   } catch (error) {
-    console.error('❌ [Web Search] Error:', error);
-    throw error;
+    console.error('❌ [Tavily Search] Error:', error);
+    // Graceful fallback
+    return {
+      results: generateFallbackResults(query, maxResults),
+      searchUrl: `https://tavily.com/search?q=${encodeURIComponent(query)}`
+    };
   }
 }
 
 /**
- * Generate mock search results when real search is blocked
+ * Generate fallback results when Tavily is unavailable
  */
-function generateMockSearchResults(query: string, count: number): SearchResult[] {
-  const timestamp = new Date().toISOString().split('T')[0];
+function generateFallbackResults(query: string, count: number): SearchResult[] {
   return [
     {
-      title: `${query} - Latest Updates and News`,
-      url: `https://example.com/search/${encodeURIComponent(query)}`,
-      snippet: `Recent information and analysis about ${query}. This is a demonstration result as live web search is currently unavailable due to rate limiting. For real-time results, please try again in a moment.`
-    },
-    {
-      title: `${query} - Industry Analysis and Trends`,
-      url: `https://example.com/analysis/${encodeURIComponent(query)}`,
-      snippet: `Comprehensive analysis of ${query} with expert insights. Note: Live web search is temporarily using cached results. Full search functionality will be restored shortly.`
+      title: `Search Results for: ${query}`,
+      url: `https://tavily.com/search?q=${encodeURIComponent(query)}`,
+      snippet: `Real-time search results for "${query}" are currently unavailable. Please ensure TAVILY_API_KEY is configured in environment variables. Sign up for free at https://tavily.com (1000 searches/month free tier).`,
+      score: 0.5
     }
   ].slice(0, count);
 }
@@ -202,20 +221,28 @@ export function formatSearchResultsForAI(results: SearchResult[], query: string)
     return `No search results found for "${query}".`;
   }
   
-  let formatted = `🔍 **Web Search Results for: "${query}"**\n\n`;
-  formatted += `Found ${results.length} relevant results:\n\n`;
+  // Sort by relevance score (highest first)
+  const sortedResults = [...results].sort((a, b) => (b.score || 0) - (a.score || 0));
   
-  results.forEach((result, index) => {
+  let formatted = `🔍 **Web Search Results for: "${query}"**\n`;
+  formatted += `Powered by Tavily Search API\n`;
+  formatted += `Found ${sortedResults.length} relevant results:\n\n`;
+  
+  sortedResults.forEach((result, index) => {
     formatted += `**[${index + 1}] ${result.title}**\n`;
     formatted += `Source: ${result.url}\n`;
+    if (result.score) {
+      formatted += `Relevance: ${(result.score * 100).toFixed(0)}%\n`;
+    }
     formatted += `${result.snippet}\n\n`;
   });
   
-  formatted += `\n**Instructions for AI:**\n`;
-  formatted += `- Use these search results to answer the user's question\n`;
-  formatted += `- Always cite sources using [1], [2], etc. notation\n`;
-  formatted += `- If results are insufficient, acknowledge limitations\n`;
-  formatted += `- Prioritize recent and authoritative sources\n`;
+  formatted += `\n**Citation Requirements:**\n`;
+  formatted += `- ALWAYS cite sources using [1], [2], [3] notation after statements\n`;
+  formatted += `- Prioritize high-relevance sources (higher percentage = more relevant)\n`;
+  formatted += `- List all cited sources in a "Sources:" section at the end\n`;
+  formatted += `- Format: [1] Title - URL\n`;
+  formatted += `- Acknowledge if results are insufficient or outdated\n`;
   
   return formatted;
 }

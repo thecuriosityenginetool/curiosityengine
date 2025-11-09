@@ -638,27 +638,28 @@ Would you be open to a brief 15-minute call next week to discuss how we might be
     // Web browsing is always available
     systemPrompt += `
 
-🌐 **WEB BROWSING & RESEARCH**
-You have access to real-time web browsing capabilities:
+🌐 **WEB SEARCH & RESEARCH** (Powered by Tavily API)
+You have access to production-grade, real-time web search capabilities:
 
 **RESEARCH TOOLS:**
-- web_search: Search the web for current information, news, company details, industry research
+- web_search: Search the web using Tavily API (LLM-optimized results with relevance scores)
 - browse_url: Navigate to and extract content from specific URLs/websites
 
 **WHEN TO USE:**
-- User asks for current/real-time information ("latest news", "current trends")
-- Need to verify company information, websites, or contact details
-- Research competitors, market data, or industry insights
-- Find documentation, guides, or best practices
-- Any information you don't have or need to verify
+- User asks for current/real-time information ("latest news", "current trends", "recent updates")
+- Need to verify company information, websites, recent announcements, or contact details
+- Research competitors, market data, industry insights, or emerging technologies
+- Find documentation, guides, best practices, or technical specifications
+- Any information not in your training data (pre-April 2024)
 
 **EXAMPLES:**
-- "Search for latest AI trends in sales" → use web_search
-- "What's on the Acme Corp website?" → use browse_url with their URL
-- "Find recent news about Company X" → use web_search
-- "Research best practices for cold email" → use web_search
+- "Search for latest AI trends in sales 2024" → use web_search
+- "What's new with SambaNova Systems this week?" → use web_search
+- "Browse https://acme.com/about" → use browse_url with specific URL
+- "Find recent funding news about Company X" → use web_search
+- "Research best CRM practices for enterprise" → use web_search
 
-**PROACTIVE USE:** When a user mentions a company, consider searching for their website or recent news to provide better context!
+**PROACTIVE USE:** When a user mentions a company or technology, proactively search for recent news, updates, or official sources to provide current, accurate context!
 
 **CITATION REQUIREMENTS:**
 When using web search or browse_url tools, you MUST:

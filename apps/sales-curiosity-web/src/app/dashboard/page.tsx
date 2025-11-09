@@ -658,11 +658,13 @@ export default function DashboardPage() {
                   // Update the assistant message in real-time
                   setChatMessages(prev => {
                     const newMessages = [...prev];
+                    const lastMessage = newMessages[newMessages.length - 1];
                     newMessages[newMessages.length - 1] = {
-                      ...newMessages[newMessages.length - 1],
+                      ...lastMessage,
                       content: final,
                       thinking: fullThinking,
-                      showThinking: false, // Collapsed by default
+                      // Collapse thinking once content starts streaming (after first 50 chars)
+                      showThinking: final.length < 50 ? lastMessage.showThinking : false,
                       model: selectedModel // Track which model generated this
                     };
                     return newMessages;

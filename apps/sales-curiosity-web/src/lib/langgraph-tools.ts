@@ -34,6 +34,13 @@ import {
   searchEmails,
 } from './outlook';
 
+import {
+  searchWeb,
+  browseUrl,
+  formatSearchResultsForAI,
+  formatBrowsedContentForAI,
+} from './web-search';
+
 // Supabase client for activity logging
 const supabase = createClient(
   process.env.NEXT_PUBLIC_SUPABASE_URL!,
@@ -582,21 +589,19 @@ Examples: "Search for latest AI news", "Find company website for Acme Corp", "Se
         try {
           console.log('🔍 [Web Search] Searching for:', input.query);
           
-          // Use DuckDuckGo search via navigation + snapshot
-          const searchUrl = `https://html.duckduckgo.com/html/?q=${encodeURIComponent(input.query)}`;
+          const { results, searchUrl } = await searchWeb(input.query, 5);
           
-          // Note: In production, you'd use the actual MCP browser tools here
-          // For now, return a placeholder that indicates browsing capability
-          return `🌐 Web search capability available. To implement:
-1. Navigate to search engine: ${searchUrl}
-2. Extract search results
-3. Return formatted results
-
-Query: "${input.query}"
-
-Note: Full browser integration requires MCP server connection. Using this tool will trigger web research when MCP is configured.`;
+          if (results.length === 0) {
+            return `No search results found for "${input.query}". Try rephrasing your search query.`;
+          }
+          
+          const formatted = formatSearchResultsForAI(results, input.query);
+          
+          console.log('✅ [Web Search] Returning', results.length, 'results');
+          return formatted;
         } catch (error) {
-          return `Error performing web search: ${error instanceof Error ? error.message : 'Unknown error'}`;
+          console.error('❌ [Web Search] Error:', error);
+          return `Error performing web search: ${error instanceof Error ? error.message : 'Unknown error'}. Please try again with a different query.`;
         }
       },
     }),
@@ -621,16 +626,20 @@ Examples: "Browse https://example.com/about", "Read the pricing page at https://
             return 'Error: URL must start with http:// or https://';
           }
           
-          // Note: In production, you'd use the actual MCP browser tools here
-          return `🌐 URL browsing capability available. To implement:
-1. Navigate to: ${input.url}
-2. Take snapshot of page content
-3. ${input.question ? `Extract information about: ${input.question}` : 'Extract full page content'}
-4. Return formatted content
-
-Note: Full browser integration requires MCP server connection. Using this tool will trigger URL browsing when MCP is configured.`;
+          const { title, content, url } = await browseUrl(input.url);
+          const formatted = formatBrowsedContentForAI({ title, content, url });
+          
+          let response = formatted;
+          if (input.question) {
+            response += `\n\n**User's specific question:** ${input.question}\n`;
+            response += `Please focus on answering this question using the content above.\n`;
+          }
+          
+          console.log('✅ [Browse URL] Successfully extracted content from:', input.url);
+          return response;
         } catch (error) {
-          return `Error browsing URL: ${error instanceof Error ? error.message : 'Unknown error'}`;
+          console.error('❌ [Browse URL] Error:', error);
+          return `Error browsing URL "${input.url}": ${error instanceof Error ? error.message : 'Unknown error'}. The website may be blocking automated access or is temporarily unavailable.`;
         }
       },
     })

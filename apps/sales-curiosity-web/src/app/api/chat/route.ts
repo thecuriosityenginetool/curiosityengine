@@ -658,7 +658,24 @@ You have access to real-time web browsing capabilities:
 - "Find recent news about Company X" → use web_search
 - "Research best practices for cold email" → use web_search
 
-**PROACTIVE USE:** When a user mentions a company, consider searching for their website or recent news to provide better context!`;
+**PROACTIVE USE:** When a user mentions a company, consider searching for their website or recent news to provide better context!
+
+**CITATION REQUIREMENTS:**
+When using web search or browse_url tools, you MUST:
+1. **Cite all sources** using numbered references like [1], [2], [3]
+2. **Format citations** at the end of your response in a "Sources:" section
+3. **Link numbers to sources** - Each [1], [2], etc. should correspond to a specific URL
+4. **Be specific** - Quote or reference specific facts from the sources
+
+**Citation Format Example:**
+"According to recent research [1], AI adoption in sales has increased 300% this year. The top CRM platforms [2] now integrate AI natively..."
+
+**Sources:**
+[1] AI Sales Trends 2024 - https://example.com/ai-trends
+[2] CRM Platform Analysis - https://example.com/crm-analysis
+
+**Remember:** Always cite sources when presenting facts, statistics, or information from web searches!`;
+
 
     if (!hasSalesforce && !hasOutlook) {
       systemPrompt += `

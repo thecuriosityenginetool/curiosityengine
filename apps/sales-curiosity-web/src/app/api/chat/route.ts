@@ -746,8 +746,8 @@ When the user mentions vague references like "latest prospect", "that person", "
     });
 
     // Check if LangGraph is enabled (can be disabled via env var for debugging)
-    const useLangGraph = process.env.USE_LANGGRAPH !== 'false';
-    console.log('🔀 [Chat API] LangGraph enabled:', useLangGraph);
+    // LangGraph is now ALWAYS used for tool-based requests to avoid JSON parsing errors
+    console.log('🔀 [Chat API] LangGraph will be used automatically for tool requests');
     
     // Detect if this specific message needs tools (not just if tools exist)
     const messageNeedsTools = isToolBasedRequest(message);
@@ -798,17 +798,17 @@ When the user mentions vague references like "latest prospect", "that person", "
           }
 
           //  Check if we should use LangGraph or direct API
-          // Only use LangGraph if: enabled + tools exist + message actually needs tools
-          const shouldUseLangGraph = useLangGraph && langchainTools.length > 0 && messageNeedsTools;
+          // FORCE LangGraph for tool-based requests to avoid SambaNova JSON parsing errors
+          // Only use direct API for simple non-tool conversations
+          const shouldUseLangGraph = langchainTools.length > 0 && messageNeedsTools;
           
           let contentSent = false; // Track if any content was sent
           
           if (!shouldUseLangGraph) {
-            // No tools needed or LangGraph disabled - use direct API call
-            console.log('📞 [Chat API] Using direct OpenAI API (no LangGraph), reason:', 
-              !messageNeedsTools ? 'message doesnt need tools' : 
-              langchainTools.length === 0 ? 'no tools available' : 
-              'LangGraph disabled'
+            // No tools needed - use direct API call for simple conversation
+            console.log('📞 [Chat API] Using direct API (no tools needed), reason:', 
+              !messageNeedsTools ? 'message is conversational' : 
+              'no tools available'
             );
             
             const completion = await openai.chat.completions.create({

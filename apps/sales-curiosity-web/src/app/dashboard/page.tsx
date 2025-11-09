@@ -716,6 +716,19 @@ export default function DashboardPage() {
                     return newMessages;
                   });
                 } else if (parsed.type === 'done') {
+                  // Collapse thinking display when done
+                  setChatMessages(prev => {
+                    const newMessages = [...prev];
+                    const lastMessage = newMessages[newMessages.length - 1];
+                    if (lastMessage && lastMessage.role === 'assistant') {
+                      newMessages[newMessages.length - 1] = {
+                        ...lastMessage,
+                        showThinking: false // Always collapse on completion
+                      };
+                    }
+                    return newMessages;
+                  });
+                  
                   // Save final assistant message with parsed thinking
                   if (currentChatId && accumulatedContent) {
                     const { thinking, final } = parseThinkingTags(accumulatedContent);
@@ -743,7 +756,8 @@ export default function DashboardPage() {
                     const newMessages = [...prev];
                     newMessages[newMessages.length - 1] = {
                       ...newMessages[newMessages.length - 1],
-                      content: accumulatedContent
+                      content: accumulatedContent,
+                      showThinking: false // Collapse thinking on error
                     };
                     return newMessages;
                   });
@@ -757,13 +771,14 @@ export default function DashboardPage() {
       }
     } catch (error) {
       console.error('Error sending message:', error);
-      // Update the assistant message with error
+      // Update the assistant message with error and collapse thinking
       setChatMessages(prev => {
         const newMessages = [...prev];
         if (newMessages[newMessages.length - 1]?.role === 'assistant') {
           newMessages[newMessages.length - 1] = {
             ...newMessages[newMessages.length - 1],
-            content: `❌ Sorry, there was an error processing your message. Please try again.`
+            content: `❌ Sorry, there was an error processing your message. Please try again.`,
+            showThinking: false // Collapse thinking on error
           };
         }
         return newMessages;

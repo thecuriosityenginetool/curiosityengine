@@ -341,17 +341,17 @@ ${body}
 </body>
 </html>`;
 
-  const messageParts = [
-    from ? `From: ${from}` : '',
+  // Build headers array, filtering out empty 'From' if not provided
+  const headers = [
+    from ? `From: ${from}` : null,
     `To: ${to}`,
     `Subject: ${subject}`,
     'MIME-Version: 1.0',
-    'Content-Type: text/html; charset=utf-8',
-    '',
-    htmlBody
+    'Content-Type: text/html; charset=utf-8'
   ].filter(Boolean);
 
-  const message = messageParts.join('\r\n');
+  // RFC 2822 requires blank line between headers and body (headers + \r\n\r\n + body)
+  const message = headers.join('\r\n') + '\r\n\r\n' + htmlBody;
   
   console.log('📧 [Gmail] Creating email message', {
     to,

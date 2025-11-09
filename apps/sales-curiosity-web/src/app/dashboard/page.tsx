@@ -716,14 +716,21 @@ export default function DashboardPage() {
                     return newMessages;
                   });
                 } else if (parsed.type === 'done') {
-                  // Collapse thinking display when done
+                  // Force collapse thinking display and remove animation when done
                   setChatMessages(prev => {
                     const newMessages = [...prev];
-                    const lastMessage = newMessages[newMessages.length - 1];
-                    if (lastMessage && lastMessage.role === 'assistant') {
-                      newMessages[newMessages.length - 1] = {
-                        ...lastMessage,
-                        showThinking: false // Always collapse on completion
+                    const lastMessageIdx = newMessages.length - 1;
+                    if (newMessages[lastMessageIdx]?.role === 'assistant') {
+                      // Get current content and thinking
+                      const currentMsg = newMessages[lastMessageIdx];
+                      const { thinking: parsedThinking, final: parsedFinal } = parseThinkingTags(accumulatedContent || currentMsg.content);
+                      const fullThinking = agentSteps + (agentSteps && parsedThinking ? '\n---\n\n**AI Reasoning:**\n' + parsedThinking : parsedThinking);
+                      
+                      newMessages[lastMessageIdx] = {
+                        ...currentMsg,
+                        content: parsedFinal || currentMsg.content,
+                        thinking: fullThinking || currentMsg.thinking,
+                        showThinking: false // Force collapse on completion
                       };
                     }
                     return newMessages;

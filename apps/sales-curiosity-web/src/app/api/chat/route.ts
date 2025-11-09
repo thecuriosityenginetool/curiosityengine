@@ -673,9 +673,14 @@ When using web search or browse_url tools, you MUST:
 "According to recent research [1], AI adoption in sales has increased 300% this year. The top CRM platforms [2] now integrate AI natively, while emerging startups [3] are focusing on vertical-specific solutions..."
 
 **Sources:**
+
 [1] [AI Sales Trends 2024 - TechCrunch](https://example.com/ai-trends)
+
 [2] [Enterprise CRM Analysis - Gartner](https://example.com/crm-analysis)
+
 [3] [Vertical SaaS Report - CB Insights](https://example.com/vertical-saas)
+
+**CRITICAL:** Each source MUST be on its own line with a blank line after it for proper formatting!
 
 **Remember:** Always cite sources with clickable markdown links when presenting facts, statistics, or information from web searches!`;
 

@@ -32,7 +32,7 @@ export function getOutlookAuthUrl(state: string): string {
     response_type: 'code',
     redirect_uri: MICROSOFT_REDIRECT_URI,
     response_mode: 'query',
-    scope: 'openid offline_access Mail.Send Mail.ReadWrite User.Read Calendars.Read Calendars.ReadWrite',
+    scope: 'openid offline_access Mail.Send Mail.ReadWrite User.Read Calendars.Read Calendars.ReadWrite MailboxSettings.Read',
     state,
   });
 
@@ -121,7 +121,8 @@ async function graphApiRequest(
   organizationId: string,
   endpoint: string,
   options: RequestInit = {},
-  userId: string
+  userId: string,
+  apiVersion: 'v1.0' | 'beta' = 'v1.0'
 ): Promise<any> {
   let tokens = await getUserOutlookTokens(userId, organizationId);
   
@@ -130,7 +131,7 @@ async function graphApiRequest(
   }
 
   const makeRequest = async (accessToken: string) => {
-    const response = await fetch(`https://graph.microsoft.com/v1.0${endpoint}`, {
+    const response = await fetch(`https://graph.microsoft.com/${apiVersion}${endpoint}`, {
       ...options,
       headers: {
         'Authorization': `Bearer ${accessToken}`,
@@ -199,9 +200,94 @@ async function graphApiRequest(
   console.log('🔵 Microsoft Graph API success:', { 
     status: response.status,
     hasResult: !!result,
-    resultKeys: result ? Object.keys(result) : []
+    resultKeys: result ? Object.keys(result) : [],
+    apiVersion
   });
   return result;
+}
+
+function looksLikeHtml(content: string): boolean {
+  return /<\/?[a-z][\s\S]*>/i.test(content);
+}
+
+function escapeHtml(value: string): string {
+  return value
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;')
+    .replace(/'/g, '&#39;');
+}
+
+function convertToHtml(body: string): string {
+  const trimmed = body.trim();
+  if (!trimmed) {
+    return '';
+  }
+
+  if (looksLikeHtml(trimmed)) {
+    return trimmed;
+  }
+
+  const paragraphs = trimmed.split(/\n{2,}/).map((paragraph) => paragraph.trim()).filter(Boolean);
+  if (paragraphs.length === 0) {
+    return '';
+  }
+
+  return paragraphs
+    .map((paragraph) => `<p>${escapeHtml(paragraph).replace(/\n/g, '<br>')}</p>`)
+    .join('');
+}
+
+function appendSignature(bodyHtml: string, signatureHtml?: string | null): string {
+  if (!signatureHtml) {
+    return bodyHtml;
+  }
+
+  const trimmedSignature = signatureHtml.trim();
+  if (!trimmedSignature) {
+    return bodyHtml;
+  }
+
+  if (bodyHtml.includes(trimmedSignature)) {
+    return bodyHtml;
+  }
+
+  const separator = bodyHtml.trim().length > 0 ? '<br><br>' : '';
+  return `${bodyHtml}${separator}${trimmedSignature}`;
+}
+
+async function getOutlookSignature(
+  organizationId: string,
+  userId: string
+): Promise<string | null> {
+  try {
+    const result = await graphApiRequest(
+      organizationId,
+      '/me/mailboxSettings',
+      {},
+      userId,
+      'beta'
+    );
+
+    const signature = result?.signature;
+    if (!signature) {
+      return null;
+    }
+
+    if (signature.html && signature.html.trim()) {
+      return signature.html.trim();
+    }
+
+    if (signature.plainText && signature.plainText.trim()) {
+      return convertToHtml(signature.plainText);
+    }
+
+    return null;
+  } catch (error) {
+    console.error('⚠️ Error fetching Outlook signature (beta endpoint requires MailboxSettings.Read scope):', error);
+    return null;
+  }
 }
 
 /**
@@ -218,12 +304,15 @@ export async function createOutlookDraft(
 ): Promise<{ id: string; success: boolean }> {
   try {
     console.log('🔵 Creating Outlook draft:', { to: emailData.to, subject: emailData.subject });
+    const signature = await getOutlookSignature(organizationId, userId);
+    const bodyHtml = convertToHtml(emailData.body);
+    const bodyWithSignature = appendSignature(bodyHtml, signature);
     
     const messagePayload = {
       subject: emailData.subject,
       body: {
         contentType: 'HTML',
-        content: emailData.body
+        content: bodyWithSignature
       },
       toRecipients: [
         {
@@ -282,12 +371,16 @@ export async function sendOutlookEmail(
   userId: string
 ): Promise<{ success: boolean }> {
   try {
+    const signature = await getOutlookSignature(organizationId, userId);
+    const bodyHtml = convertToHtml(emailData.body);
+    const bodyWithSignature = appendSignature(bodyHtml, signature);
+
     const messagePayload = {
       message: {
         subject: emailData.subject,
         body: {
           contentType: 'HTML',
-          content: emailData.body
+          content: bodyWithSignature
         },
         toRecipients: [
           {

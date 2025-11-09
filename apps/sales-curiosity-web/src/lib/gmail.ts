@@ -30,13 +30,64 @@ export function getGmailAuthUrl(state: string): string {
     client_id: GOOGLE_CLIENT_ID,
     redirect_uri: GOOGLE_REDIRECT_URI,
     response_type: 'code',
-    scope: 'https://www.googleapis.com/auth/gmail.compose https://www.googleapis.com/auth/gmail.send https://www.googleapis.com/auth/gmail.readonly https://www.googleapis.com/auth/calendar https://www.googleapis.com/auth/calendar.readonly https://www.googleapis.com/auth/userinfo.email',
+    scope: 'https://www.googleapis.com/auth/gmail.compose https://www.googleapis.com/auth/gmail.send https://www.googleapis.com/auth/gmail.readonly https://www.googleapis.com/auth/gmail.settings.basic https://www.googleapis.com/auth/calendar https://www.googleapis.com/auth/calendar.readonly https://www.googleapis.com/auth/userinfo.email',
     access_type: 'offline',
     prompt: 'consent',
     state,
   });
 
   return `https://accounts.google.com/o/oauth2/v2/auth?${params.toString()}`;
+}
+
+function looksLikeHtml(content: string): boolean {
+  return /<\/?[a-z][\s\S]*>/i.test(content);
+}
+
+function escapeHtml(value: string): string {
+  return value
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;')
+    .replace(/'/g, '&#39;');
+}
+
+function convertToHtml(body: string): string {
+  const trimmed = body.trim();
+  if (!trimmed) {
+    return '';
+  }
+
+  if (looksLikeHtml(trimmed)) {
+    return trimmed;
+  }
+
+  const paragraphs = trimmed.split(/\n{2,}/).map((paragraph) => paragraph.trim()).filter(Boolean);
+  if (paragraphs.length === 0) {
+    return '';
+  }
+
+  return paragraphs
+    .map((paragraph) => `<p>${escapeHtml(paragraph).replace(/\n/g, '<br>')}</p>`)
+    .join('');
+}
+
+function appendSignature(bodyHtml: string, signatureHtml?: string | null): string {
+  if (!signatureHtml) {
+    return bodyHtml;
+  }
+
+  const trimmedSignature = signatureHtml.trim();
+  if (!trimmedSignature) {
+    return bodyHtml;
+  }
+
+  if (bodyHtml.includes(trimmedSignature)) {
+    return bodyHtml;
+  }
+
+  const separator = bodyHtml.trim().length > 0 ? '<br><br>' : '';
+  return `${bodyHtml}${separator}${trimmedSignature}`;
 }
 
 /**
@@ -237,6 +288,42 @@ async function gmailApiRequest(
   return await response.json();
 }
 
+async function getGmailDefaultSignature(
+  organizationId: string,
+  userId: string
+): Promise<{ signature: string | null; sendAsEmail?: string }> {
+  try {
+    const result = await gmailApiRequest(
+      organizationId,
+      '/users/me/settings/sendAs',
+      {},
+      userId
+    );
+
+    const sendAsEntries = Array.isArray(result?.sendAs) ? result.sendAs : [];
+    if (sendAsEntries.length === 0) {
+      return { signature: null };
+    }
+
+    const preferredEntry =
+      sendAsEntries.find((entry: any) => entry.isPrimary) ||
+      sendAsEntries.find((entry: any) => entry.isDefault) ||
+      sendAsEntries[0];
+
+    if (!preferredEntry) {
+      return { signature: null };
+    }
+
+    const signature = typeof preferredEntry.signature === 'string' ? preferredEntry.signature : null;
+    const sendAsEmail = typeof preferredEntry.sendAsEmail === 'string' ? preferredEntry.sendAsEmail : undefined;
+
+    return { signature: signature?.trim() ? signature : null, sendAsEmail };
+  } catch (error) {
+    console.error('⚠️ Error fetching Gmail default signature (likely missing scope):', error);
+    return { signature: null };
+  }
+}
+
 /**
  * Create email message in RFC 2822 format and encode to base64url
  */
@@ -273,7 +360,10 @@ export async function createGmailDraft(
   userId: string
 ): Promise<{ id: string; success: boolean }> {
   try {
-    const encodedMessage = createEmailMessage(emailData.to, emailData.subject, emailData.body);
+    const { signature, sendAsEmail } = await getGmailDefaultSignature(organizationId, userId);
+    const bodyHtml = convertToHtml(emailData.body);
+    const bodyWithSignature = appendSignature(bodyHtml, signature);
+    const encodedMessage = createEmailMessage(emailData.to, emailData.subject, bodyWithSignature, sendAsEmail);
 
     const result = await gmailApiRequest(
       organizationId,
@@ -309,7 +399,10 @@ export async function sendGmailEmail(
   userId: string
 ): Promise<{ id: string; success: boolean }> {
   try {
-    const encodedMessage = createEmailMessage(emailData.to, emailData.subject, emailData.body);
+    const { signature, sendAsEmail } = await getGmailDefaultSignature(organizationId, userId);
+    const bodyHtml = convertToHtml(emailData.body);
+    const bodyWithSignature = appendSignature(bodyHtml, signature);
+    const encodedMessage = createEmailMessage(emailData.to, emailData.subject, bodyWithSignature, sendAsEmail);
 
     const result = await gmailApiRequest(
       organizationId,

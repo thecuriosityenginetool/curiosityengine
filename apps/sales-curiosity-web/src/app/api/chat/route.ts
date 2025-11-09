@@ -516,9 +516,7 @@ ${calendarEvents.map((event: any, index: number) => {
 
 ================================
 
-🚨 CRITICAL: When user asks "what meetings?" or "check my calendar", answer DIRECTLY from the ${calendarEvents.length} events listed above.
-DO NOT say "functions are insufficient" - the events are RIGHT HERE in your context!
-Simply summarize the events you see above. NO TOOLS NEEDED for viewing.`;
+🚨 When user asks about meetings or calendar: Simply list the ${calendarEvents.length} events above. Keep it concise. No setup instructions needed.`;
 
       console.log('📅 Calendar context created with', calendarEvents.length, 'events');
       console.log('📅 Calendar context preview:', calendarContext.substring(0, 500));
@@ -601,13 +599,13 @@ If you see calendar events in the context below, answer directly. Only use searc
       systemPrompt += `
 ✅ Gmail & Google Calendar are connected. You have these powerful capabilities:
 
-**📅 VIEWING CALENDAR EVENTS - CRITICAL:**
+**📅 VIEWING CALENDAR EVENTS:**
 ${calendarEvents.length > 0 ? `
-🚨 The user's upcoming calendar events are ALREADY in your context above.
-- When user asks "what meetings?" → Answer from the events list in your context
-- DO NOT say "functions are not sufficient" - YOU ALREADY HAVE THE EVENTS!
-- DO NOT use tools to VIEW events - just read from context
-` : `No upcoming events currently loaded.`}
+✅ User's upcoming calendar events are in your context above.
+- When asked about meetings/calendar → Simply list the events from context (no tools, no explanations about setup)
+- Be concise: Just state the meeting name, date, and time
+- Example response: "You have 2 meetings tomorrow: Meeting with Paul at 9:00 AM and Meeting with Tim at 11:30 AM"
+` : `No upcoming events loaded.`}
 
 **EMAIL FUNCTIONS:**
 - create_gmail_draft: Create draft emails in Gmail
@@ -661,16 +659,13 @@ Would you be open to a brief 15-minute call next week to discuss how we might be
       systemPrompt += `
 ✅ Outlook is connected. You have these powerful capabilities:
 
-**📅 VIEWING CALENDAR EVENTS - CRITICAL INSTRUCTIONS:**
+**📅 VIEWING CALENDAR EVENTS:**
 ${calendarEvents.length > 0 ? `
-🚨 The user's upcoming calendar events are ALREADY in your context above under "YOUR UPCOMING CALENDAR EVENTS".
-- When user asks "what meetings do I have?" → Answer DIRECTLY from the events list in your context
-- When user asks "check my calendar" → List the events you already have above
-- When user asks "what's tomorrow?" → Filter events for tomorrow from the list above
-- DO NOT say "functions are not sufficient" - YOU ALREADY HAVE THE EVENTS!
-- DO NOT use create_calendar_event tool to VIEW events - that's for CREATING new events only
-- Just read and summarize the events that are ALREADY PROVIDED in your context
-` : `No upcoming events currently loaded. User needs to ask to fetch calendar events first.`}
+✅ User's upcoming calendar events are in your context above.
+- When asked about meetings/calendar → Simply list the events from context (no tools, no explanations about setup)
+- Be concise: Just state the meeting name, date, and time
+- Example response: "You have 2 meetings tomorrow: Meeting with Paul at 9:00 AM and Meeting with Tim at 11:30 AM"
+` : `No upcoming events loaded.`}
 
 **EMAIL FUNCTIONS:**
 - create_email_draft: Create draft emails (ALWAYS use this tool when user asks for drafts)

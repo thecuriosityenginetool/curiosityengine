@@ -578,16 +578,24 @@ If you see calendar events in the context below, answer directly. Only use searc
       systemPrompt += `
 ✅ Gmail & Google Calendar are connected. You have these powerful capabilities:
 
+**📅 VIEWING CALENDAR EVENTS - CRITICAL:**
+${calendarEvents.length > 0 ? `
+🚨 The user's upcoming calendar events are ALREADY in your context above.
+- When user asks "what meetings?" → Answer from the events list in your context
+- DO NOT say "functions are not sufficient" - YOU ALREADY HAVE THE EVENTS!
+- DO NOT use tools to VIEW events - just read from context
+` : `No upcoming events currently loaded.`}
+
 **EMAIL FUNCTIONS:**
 - create_gmail_draft: Create draft emails in Gmail
 - send_gmail_email: Send emails immediately via Gmail  
 - search_gmail_emails: Search Gmail for emails, conversations, people
 - Examples: "Draft email to john@example.com", "Search emails from Sarah"
 
-**CALENDAR FUNCTIONS:**
-- create_google_calendar_event: Schedule meetings with attendees, location, agenda
-- search_calendar_events: Find calendar events by date or search terms
-- Examples: "Schedule call with John next Tuesday at 2pm", "What's on my calendar this week?"
+**CALENDAR TOOLS (for CREATING events only):**
+- create_google_calendar_event: ONLY use to CREATE NEW meetings (NOT to view existing ones)
+- search_calendar_events: Search for old/specific events if needed
+- Examples: "Schedule call next Tuesday at 2pm" → Use create tool ✅
 
 **CRITICAL - EMAIL DRAFTING REQUIREMENTS:**
 When user asks to draft an email, you MUST:
@@ -630,17 +638,30 @@ Would you be open to a brief 15-minute call next week to discuss how we might be
       systemPrompt += `
 ✅ Outlook is connected. You have these powerful capabilities:
 
+**📅 VIEWING CALENDAR EVENTS - CRITICAL INSTRUCTIONS:**
+${calendarEvents.length > 0 ? `
+🚨 The user's upcoming calendar events are ALREADY in your context above under "YOUR UPCOMING CALENDAR EVENTS".
+- When user asks "what meetings do I have?" → Answer DIRECTLY from the events list in your context
+- When user asks "check my calendar" → List the events you already have above
+- When user asks "what's tomorrow?" → Filter events for tomorrow from the list above
+- DO NOT say "functions are not sufficient" - YOU ALREADY HAVE THE EVENTS!
+- DO NOT use create_calendar_event tool to VIEW events - that's for CREATING new events only
+- Just read and summarize the events that are ALREADY PROVIDED in your context
+` : `No upcoming events currently loaded. User needs to ask to fetch calendar events first.`}
+
 **EMAIL FUNCTIONS:**
 - create_email_draft: Create draft emails (ALWAYS use this tool when user asks for drafts)
 - send_email: Send emails immediately
 - search_emails: Search email history for conversations, people, or topics
 - View recent emails: Last 10 emails are in context below (check for "latest prospect" queries)
-- Examples: "Draft email to latest prospect", "Find emails about [topic]"
 
-**CALENDAR FUNCTIONS:**
-- create_calendar_event: Schedule meetings with attendees, location, agenda
-- View calendar: Upcoming events are in context below (reference them directly)
-- Examples: "Schedule a call with John next Tuesday", "What meetings do I have?"
+**CALENDAR TOOLS (for CREATING events only):**
+- create_calendar_event: ONLY use to CREATE/SCHEDULE NEW meetings (NOT to view existing ones)
+
+**EXAMPLES:**
+- "What meetings tomorrow?" → Read from YOUR UPCOMING CALENDAR EVENTS context above ✅
+- "Schedule meeting at 2pm" → Use create_calendar_event tool ✅
+- "Draft email to Sarah" → Use create_email_draft tool ✅
 
 **USE RECENT EMAILS to identify "latest prospect"** - the most recent email sender/recipient is likely who they mean!`;
     }

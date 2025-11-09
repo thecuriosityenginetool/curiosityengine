@@ -516,11 +516,13 @@ ${calendarEvents.map((event: any, index: number) => {
 
 ================================
 
-🚨 CRITICAL FORMATTING:
-- When listing meetings, format times as "3:00 PM" or "9:00 AM" (NOT as ISO strings like 2025-11-10T15:00:00)
-- Format dates as "Nov 10" or "tomorrow" (NOT as ISO dates)
-- Example: "Meeting with Paul tomorrow at 3:00 PM" (NOT "at 2025-11-10T15:00:00-05:00")
-- Be conversational and natural, like a human assistant would respond`;
+🚨 CRITICAL FORMATTING - READ THE FORMATTED TIMES ABOVE:
+- The events above are ALREADY formatted with human-readable dates and times
+- Copy the formatted times from above (e.g., "Nov 10, 2025 at 3:00 PM")
+- NEVER output raw ISO strings like "2025-11-10T15:00:00-05:00" to the user
+- NEVER copy event.start directly - use the formatted "Date" and "Time" fields shown above
+- Example correct response: "You have 2 meetings tomorrow: Meeting with Paul at 9:00 AM and Curiosity Test Event at 2:00 PM"
+- Example WRONG response: "Meeting with Paul at 2025-11-10T15:00:00-05:00" ← NEVER DO THIS`;
 
       console.log('📅 Calendar context created with', calendarEvents.length, 'events');
       console.log('📅 Calendar context preview:', calendarContext.substring(0, 500));

@@ -26,17 +26,29 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: 'User not found' }, { status: 404 });
     }
 
-    // Delete Salesforce connection
-    const { error } = await supabase
+    console.log('🟪 [Salesforce Disconnect] Disconnecting for user:', userData.id, 'org:', userData.organization_id);
+
+    // Delete or disable both user-level and org-level Salesforce connections
+    // First try user-level
+    const { error: userError } = await supabase
       .from('organization_integrations')
       .delete()
       .eq('organization_id', userData.organization_id)
       .eq('integration_type', 'salesforce_user');
+    
+    // Also try org-level
+    const { error: orgError } = await supabase
+      .from('organization_integrations')
+      .update({ is_enabled: false, updated_at: new Date().toISOString() })
+      .eq('organization_id', userData.organization_id)
+      .eq('integration_type', 'salesforce');
 
-    if (error) {
-      console.error('Error disconnecting Salesforce:', error);
+    if (userError && orgError) {
+      console.error('Error disconnecting Salesforce:', { userError, orgError });
       return NextResponse.json({ error: 'Failed to disconnect Salesforce' }, { status: 500 });
     }
+
+    console.log('✅ [Salesforce Disconnect] Disconnected successfully');
 
     return NextResponse.json({ 
       success: true, 

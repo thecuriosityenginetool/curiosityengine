@@ -161,9 +161,9 @@ export function createAgentTools(
 
       new DynamicStructuredTool({
         name: 'query_crm',
-        description: 'Execute SOQL query to get leads, contacts, or opportunities from Salesforce. Use for "show my leads", "check contacts", "review opportunities". IMPORTANT: Do NOT use WHERE clauses with quoted strings - only use simple ORDER BY queries.',
+        description: 'Get leads, contacts, or opportunities from Salesforce CRM. Use when user asks to: "show leads", "check leads", "review leads", "see contacts", "list opportunities", "check my CRM", or any variation asking to VIEW Salesforce data. CRITICAL: NEVER make up fake data - always use this tool to get REAL Salesforce data. IMPORTANT: Use simple SOQL without WHERE clauses containing quotes.',
         schema: z.object({
-          query: z.string().describe('SOQL query to execute. Example: SELECT Id, Name, Email, Company FROM Lead ORDER BY CreatedDate DESC LIMIT 10'),
+          query: z.string().describe('Simple SOQL query. For leads: SELECT Id, Name, Email, Company FROM Lead ORDER BY CreatedDate DESC LIMIT 10. For contacts: SELECT Id, Name, Email FROM Contact ORDER BY CreatedDate DESC LIMIT 10. NO WHERE clauses with quotes!'),
         }),
         func: async (input) => {
           try {

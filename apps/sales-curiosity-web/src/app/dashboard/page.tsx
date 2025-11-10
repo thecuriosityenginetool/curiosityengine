@@ -138,6 +138,7 @@ export default function DashboardPage() {
   const [showIntegrationHelp, setShowIntegrationHelp] = useState(false);
   const [selectedIntegration, setSelectedIntegration] = useState<'salesforce' | 'gmail' | 'outlook' | 'linkedin' | 'hubspot' | 'monday' | null>(null);
   const [salesforceHelpTab, setSalesforceHelpTab] = useState<'tools' | 'user' | 'org'>('tools');
+  const [mondayHelpTab, setMondayHelpTab] = useState<'tools' | 'user' | 'org'>('user');
   
   // Salesforce credentials state
   const [sfClientId, setSfClientId] = useState('');
@@ -146,6 +147,14 @@ export default function DashboardPage() {
   const [sfCredentialsLoading, setSfCredentialsLoading] = useState(false);
   const [sfCredentialsMessage, setSfCredentialsMessage] = useState('');
   const [showSfSecret, setShowSfSecret] = useState(false);
+  
+  // Monday.com credentials state
+  const [mondayClientId, setMondayClientId] = useState('');
+  const [mondayClientSecret, setMondayClientSecret] = useState('');
+  const [mondayCredentialsSaved, setMondayCredentialsSaved] = useState(false);
+  const [mondayCredentialsLoading, setMondayCredentialsLoading] = useState(false);
+  const [mondayCredentialsMessage, setMondayCredentialsMessage] = useState('');
+  const [showMondaySecret, setShowMondaySecret] = useState(false);
   
   // Chrome extension detection
   const [hasChromeExtension, setHasChromeExtension] = useState<boolean | null>(null);

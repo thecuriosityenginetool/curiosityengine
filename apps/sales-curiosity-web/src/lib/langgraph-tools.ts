@@ -18,6 +18,7 @@ import {
   updateSalesforceLead,
   addSalesforceNote,
   createSalesforceTask,
+  querySalesforce,
 } from './salesforce';
 
 import {
@@ -154,6 +155,33 @@ export function createAgentTools(
             return 'No contact or lead found matching the search criteria.';
           } catch (error) {
             return `Error searching Salesforce: ${error instanceof Error ? error.message : 'Unknown error'}`;
+          }
+        },
+      }),
+
+      new DynamicStructuredTool({
+        name: 'query_crm',
+        description: 'Execute SOQL query to get leads, contacts, or opportunities from Salesforce. Use for "show my leads", "check contacts", "review opportunities". IMPORTANT: Do NOT use WHERE clauses with quoted strings - only use simple ORDER BY queries.',
+        schema: z.object({
+          query: z.string().describe('SOQL query to execute. Example: SELECT Id, Name, Email, Company FROM Lead ORDER BY CreatedDate DESC LIMIT 10'),
+        }),
+        func: async (input) => {
+          try {
+            const result = await querySalesforce(organizationId, input.query, userId);
+            if (result.records && result.records.length > 0) {
+              const records = result.records.slice(0, 10); // Limit to 10 for readability
+              const formatted = records.map((r: any, i: number) => {
+                const fields = Object.entries(r)
+                  .filter(([key]) => key !== 'attributes')
+                  .map(([key, value]) => `${key}: ${value}`)
+                  .join(', ');
+                return `${i + 1}. ${fields}`;
+              }).join('\n');
+              return `Found ${result.totalSize} record(s). Showing first ${records.length}:\n\n${formatted}`;
+            }
+            return 'No records found.';
+          } catch (error) {
+            return `Error executing query: ${error instanceof Error ? error.message : 'Unknown error'}`;
           }
         },
       }),

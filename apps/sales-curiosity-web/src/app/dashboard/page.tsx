@@ -130,6 +130,7 @@ export default function DashboardPage() {
   const [hasOutlookConnection, setHasOutlookConnection] = useState(false);
   const [hasGmailConnection, setHasGmailConnection] = useState(false);
   const [hasSalesforceConnection, setHasSalesforceConnection] = useState(false);
+  const [hasMondayConnection, setHasMondayConnection] = useState(false);
   const [connectedEmailProvider, setConnectedEmailProvider] = useState<'google' | 'microsoft' | null>(null);
   const [isSyncingCalendar, setIsSyncingCalendar] = useState(false);
   
@@ -907,6 +908,56 @@ export default function DashboardPage() {
     }
   }
 
+  async function connectToMonday() {
+    try {
+      console.log('🟣 [Monday Connect] Initiating OAuth...');
+      const response = await fetch('/api/monday/auth-user');
+      
+      if (response.ok) {
+        const data = await response.json();
+        if (data.authUrl) {
+          console.log('🟣 [Monday Connect] Redirecting to Monday.com OAuth...');
+          window.location.href = data.authUrl;
+        } else if (data.connected) {
+          console.log('✅ [Monday Connect] Already connected');
+          setHasMondayConnection(true);
+          alert('✅ Monday.com is already connected!');
+        }
+      } else {
+        const error = await response.json();
+        console.error('❌ [Monday Connect] Failed:', error);
+        alert(`❌ Failed to connect Monday.com: ${error.error || 'Unknown error'}`);
+      }
+    } catch (error) {
+      console.error('❌ [Monday Connect] Exception:', error);
+      alert(`❌ Error connecting Monday.com: ${error instanceof Error ? error.message : String(error)}`);
+    }
+  }
+
+  async function disconnectMonday() {
+    if (!confirm('Are you sure you want to disconnect Monday.com?')) {
+      return;
+    }
+    
+    try {
+      console.log('🟣 [Monday Disconnect] Disconnecting...');
+      const response = await fetch('/api/monday/disconnect', {
+        method: 'POST',
+      });
+      
+      if (response.ok) {
+        setHasMondayConnection(false);
+        alert('✅ Monday.com disconnected successfully');
+        await createActivityLog('monday_disconnected', 'Monday.com Disconnected', 'Monday.com integration disconnected');
+      } else {
+        alert('❌ Failed to disconnect Monday.com');
+      }
+    } catch (error) {
+      console.error('❌ [Monday Disconnect] Error:', error);
+      alert('❌ Error disconnecting Monday.com');
+    }
+  }
+
   async function connectToGoogle() {
     try {
       console.log('🟩 [Connect Google] Step 1: Starting connection flow...');
@@ -1369,6 +1420,15 @@ Format with markdown for readability.`;
           hasTokens: status.salesforce?.hasUserTokens
         });
         setHasSalesforceConnection(salesforceConnected);
+        
+        // Update Monday.com connection
+        const mondayConnected = status.monday?.connected === true;
+        console.log('🔍 [Dashboard] Monday.com:', { 
+          connected: mondayConnected,
+          enabled: status.monday?.enabled,
+          hasTokens: status.monday?.hasUserTokens
+        });
+        setHasMondayConnection(mondayConnected);
         
         // Set email provider
         const emailProvider = status.emailProvider;
@@ -3491,6 +3551,57 @@ The draft is now in your Outlook Drafts folder and ready to send.`);
                         </button>
                       )}
                     </div>
+                  </div>
+                </div>
+              </div>
+
+              {/* Monday.com */}
+              <div className="rounded-2xl border border-gray-200 bg-white p-6 hover:shadow-lg transition-all hover:border-gray-300 relative group">
+                <div>
+                  <div className="flex items-center gap-4 mb-6">
+                    <div className="w-10 h-10 bg-gradient-to-br from-pink-500 to-orange-500 rounded-lg flex items-center justify-center">
+                      <svg className="w-6 h-6 text-white" fill="currentColor" viewBox="0 0 24 24">
+                        <path d="M12 0C5.373 0 0 5.373 0 12s5.373 12 12 12 12-5.373 12-12S18.627 0 12 0zm0 2c5.523 0 10 4.477 10 10s-4.477 10-10 10S2 17.523 2 12 6.477 2 12 2zm0 3a1.5 1.5 0 100 3 1.5 1.5 0 000-3zm-4 0a1.5 1.5 0 100 3 1.5 1.5 0 000-3zm8 0a1.5 1.5 0 100 3 1.5 1.5 0 000-3zM12 9a1.5 1.5 0 100 3 1.5 1.5 0 000-3zm-4 0a1.5 1.5 0 100 3 1.5 1.5 0 000-3zm8 0a1.5 1.5 0 100 3 1.5 1.5 0 000-3zm-4 7a1.5 1.5 0 100 3 1.5 1.5 0 000-3zm-4 0a1.5 1.5 0 100 3 1.5 1.5 0 000-3zm8 0a1.5 1.5 0 100 3 1.5 1.5 0 000-3z"/>
+                      </svg>
+                    </div>
+                    <div className="flex-1">
+                      <h3 className="text-xl font-bold text-black">Monday.com</h3>
+                      <p className="text-sm text-gray-600">CRM & Project Management</p>
+                    </div>
+                  </div>
+                  <div className="space-y-3 text-gray-700">
+                    <p className="text-sm leading-relaxed">
+                      Sync contacts from LinkedIn to Monday.com CRM boards automatically. Check if prospects exist and create new items seamlessly.
+                    </p>
+                    <p className="text-sm leading-relaxed">
+                      AI-powered email drafting knows whether to write follow-up or cold outreach based on your Monday.com data.
+                    </p>
+                  </div>
+                  <div className="mt-6 flex items-center justify-between">
+                    {hasMondayConnection ? (
+                      <span className="px-3 py-1 text-xs rounded-full bg-green-100 text-green-800 font-medium">
+                        ✓ Connected
+                      </span>
+                    ) : (
+                      <span className="px-3 py-1 text-xs rounded-full bg-blue-100 text-blue-800 font-medium">
+                        Ready to Connect
+                      </span>
+                    )}
+                    {hasMondayConnection ? (
+                      <button
+                        onClick={disconnectMonday}
+                        className="px-4 py-2 text-sm font-medium text-red-600 bg-red-50 rounded-lg hover:bg-red-100 transition-colors"
+                      >
+                        Disconnect
+                      </button>
+                    ) : (
+                      <button
+                        onClick={connectToMonday}
+                        className="px-4 py-2 text-sm font-medium text-white bg-[#F95B14] rounded-lg hover:bg-orange-600 transition-colors"
+                      >
+                        Connect
+                      </button>
+                    )}
                   </div>
                 </div>
               </div>

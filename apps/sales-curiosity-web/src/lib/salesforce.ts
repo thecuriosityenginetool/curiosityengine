@@ -385,6 +385,9 @@ export async function createSalesforceContact(
   userId?: string
 ): Promise<{ id: string; success: boolean }> {
   try {
+    console.log('➕ [createSalesforceContact] Creating contact:', contactData.firstName, contactData.lastName);
+    console.log('➕ [createSalesforceContact] Email:', contactData.email, 'Company:', contactData.company);
+    
     const payload: any = {
       LastName: contactData.lastName,
     };
@@ -395,8 +398,7 @@ export async function createSalesforceContact(
     if (contactData.linkedinUrl) payload.LinkedIn__c = contactData.linkedinUrl; // Custom field if exists
     if (contactData.description) payload.Description = contactData.description;
     
-    // Note: You might need to associate with an Account. For now, we'll create without one.
-    // In production, you might want to search for or create an Account based on company name
+    console.log('➕ [createSalesforceContact] Payload:', JSON.stringify(payload, null, 2));
 
     const endpoint = `/services/data/${SF_API_VERSION}/sobjects/Contact`;
     
@@ -405,12 +407,15 @@ export async function createSalesforceContact(
       body: JSON.stringify(payload),
     }, userId);
 
+    console.log('✅ [createSalesforceContact] Contact created! ID:', result.id);
+
     return {
       id: result.id,
       success: result.success,
     };
   } catch (error) {
-    console.error('Error creating Salesforce Contact:', error);
+    console.error('❌ [createSalesforceContact] Error:', error);
+    console.error('❌ [createSalesforceContact] Error message:', error instanceof Error ? error.message : String(error));
     throw error;
   }
 }
@@ -654,11 +659,25 @@ export async function querySalesforce(
   userId?: string
 ): Promise<any> {
   try {
+    console.log('🔍 [querySalesforce] Starting query:', query);
+    console.log('🔍 [querySalesforce] OrgID:', organizationId, 'UserID:', userId);
+    
     const endpoint = `/services/data/${SF_API_VERSION}/query?q=${encodeURIComponent(query)}`;
+    console.log('🔍 [querySalesforce] Endpoint:', endpoint);
+    
     const result = await salesforceApiRequest(organizationId, endpoint, {}, userId);
+    
+    console.log('✅ [querySalesforce] Query successful! Total records:', result?.totalSize || 0);
+    console.log('✅ [querySalesforce] Records returned:', result?.records?.length || 0);
+    
+    if (result?.records) {
+      console.log('📊 [querySalesforce] First record sample:', JSON.stringify(result.records[0], null, 2));
+    }
+    
     return result;
   } catch (error) {
-    console.error('Error executing Salesforce query:', error);
+    console.error('❌ [querySalesforce] Error:', error);
+    console.error('❌ [querySalesforce] Error details:', error instanceof Error ? error.message : String(error));
     throw error;
   }
 }

@@ -194,6 +194,50 @@ export async function POST(req: NextRequest) {
                 // Continue without Salesforce data if there's an error
               }
             }
+            
+            // Check Monday.com integration if Salesforce didn't find the person
+            if (!salesforceResult || !salesforceResult.found) {
+              const { data: mondayIntegration } = await supabase
+                .from('organization_integrations')
+                .select('is_enabled')
+                .eq('organization_id', organizationId)
+                .eq('integration_type', 'monday_user')
+                .eq('is_enabled', true)
+                .maybeSingle();
+              
+              if (mondayIntegration) {
+                try {
+                  const { searchPersonInMonday } = await import('@/lib/monday');
+                  
+                  const emailMatch = profileData.fullPageText?.match(/[\w.-]+@[\w.-]+\.\w+/);
+                  const email = emailMatch ? emailMatch[0] : undefined;
+                  const nameParts = profileData.name?.split(' ') || [];
+                  const firstName = nameParts[0];
+                  const lastName = nameParts.slice(1).join(' ');
+                  
+                  const mondayResult = await searchPersonInMonday(organizationId, {
+                    email,
+                    firstName,
+                    lastName,
+                    linkedinUrl,
+                  }, user.id);
+                  
+                  if (mondayResult.found) {
+                    salesforceResult = {
+                      found: true,
+                      type: 'Contact',
+                      data: mondayResult.data as any,
+                      lastInteractionDate: mondayResult.lastInteractionDate,
+                    };
+                  }
+                  
+                  console.log('Monday.com search result:', mondayResult);
+                } catch (mondayError) {
+                  console.error('Monday.com search error:', mondayError);
+                  // Continue without Monday.com data if there's an error
+                }
+              }
+            }
           }
         }
       }
@@ -539,6 +583,52 @@ ${profileData.name || 'This professional'} is ${profileData.headline || 'a profe
               } catch (sfError) {
                 console.error('Error auto-creating Salesforce contact:', sfError);
                 // Don't fail the whole request if Salesforce creation fails
+              }
+            }
+            
+            // Auto-create in Monday.com if not found and Monday.com is connected
+            if ((!salesforceResult || !salesforceResult.found) && userId && organizationId) {
+              const { data: mondayIntegration } = await supabase
+                .from('organization_integrations')
+                .select('is_enabled')
+                .eq('organization_id', organizationId)
+                .eq('integration_type', 'monday_user')
+                .eq('is_enabled', true)
+                .maybeSingle();
+              
+              if (mondayIntegration) {
+                try {
+                  console.log('Creating new Monday.com contact for:', profileData.name);
+                  const { createMondayContact } = await import('@/lib/monday');
+                  
+                  const emailMatch = profileData.fullPageText?.match(/[\w.-]+@[\w.-]+\.\w+/);
+                  const email = emailMatch ? emailMatch[0] : undefined;
+                  const nameParts = profileData.name?.split(' ') || [];
+                  const firstName = nameParts[0] || 'Unknown';
+                  const lastName = nameParts.slice(1).join(' ') || 'Prospect';
+                  
+                  let company = 'Unknown';
+                  if (profileData.headline) {
+                    const companyMatch = profileData.headline.match(/(?:at|@)\s+([^|,]+)/i);
+                    if (companyMatch) {
+                      company = companyMatch[1].trim();
+                    }
+                  }
+                  
+                  const contactResult = await createMondayContact(organizationId, {
+                    firstName,
+                    lastName,
+                    email,
+                    title: profileData.headline,
+                    company,
+                    linkedinUrl,
+                  }, userId);
+                  
+                  console.log('✅ Monday.com contact created:', contactResult.id);
+                } catch (mondayError) {
+                  console.error('Error auto-creating Monday.com contact:', mondayError);
+                  // Don't fail the whole request if Monday.com creation fails
+                }
               }
             }
           } else {

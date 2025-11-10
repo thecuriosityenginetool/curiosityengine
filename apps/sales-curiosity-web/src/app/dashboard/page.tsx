@@ -3744,89 +3744,192 @@ The draft is now in your Outlook Drafts folder and ready to send.`);
                   
                   <div className="p-6">
                     {selectedIntegration === 'monday' && (
-                      <div className="space-y-6">
-                        <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-4">
-                          <h3 className="text-sm font-semibold text-yellow-900 mb-2">⚠️ Important: Install App First</h3>
-                          <p className="text-sm text-yellow-800 mb-3">
-                            Before connecting, you need to install the Sales Curiosity Engine app to your Monday.com workspace:
-                          </p>
-                          <ol className="text-sm text-yellow-800 space-y-2 list-decimal list-inside">
-                            <li>Go to <a href="https://monday.com/developers/apps" target="_blank" className="underline font-medium">Monday.com Developer Portal</a></li>
-                            <li>Find your "Sales Curiosity Engine" app</li>
-                            <li>Click on the app</li>
-                            <li>Look for <strong>"Install to workspace"</strong> or <strong>"Add to account"</strong> button</li>
-                            <li>Click it and select your workspace</li>
-                            <li>Authorize the permissions</li>
-                            <li>Come back here and click "Connect" again</li>
-                          </ol>
+                      <div className="space-y-4">
+                        {/* Tabs */}
+                        <div className="border-b border-gray-200">
+                          <nav className="flex space-x-8">
+                            <button
+                              onClick={() => setMondayHelpTab('user')}
+                              className={`pb-3 px-1 border-b-2 font-medium text-sm transition-colors ${
+                                mondayHelpTab === 'user'
+                                  ? 'border-[#F95B14] text-[#F95B14]'
+                                  : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
+                              }`}
+                            >
+                              Quick Connect
+                            </button>
+                            <button
+                              onClick={() => setMondayHelpTab('org')}
+                              className={`pb-3 px-1 border-b-2 font-medium text-sm transition-colors ${
+                                mondayHelpTab === 'org'
+                                  ? 'border-[#F95B14] text-[#F95B14]'
+                                  : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
+                              }`}
+                            >
+                              Organization Setup
+                            </button>
+                          </nav>
                         </div>
 
-                        <div>
-                          <h3 className="text-lg font-semibold text-gray-900 mb-4">How It Works</h3>
-                          <div className="space-y-4 text-gray-700">
-                            <p className="text-sm">
-                              Once connected, Sales Curiosity Engine will automatically sync LinkedIn prospects to your Monday.com CRM boards:
-                            </p>
-                            <ul className="space-y-3">
-                              <li className="flex items-start gap-3">
-                                <span className="text-green-600 text-lg">✓</span>
-                                <span className="text-sm">When you draft an email, we check if the person exists in your Monday.com CRM</span>
-                              </li>
-                              <li className="flex items-start gap-3">
-                                <span className="text-green-600 text-lg">✓</span>
-                                <span className="text-sm">If found, AI generates a "follow-up" style email</span>
-                              </li>
-                              <li className="flex items-start gap-3">
-                                <span className="text-green-600 text-lg">✓</span>
-                                <span className="text-sm">If not found, AI generates "cold outreach" and auto-creates the contact in Monday.com</span>
-                              </li>
-                              <li className="flex items-start gap-3">
-                                <span className="text-green-600 text-lg">✓</span>
-                                <span className="text-sm">All LinkedIn profile data (name, email, title, company, LinkedIn URL) is added to the CRM board</span>
-                              </li>
-                            </ul>
+                        {/* Quick Connect Tab (User-Level) */}
+                        {mondayHelpTab === 'user' && (
+                          <div className="space-y-4 pt-2">
+                            <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
+                              <h3 className="text-sm font-semibold text-blue-900 mb-2">✨ Quick Connect (Recommended)</h3>
+                              <p className="text-sm text-blue-800">
+                                Connect your personal Monday.com account in 2 steps. This uses your organization's Monday.com app.
+                              </p>
+                            </div>
+
+                            <div>
+                              <h3 className="text-lg font-semibold text-gray-900 mb-3">How to Connect</h3>
+                              <ol className="space-y-3 text-sm text-gray-700">
+                                <li className="flex items-start gap-3 p-3 bg-gray-50 rounded-lg">
+                                  <span className="font-bold text-[#F95B14] text-lg">1</span>
+                                  <div>
+                                    <div className="font-semibold text-gray-900 mb-1">Install App to Your Workspace</div>
+                                    <p className="text-gray-600 mb-2">
+                                      Since this is a private developer app, you need to install it first:
+                                    </p>
+                                    <ul className="text-xs text-gray-600 space-y-1 ml-4 list-disc">
+                                      <li>Go to <a href="https://monday.com/developers/apps" target="_blank" className="text-blue-600 underline">Monday.com Developer Portal</a></li>
+                                      <li>Find "Sales Curiosity Engine" app</li>
+                                      <li>Click on it → Look for "Install to workspace" button</li>
+                                      <li>Select your workspace and authorize</li>
+                                    </ul>
+                                  </div>
+                                </li>
+                                <li className="flex items-start gap-3 p-3 bg-gray-50 rounded-lg">
+                                  <span className="font-bold text-[#F95B14] text-lg">2</span>
+                                  <div>
+                                    <div className="font-semibold text-gray-900 mb-1">Click "Connect" Button</div>
+                                    <p className="text-gray-600">
+                                      Once the app is installed to your workspace, close this modal and click the "Connect" button on the Monday.com card.
+                                    </p>
+                                  </div>
+                                </li>
+                              </ol>
+                            </div>
+
+                            <div className="bg-green-50 border border-green-200 rounded-lg p-4">
+                              <h3 className="text-sm font-semibold text-green-900 mb-2">✅ What You Get</h3>
+                              <ul className="text-sm text-green-800 space-y-1">
+                                <li>• Auto-sync LinkedIn prospects to Monday.com CRM boards</li>
+                                <li>• AI checks Monday.com before drafting emails</li>
+                                <li>• Follow-up emails for existing contacts</li>
+                                <li>• Cold outreach + auto-create for new prospects</li>
+                              </ul>
+                            </div>
                           </div>
-                        </div>
+                        )}
 
-                        <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
-                          <h3 className="text-sm font-semibold text-blue-900 mb-2">💡 Requirements</h3>
-                          <ul className="text-sm text-blue-800 space-y-1">
-                            <li>• You need at least one CRM board in your Monday.com workspace</li>
-                            <li>• The board should have columns for: Name, Email, Title, Company</li>
-                            <li>• You need appropriate permissions to create items in the board</li>
-                          </ul>
-                        </div>
+                        {/* Organization Setup Tab (Org-Level) */}
+                        {mondayHelpTab === 'org' && (
+                          <div className="space-y-4 pt-2">
+                            <div className="bg-purple-50 border border-purple-200 rounded-lg p-4">
+                              <h3 className="text-sm font-semibold text-purple-900 mb-2">🏢 Organization-Wide Setup</h3>
+                              <p className="text-sm text-purple-800">
+                                Connect Monday.com for your entire organization. All team members will be able to use the same Monday.com workspace.
+                              </p>
+                            </div>
 
-                        <div>
-                          <h3 className="text-lg font-semibold text-gray-900 mb-4">Setup Checklist</h3>
-                          <ol className="space-y-2 text-sm text-gray-700">
-                            <li className="flex items-start gap-2">
-                              <span className="font-semibold text-gray-900">1.</span>
-                              <span>Create Monday.com developer app at <a href="https://monday.com/developers/apps" target="_blank" className="text-blue-600 hover:underline">monday.com/developers/apps</a></span>
-                            </li>
-                            <li className="flex items-start gap-2">
-                              <span className="font-semibold text-gray-900">2.</span>
-                              <span>Add OAuth redirect URLs (both required):
-                                <div className="mt-1 font-mono text-xs bg-gray-100 p-2 rounded">
-                                  https://www.curiosityengine.io/api/monday/callback<br/>
-                                  https://www.curiosityengine.io/api/monday/user-callback
+                            <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-4">
+                              <h3 className="text-sm font-semibold text-yellow-900 mb-2">⚠️ For Organization Admins Only</h3>
+                              <p className="text-sm text-yellow-800">
+                                This tab is for setting up organization-wide Monday.com access with custom OAuth credentials. Most users should use "Quick Connect" instead.
+                              </p>
+                            </div>
+
+                            <div>
+                              <h3 className="text-lg font-semibold text-gray-900 mb-3">Step 1: Enter Monday.com App Credentials</h3>
+                              <p className="text-sm text-gray-600 mb-4">
+                                Get these from your Monday.com app at <a href="https://monday.com/developers/apps" target="_blank" className="text-blue-600 underline">monday.com/developers/apps</a>
+                              </p>
+                              
+                              <div className="space-y-4">
+                                <div>
+                                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                                    Client ID
+                                  </label>
+                                  <input
+                                    type="text"
+                                    value={mondayClientId}
+                                    onChange={(e) => setMondayClientId(e.target.value)}
+                                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#F95B14] focus:border-transparent"
+                                    placeholder="Your Monday.com Client ID"
+                                  />
                                 </div>
-                              </span>
-                            </li>
-                            <li className="flex items-start gap-2">
-                              <span className="font-semibold text-gray-900">3.</span>
-                              <span>Select scopes: boards:read, boards:write, users:read, me:read</span>
-                            </li>
-                            <li className="flex items-start gap-2">
-                              <span className="font-semibold text-gray-900">4.</span>
-                              <span><strong>Install the app to your Monday.com workspace</strong> (see yellow box above)</span>
-                            </li>
-                            <li className="flex items-start gap-2">
-                              <span className="font-semibold text-gray-900">5.</span>
-                              <span>Click "Connect" button to authorize</span>
-                            </li>
-                          </ol>
-                        </div>
+
+                                <div>
+                                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                                    Client Secret
+                                  </label>
+                                  <div className="relative">
+                                    <input
+                                      type={showMondaySecret ? "text" : "password"}
+                                      value={mondayClientSecret}
+                                      onChange={(e) => setMondayClientSecret(e.target.value)}
+                                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#F95B14] focus:border-transparent pr-10"
+                                      placeholder="Your Monday.com Client Secret"
+                                    />
+                                    <button
+                                      type="button"
+                                      onClick={() => setShowMondaySecret(!showMondaySecret)}
+                                      className="absolute right-2 top-2 text-gray-500 hover:text-gray-700"
+                                    >
+                                      {showMondaySecret ? '🙈' : '👁️'}
+                                    </button>
+                                  </div>
+                                </div>
+
+                                <button
+                                  onClick={saveMondayCredentials}
+                                  disabled={mondayCredentialsLoading || !mondayClientId || !mondayClientSecret}
+                                  className="w-full px-4 py-2 bg-[#F95B14] text-white rounded-lg font-semibold hover:bg-orange-600 transition-colors disabled:bg-gray-300 disabled:cursor-not-allowed"
+                                >
+                                  {mondayCredentialsLoading ? 'Saving...' : 'Save Credentials'}
+                                </button>
+
+                                {mondayCredentialsMessage && (
+                                  <div className={`p-3 rounded-lg text-sm ${
+                                    mondayCredentialsMessage.includes('✅') 
+                                      ? 'bg-green-50 text-green-800 border border-green-200' 
+                                      : 'bg-red-50 text-red-800 border border-red-200'
+                                  }`}>
+                                    {mondayCredentialsMessage}
+                                  </div>
+                                )}
+                              </div>
+                            </div>
+
+                            {mondayCredentialsSaved && (
+                              <div>
+                                <h3 className="text-lg font-semibold text-gray-900 mb-3">Step 2: Connect to Monday.com</h3>
+                                <p className="text-sm text-gray-600 mb-4">
+                                  Now that credentials are saved, click below to authorize the connection:
+                                </p>
+                                <button
+                                  onClick={connectMondayOrg}
+                                  className="w-full px-4 py-3 bg-gradient-to-r from-pink-500 to-orange-500 text-white rounded-lg font-semibold hover:from-pink-600 hover:to-orange-600 transition-all"
+                                >
+                                  🔗 Connect Monday.com for Organization
+                                </button>
+                              </div>
+                            )}
+
+                            <div className="bg-gray-50 border border-gray-200 rounded-lg p-4">
+                              <h3 className="text-sm font-semibold text-gray-900 mb-2">📋 Setup Requirements</h3>
+                              <ol className="text-sm text-gray-700 space-y-2">
+                                <li>1. Create app at Monday.com Developer Portal</li>
+                                <li>2. Add both redirect URLs (callback & user-callback)</li>
+                                <li>3. Select all required scopes (boards:read, boards:write, etc.)</li>
+                                <li>4. Copy Client ID and Secret (enter above)</li>
+                                <li>5. Install app to your Monday.com workspace</li>
+                                <li>6. Save credentials and connect</li>
+                              </ol>
+                            </div>
+                          </div>
+                        )}
                       </div>
                     )}
 

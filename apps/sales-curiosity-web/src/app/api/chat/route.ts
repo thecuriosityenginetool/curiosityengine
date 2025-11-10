@@ -388,15 +388,25 @@ export async function POST(req: NextRequest) {
     const hasSalesforce = !!salesforceIntegration;
     
     // Check if Monday.com is enabled
-    const { data: mondayIntegration } = await supabase
+    console.log('🟣 [Chat API] Checking Monday.com for org:', user.organization_id);
+    const { data: mondayIntegration, error: mondayError } = await supabase
       .from('organization_integrations')
-      .select('is_enabled')
+      .select('*')
       .eq('organization_id', user.organization_id)
       .in('integration_type', ['monday', 'monday_user'])
       .eq('is_enabled', true)
       .maybeSingle();
 
+    console.log('🟣 [Chat API] Monday.com query result:', {
+      found: !!mondayIntegration,
+      error: mondayError,
+      type: mondayIntegration?.integration_type,
+      enabled: mondayIntegration?.is_enabled,
+      hasConfig: !!mondayIntegration?.configuration
+    });
+
     const hasMonday = !!mondayIntegration;
+    console.log('🟣 [Chat API] hasMonday final value:', hasMonday);
     
     console.log('🔍 Salesforce integration check:', {
       organizationId: user.organization_id,

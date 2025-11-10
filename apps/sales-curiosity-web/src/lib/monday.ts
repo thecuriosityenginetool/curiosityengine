@@ -42,19 +42,25 @@ export interface MondaySearchResult {
 
 /**
  * Generate Monday.com OAuth URL
+ * Supports both organization-specific credentials and fallback to env vars
  */
 export function getMondayAuthUrl(
   state: string,
-  isUserLevel: boolean = false
+  isUserLevel: boolean = false,
+  customClientId?: string
 ): string {
   const userCallbackUri = process.env.MONDAY_USER_REDIRECT_URI || `${process.env.NEXT_PUBLIC_APP_URL}/api/monday/user-callback`;
   const redirectUri = isUserLevel ? userCallbackUri : MONDAY_REDIRECT_URI;
   
+  // Use custom client ID if provided, otherwise fall back to env var
+  const clientId = customClientId || MONDAY_CLIENT_ID;
+  
   console.log('🟣 [Monday OAuth] Generating auth URL, isUserLevel:', isUserLevel);
   console.log('🟣 [Monday OAuth] Redirect URI:', redirectUri);
+  console.log('🟣 [Monday OAuth] Using', customClientId ? 'custom' : 'env var', 'client ID');
   
   const params = new URLSearchParams({
-    client_id: MONDAY_CLIENT_ID,
+    client_id: clientId,
     redirect_uri: redirectUri,
     state,
   });
@@ -64,17 +70,21 @@ export function getMondayAuthUrl(
 
 /**
  * Exchange authorization code for tokens
+ * Supports both organization-specific credentials and fallback to env vars
  */
 export async function exchangeCodeForTokens(
   code: string,
-  redirectUri?: string
+  redirectUri?: string,
+  customClientId?: string,
+  customClientSecret?: string
 ): Promise<MondayTokens> {
   console.log('🟣 [Monday Token Exchange] Starting...');
+  console.log('🟣 [Monday Token Exchange] Using', customClientId ? 'custom' : 'env var', 'credentials');
   
   const params = new URLSearchParams({
     code,
-    client_id: MONDAY_CLIENT_ID,
-    client_secret: MONDAY_CLIENT_SECRET,
+    client_id: customClientId || MONDAY_CLIENT_ID,
+    client_secret: customClientSecret || MONDAY_CLIENT_SECRET,
     redirect_uri: redirectUri || MONDAY_REDIRECT_URI,
   });
 
@@ -96,6 +106,25 @@ export async function exchangeCodeForTokens(
   console.log('✅ [Monday Token Exchange] Success! Token type:', tokens.token_type);
   
   return tokens;
+}
+
+/**
+ * Get Monday.com tokens for organization-level connection
+ */
+export async function getOrganizationMondayTokens(organizationId: string): Promise<MondayTokens | null> {
+  const { data, error } = await supabase
+    .from('organization_integrations')
+    .select('configuration')
+    .eq('organization_id', organizationId)
+    .eq('integration_type', 'monday')
+    .eq('is_enabled', true)
+    .single();
+
+  if (error || !data) {
+    return null;
+  }
+
+  return data.configuration as MondayTokens;
 }
 
 /**
@@ -122,13 +151,20 @@ export async function getUserMondayTokens(
 }
 
 /**
- * Get Monday.com tokens - checks user level
+ * Get Monday.com tokens - checks both org and user level
  */
 export async function getMondayTokens(
   userId: string,
   organizationId: string
 ): Promise<MondayTokens | null> {
-  return await getUserMondayTokens(userId, organizationId);
+  // First try user-level tokens
+  const userTokens = await getUserMondayTokens(userId, organizationId);
+  if (userTokens) {
+    return userTokens;
+  }
+
+  // Fall back to organization-level tokens
+  return await getOrganizationMondayTokens(organizationId);
 }
 
 /**

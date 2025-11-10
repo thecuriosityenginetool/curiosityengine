@@ -13,9 +13,9 @@ Add Monday.com and HubSpot CRM integrations that work exactly like Salesforce - 
 
 **OAuth Settings:**
 ```
-Redirect URLs:
-  - https://www.curiosityengine.io/api/monday/user-callback
-  - http://localhost:3000/api/monday/user-callback
+Redirect URLs (need BOTH):
+  - https://www.curiosityengine.io/api/monday/callback        (org-level)
+  - https://www.curiosityengine.io/api/monday/user-callback   (user-level)
 
 Scopes:
   ✅ boards:read
@@ -60,9 +60,9 @@ The `supabase-add-all-integrations.sql` already includes `monday` and `monday_us
 
 **OAuth Settings:**
 ```
-Redirect URLs:
-  - https://www.curiosityengine.io/api/hubspot/user-callback
-  - http://localhost:3000/api/hubspot/user-callback
+Redirect URLs (need BOTH):
+  - https://www.curiosityengine.io/api/hubspot/callback        (org-level)
+  - https://www.curiosityengine.io/api/hubspot/user-callback   (user-level)
 
 Scopes:
   ✅ crm.objects.contacts.read

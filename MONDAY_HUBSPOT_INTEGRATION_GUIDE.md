@@ -52,11 +52,13 @@ This guide provides comprehensive instructions for implementing **Monday.com** a
 
 2. **OAuth & Permissions:**
    - Click **"OAuth"** in left sidebar
-   - Add Redirect URL:
+   - Add BOTH Redirect URLs (needed for org-level AND user-level OAuth):
      ```
+     https://www.curiosityengine.io/api/monday/callback
      https://www.curiosityengine.io/api/monday/user-callback
-     http://localhost:3000/api/monday/user-callback
      ```
+   - **First URL:** For organization-wide connections (admins)
+   - **Second URL:** For individual user connections
 
 3. **Permissions/Scopes** - Select these:
    - ✅ `boards:read` - Read board data
@@ -751,11 +753,13 @@ ALTER TABLE organization_integrations ADD CONSTRAINT organization_integrations_i
    - Logo: Upload your logo (optional)
 
 2. **Auth Tab:**
-   - Add Redirect URLs:
+   - Add BOTH Redirect URLs (needed for org-level AND user-level OAuth):
      ```
+     https://www.curiosityengine.io/api/hubspot/callback
      https://www.curiosityengine.io/api/hubspot/user-callback
-     http://localhost:3000/api/hubspot/user-callback
      ```
+   - **First URL:** For organization-wide connections (admins)
+   - **Second URL:** For individual user connections
 
 3. **Scopes** - Select these:
    - ✅ `crm.objects.contacts.read` - Read contacts
@@ -1459,13 +1463,21 @@ export async function GET(req: NextRequest) {
 
 2. Add these variables:
 
+**IMPORTANT:** You need TWO redirect URIs - one for org-level, one for user-level:
+
 ```bash
 # HubSpot OAuth
 HUBSPOT_CLIENT_ID=your_hubspot_client_id_here
 HUBSPOT_CLIENT_SECRET=your_hubspot_client_secret_here
+
+# For organization-level connections (admins connecting for whole org)
 HUBSPOT_REDIRECT_URI=https://www.curiosityengine.io/api/hubspot/callback
+
+# For user-level connections (individual users connecting their own accounts)
 HUBSPOT_USER_REDIRECT_URI=https://www.curiosityengine.io/api/hubspot/user-callback
 ```
+
+**Make sure HUBSPOT_REDIRECT_URI uses `/callback` NOT `/user-callback`** (learned from Salesforce!)
 
 3. Apply to: **Production, Preview, Development**
 

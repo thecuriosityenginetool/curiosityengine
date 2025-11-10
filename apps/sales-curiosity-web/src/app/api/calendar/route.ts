@@ -104,14 +104,14 @@ export async function GET(req: NextRequest) {
           };
           
           return {
-            id: event.id,
-            title: event.subject,
+          id: event.id,
+          title: event.subject,
             start: formatWithTimezone(startDateTime, timezone),
             end: formatWithTimezone(endDateTime, timezone),
-            description: event.bodyPreview || event.body?.content,
-            type: 'meeting',
-            attendees: event.attendees?.map((a: any) => a.emailAddress.address) || [],
-            location: event.location?.displayName
+          description: event.bodyPreview || event.body?.content,
+          type: 'meeting',
+          attendees: event.attendees?.map((a: any) => a.emailAddress.address) || [],
+          location: event.location?.displayName
           };
         });
 
@@ -163,14 +163,14 @@ export async function GET(req: NextRequest) {
           };
           
           return {
-            id: event.id,
-            title: event.summary,
+          id: event.id,
+          title: event.summary,
             start: formatWithTimezone(startDateTime, timezone),
             end: formatWithTimezone(endDateTime, timezone),
-            description: event.description,
-            type: 'meeting',
-            attendees: event.attendees?.map((a: any) => a.email) || [],
-            location: event.location
+          description: event.description,
+          type: 'meeting',
+          attendees: event.attendees?.map((a: any) => a.email) || [],
+          location: event.location
           };
         });
 

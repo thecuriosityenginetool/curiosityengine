@@ -136,7 +136,7 @@ export default function DashboardPage() {
   
   // Integration help modal state
   const [showIntegrationHelp, setShowIntegrationHelp] = useState(false);
-  const [selectedIntegration, setSelectedIntegration] = useState<'salesforce' | 'gmail' | 'outlook' | 'linkedin' | 'hubspot' | null>(null);
+  const [selectedIntegration, setSelectedIntegration] = useState<'salesforce' | 'gmail' | 'outlook' | 'linkedin' | 'hubspot' | 'monday' | null>(null);
   const [salesforceHelpTab, setSalesforceHelpTab] = useState<'tools' | 'user' | 'org'>('tools');
   
   // Salesforce credentials state
@@ -3557,6 +3557,18 @@ The draft is now in your Outlook Drafts folder and ready to send.`);
 
               {/* Monday.com */}
               <div className="rounded-2xl border border-gray-200 bg-white p-6 hover:shadow-lg transition-all hover:border-gray-300 relative group">
+                <button
+                  onClick={() => {
+                    setSelectedIntegration('monday');
+                    setShowIntegrationHelp(true);
+                  }}
+                  className="absolute top-4 right-4 w-8 h-8 rounded-full bg-gray-100 hover:bg-orange-100 flex items-center justify-center transition-colors group/help z-10"
+                  title="View documentation"
+                >
+                  <svg className="w-4 h-4 text-gray-500 group-hover/help:text-orange-600" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth={2}>
+                    <path strokeLinecap="round" strokeLinejoin="round" d="M12 18v-5.25m0 0a6.01 6.01 0 001.5-.189m-1.5.189a6.01 6.01 0 01-1.5-.189m3.75 7.478a12.06 12.06 0 01-4.5 0m3.75 2.383a14.406 14.406 0 01-3 0M14.25 18v-.192c0-.983.658-1.823 1.508-2.316a7.5 7.5 0 10-7.517 0c.85.493 1.509 1.333 1.509 2.316V18" />
+                  </svg>
+                </button>
                 <div>
                   <div className="flex items-center gap-4 mb-6">
                     <div className="w-10 h-10 bg-gradient-to-br from-pink-500 to-orange-500 rounded-lg flex items-center justify-center">
@@ -3700,6 +3712,16 @@ The draft is now in your Outlook Drafts folder and ready to send.`);
                           <h2 className="text-2xl font-bold text-gray-900">HubSpot Integration</h2>
                         </>
                       )}
+                      {selectedIntegration === 'monday' && (
+                        <>
+                          <div className="w-8 h-8 bg-gradient-to-br from-pink-500 to-orange-500 rounded-lg flex items-center justify-center">
+                            <svg className="w-5 h-5 text-white" fill="currentColor" viewBox="0 0 24 24">
+                              <path d="M12 0C5.373 0 0 5.373 0 12s5.373 12 12 12 12-5.373 12-12S18.627 0 12 0zm0 2c5.523 0 10 4.477 10 10s-4.477 10-10 10S2 17.523 2 12 6.477 2 12 2zm0 3a1.5 1.5 0 100 3 1.5 1.5 0 000-3zm-4 0a1.5 1.5 0 100 3 1.5 1.5 0 000-3zm8 0a1.5 1.5 0 100 3 1.5 1.5 0 000-3z"/>
+                            </svg>
+                          </div>
+                          <h2 className="text-2xl font-bold text-gray-900">Monday.com Integration</h2>
+                        </>
+                      )}
                     </div>
                     <button
                       onClick={() => setShowIntegrationHelp(false)}
@@ -3712,6 +3734,93 @@ The draft is now in your Outlook Drafts folder and ready to send.`);
                   </div>
                   
                   <div className="p-6">
+                    {selectedIntegration === 'monday' && (
+                      <div className="space-y-6">
+                        <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-4">
+                          <h3 className="text-sm font-semibold text-yellow-900 mb-2">⚠️ Important: Install App First</h3>
+                          <p className="text-sm text-yellow-800 mb-3">
+                            Before connecting, you need to install the Sales Curiosity Engine app to your Monday.com workspace:
+                          </p>
+                          <ol className="text-sm text-yellow-800 space-y-2 list-decimal list-inside">
+                            <li>Go to <a href="https://monday.com/developers/apps" target="_blank" className="underline font-medium">Monday.com Developer Portal</a></li>
+                            <li>Find your "Sales Curiosity Engine" app</li>
+                            <li>Click on the app</li>
+                            <li>Look for <strong>"Install to workspace"</strong> or <strong>"Add to account"</strong> button</li>
+                            <li>Click it and select your workspace</li>
+                            <li>Authorize the permissions</li>
+                            <li>Come back here and click "Connect" again</li>
+                          </ol>
+                        </div>
+
+                        <div>
+                          <h3 className="text-lg font-semibold text-gray-900 mb-4">How It Works</h3>
+                          <div className="space-y-4 text-gray-700">
+                            <p className="text-sm">
+                              Once connected, Sales Curiosity Engine will automatically sync LinkedIn prospects to your Monday.com CRM boards:
+                            </p>
+                            <ul className="space-y-3">
+                              <li className="flex items-start gap-3">
+                                <span className="text-green-600 text-lg">✓</span>
+                                <span className="text-sm">When you draft an email, we check if the person exists in your Monday.com CRM</span>
+                              </li>
+                              <li className="flex items-start gap-3">
+                                <span className="text-green-600 text-lg">✓</span>
+                                <span className="text-sm">If found, AI generates a "follow-up" style email</span>
+                              </li>
+                              <li className="flex items-start gap-3">
+                                <span className="text-green-600 text-lg">✓</span>
+                                <span className="text-sm">If not found, AI generates "cold outreach" and auto-creates the contact in Monday.com</span>
+                              </li>
+                              <li className="flex items-start gap-3">
+                                <span className="text-green-600 text-lg">✓</span>
+                                <span className="text-sm">All LinkedIn profile data (name, email, title, company, LinkedIn URL) is added to the CRM board</span>
+                              </li>
+                            </ul>
+                          </div>
+                        </div>
+
+                        <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
+                          <h3 className="text-sm font-semibold text-blue-900 mb-2">💡 Requirements</h3>
+                          <ul className="text-sm text-blue-800 space-y-1">
+                            <li>• You need at least one CRM board in your Monday.com workspace</li>
+                            <li>• The board should have columns for: Name, Email, Title, Company</li>
+                            <li>• You need appropriate permissions to create items in the board</li>
+                          </ul>
+                        </div>
+
+                        <div>
+                          <h3 className="text-lg font-semibold text-gray-900 mb-4">Setup Checklist</h3>
+                          <ol className="space-y-2 text-sm text-gray-700">
+                            <li className="flex items-start gap-2">
+                              <span className="font-semibold text-gray-900">1.</span>
+                              <span>Create Monday.com developer app at <a href="https://monday.com/developers/apps" target="_blank" className="text-blue-600 hover:underline">monday.com/developers/apps</a></span>
+                            </li>
+                            <li className="flex items-start gap-2">
+                              <span className="font-semibold text-gray-900">2.</span>
+                              <span>Add OAuth redirect URLs (both required):
+                                <div className="mt-1 font-mono text-xs bg-gray-100 p-2 rounded">
+                                  https://www.curiosityengine.io/api/monday/callback<br/>
+                                  https://www.curiosityengine.io/api/monday/user-callback
+                                </div>
+                              </span>
+                            </li>
+                            <li className="flex items-start gap-2">
+                              <span className="font-semibold text-gray-900">3.</span>
+                              <span>Select scopes: boards:read, boards:write, users:read, me:read</span>
+                            </li>
+                            <li className="flex items-start gap-2">
+                              <span className="font-semibold text-gray-900">4.</span>
+                              <span><strong>Install the app to your Monday.com workspace</strong> (see yellow box above)</span>
+                            </li>
+                            <li className="flex items-start gap-2">
+                              <span className="font-semibold text-gray-900">5.</span>
+                              <span>Click "Connect" button to authorize</span>
+                            </li>
+                          </ol>
+                        </div>
+                      </div>
+                    )}
+
                     {selectedIntegration === 'salesforce' && (
                       <div className="space-y-4">
                         {/* Tabs */}

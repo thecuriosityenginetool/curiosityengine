@@ -850,19 +850,34 @@ export default function DashboardPage() {
   }
 
   async function disconnectSalesforce() {
+    if (!confirm('Are you sure you want to disconnect Salesforce?')) {
+      return;
+    }
+    
     try {
+      console.log('🟪 [Disconnect SF] Starting disconnect...');
       const response = await fetch('/api/salesforce/disconnect', {
         method: 'POST',
+        credentials: 'include',
       });
+      
+      console.log('🟪 [Disconnect SF] Response:', response.status, response.ok);
+      
       if (response.ok) {
+        const data = await response.json();
+        console.log('✅ [Disconnect SF] Success:', data);
         setHasSalesforceConnection(false);
         alert('✅ Salesforce disconnected successfully');
         await createActivityLog('salesforce_disconnected', 'Salesforce Disconnected', 'Salesforce integration disconnected');
+        // Reload connections to ensure UI is in sync
+        await checkConnections();
       } else {
-        alert('❌ Failed to disconnect Salesforce');
+        const error = await response.json();
+        console.error('❌ [Disconnect SF] Failed:', error);
+        alert(`❌ Failed to disconnect Salesforce: ${error.error || 'Unknown error'}`);
       }
     } catch (error) {
-      console.error('Error disconnecting Salesforce:', error);
+      console.error('❌ [Disconnect SF] Exception:', error);
       alert('❌ Error disconnecting Salesforce');
     }
   }

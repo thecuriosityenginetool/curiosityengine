@@ -646,17 +646,20 @@ If you see calendar events in the context below, answer directly. Only use searc
 ✅ Monday.com CRM is connected. YOU CAN use these tools when asked about Monday.com:
 
 **AVAILABLE TOOLS:**
-- search_monday: Search contacts in Monday.com CRM boards by name or email
+- search_monday: Search for a SPECIFIC person in Monday.com CRM boards by name or email
 - create_monday_contact: Add new contacts to Monday.com CRM
 
 **WHEN TO USE:**
-- "Check my Monday.com CRM" → Use search_monday ✅
-- "Find leads in Monday" → Use search_monday ✅
-- "Search Monday.com boards" → Use search_monday ✅
-- "Add to Monday.com" → Use create_monday_contact ✅
+- "Find John Smith in Monday.com" → Use search_monday with name: "John Smith" ✅
+- "Check if john@example.com is in Monday" → Use search_monday with email ✅
+- "Add person to Monday.com" → Use create_monday_contact ✅
 
-**IMPORTANT:** Monday.com does NOT require Salesforce authentication! These are separate tools.
-When user asks about Monday.com, use Monday tools (search_monday, create_monday_contact).`;
+**IMPORTANT NOTES:**
+- Monday.com does NOT require Salesforce authentication! These are completely separate tools.
+- To VIEW ALL leads/contacts: Monday.com doesn't have a "query all" function like Salesforce. Tell user to specify who they're looking for.
+- For general questions about "recent leads", ask user to be more specific about which person they want to find.
+
+When user asks about Monday.com, use Monday tools (search_monday, create_monday_contact), NOT Salesforce tools.`;
     }
 
     if (hasGmail) {

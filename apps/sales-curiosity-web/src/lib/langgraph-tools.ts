@@ -310,19 +310,23 @@ export function createAgentTools(
     tools.push(
       new DynamicStructuredTool({
         name: 'search_monday',
-        description: 'Search for contacts in Monday.com CRM boards by name or email. Use when user asks to check Monday.com CRM, find leads in Monday, or search Monday.com boards.',
+        description: 'Search for a specific contact in Monday.com CRM boards by name or email. Use when user asks about a specific person. To view all leads/contacts, tell user to ask more specifically about who they want to find.',
         schema: z.object({
-          name: z.string().optional().describe('Full name or partial name to search for'),
-          email: z.string().optional().describe('Email address to search for'),
+          name: z.string().optional().describe('Full name or partial name to search for (required if no email)'),
+          email: z.string().optional().describe('Email address to search for (required if no name)'),
         }),
         func: async (input) => {
           try {
+            if (!input.name && !input.email) {
+              return 'Please specify a name or email to search for. Example: "Find John Smith in Monday" or "Search for john@example.com in Monday.com"';
+            }
+            
             const result = await searchPersonInMonday(organizationId, input, userId);
             if (result.found && result.data) {
               const contact = result.data;
               return `Found in Monday.com: ${contact.name}\nEmail: ${contact.email || 'N/A'}\nTitle: ${contact.title || 'N/A'}\nCompany: ${contact.company || 'N/A'}\nBoard ID: ${contact.board_id}`;
             }
-            return 'No contact found in Monday.com CRM boards.';
+            return `No contact found in Monday.com CRM boards matching "${input.name || input.email}". The person may not exist in your Monday.com workspace yet.`;
           } catch (error) {
             return `Error searching Monday.com: ${error instanceof Error ? error.message : 'Unknown error'}`;
           }

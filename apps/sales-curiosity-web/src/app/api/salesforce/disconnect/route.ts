@@ -28,27 +28,28 @@ export async function POST(req: NextRequest) {
 
     console.log('🟪 [Salesforce Disconnect] Disconnecting for user:', userData.id, 'org:', userData.organization_id);
 
-    // Delete or disable both user-level and org-level Salesforce connections
-    // First try user-level
-    const { error: userError } = await supabase
+    // Check what Salesforce integrations exist
+    const { data: existingIntegrations } = await supabase
+      .from('organization_integrations')
+      .select('id, integration_type, is_enabled')
+      .eq('organization_id', userData.organization_id)
+      .in('integration_type', ['salesforce', 'salesforce_user']);
+    
+    console.log('🟪 [Salesforce Disconnect] Found integrations:', existingIntegrations);
+
+    // Delete ALL Salesforce integrations for this org (both user and org level)
+    const { error: deleteError } = await supabase
       .from('organization_integrations')
       .delete()
       .eq('organization_id', userData.organization_id)
-      .eq('integration_type', 'salesforce_user');
-    
-    // Also try org-level
-    const { error: orgError } = await supabase
-      .from('organization_integrations')
-      .update({ is_enabled: false, updated_at: new Date().toISOString() })
-      .eq('organization_id', userData.organization_id)
-      .eq('integration_type', 'salesforce');
+      .in('integration_type', ['salesforce', 'salesforce_user']);
 
-    if (userError && orgError) {
-      console.error('Error disconnecting Salesforce:', { userError, orgError });
+    if (deleteError) {
+      console.error('❌ [Salesforce Disconnect] Error:', deleteError);
       return NextResponse.json({ error: 'Failed to disconnect Salesforce' }, { status: 500 });
     }
 
-    console.log('✅ [Salesforce Disconnect] Disconnected successfully');
+    console.log('✅ [Salesforce Disconnect] All Salesforce integrations deleted');
 
     return NextResponse.json({ 
       success: true, 

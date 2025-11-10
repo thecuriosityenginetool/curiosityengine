@@ -387,10 +387,27 @@ export async function POST(req: NextRequest) {
 
     const hasSalesforce = !!salesforceIntegration;
     
+    // Check if Monday.com is enabled
+    const { data: mondayIntegration } = await supabase
+      .from('organization_integrations')
+      .select('is_enabled')
+      .eq('organization_id', user.organization_id)
+      .in('integration_type', ['monday', 'monday_user'])
+      .eq('is_enabled', true)
+      .maybeSingle();
+
+    const hasMonday = !!mondayIntegration;
+    
     console.log('🔍 Salesforce integration check:', {
       organizationId: user.organization_id,
       hasSalesforce,
       integration: salesforceIntegration
+    });
+    
+    console.log('🟣 Monday.com integration check:', {
+      organizationId: user.organization_id,
+      hasMonday,
+      integration: mondayIntegration
     });
 
     // Check if Outlook is enabled
@@ -436,6 +453,7 @@ export async function POST(req: NextRequest) {
 
     console.log('🤖 Chat API - Available tools:', {
       hasSalesforce,
+      hasMonday,
       hasOutlook,
       hasGmail,
       toolsCount: availableTools.length,
@@ -620,6 +638,25 @@ If you see calendar events in the context below, answer directly. Only use searc
 **For filtered searches:** Use search_salesforce instead of query_crm with WHERE clauses.
 
 **YOU MUST USE THESE TOOLS - They are available and working!**`;
+    }
+    
+    if (hasMonday) {
+      systemPrompt += `
+
+✅ Monday.com CRM is connected. YOU CAN use these tools when asked about Monday.com:
+
+**AVAILABLE TOOLS:**
+- search_monday: Search contacts in Monday.com CRM boards by name or email
+- create_monday_contact: Add new contacts to Monday.com CRM
+
+**WHEN TO USE:**
+- "Check my Monday.com CRM" → Use search_monday ✅
+- "Find leads in Monday" → Use search_monday ✅
+- "Search Monday.com boards" → Use search_monday ✅
+- "Add to Monday.com" → Use create_monday_contact ✅
+
+**IMPORTANT:** Monday.com does NOT require Salesforce authentication! These are separate tools.
+When user asks about Monday.com, use Monday tools (search_monday, create_monday_contact).`;
     }
 
     if (hasGmail) {
@@ -884,6 +921,7 @@ When the user mentions vague references like "latest prospect", "that person", "
     // Create LangChain tools from available integrations
     const langchainTools = createAgentTools(user.organization_id, user.id, {
       hasSalesforce,
+      hasMonday,
       hasGmail,
       hasOutlook,
     });

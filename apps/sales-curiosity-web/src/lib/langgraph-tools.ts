@@ -22,6 +22,11 @@ import {
 } from './salesforce';
 
 import {
+  searchPersonInMonday,
+  createMondayContact,
+} from './monday';
+
+import {
   createGmailDraft,
   sendGmailEmail,
   createGoogleCalendarEvent,
@@ -128,6 +133,7 @@ export function createAgentTools(
   userId: string,
   options: {
     hasSalesforce?: boolean;
+    hasMonday?: boolean;
     hasGmail?: boolean;
     hasOutlook?: boolean;
   }
@@ -293,6 +299,52 @@ export function createAgentTools(
             return `✅ Task created successfully!\nSubject: ${input.subject}\n${input.dueDate ? `Due: ${input.dueDate}\n` : ''}Task ID: ${result.id}`;
           } catch (error) {
             return `Error creating task: ${error instanceof Error ? error.message : 'Unknown error'}`;
+          }
+        },
+      })
+    );
+  }
+
+  // Monday.com Tools
+  if (options.hasMonday) {
+    tools.push(
+      new DynamicStructuredTool({
+        name: 'search_monday',
+        description: 'Search for contacts in Monday.com CRM boards by name or email. Use when user asks to check Monday.com CRM, find leads in Monday, or search Monday.com boards.',
+        schema: z.object({
+          name: z.string().optional().describe('Full name or partial name to search for'),
+          email: z.string().optional().describe('Email address to search for'),
+        }),
+        func: async (input) => {
+          try {
+            const result = await searchPersonInMonday(organizationId, input, userId);
+            if (result.found && result.data) {
+              const contact = result.data;
+              return `Found in Monday.com: ${contact.name}\nEmail: ${contact.email || 'N/A'}\nTitle: ${contact.title || 'N/A'}\nCompany: ${contact.company || 'N/A'}\nBoard ID: ${contact.board_id}`;
+            }
+            return 'No contact found in Monday.com CRM boards.';
+          } catch (error) {
+            return `Error searching Monday.com: ${error instanceof Error ? error.message : 'Unknown error'}`;
+          }
+        },
+      }),
+
+      new DynamicStructuredTool({
+        name: 'create_monday_contact',
+        description: 'Create a new contact in Monday.com CRM board. Use this to add prospects to Monday.com.',
+        schema: z.object({
+          firstName: z.string().optional().describe('First name'),
+          lastName: z.string().describe('Last name'),
+          email: z.string().optional().describe('Email address'),
+          title: z.string().optional().describe('Job title'),
+          company: z.string().optional().describe('Company name'),
+        }),
+        func: async (input) => {
+          try {
+            const result = await createMondayContact(organizationId, input, userId);
+            return `✅ Contact created in Monday.com!\nName: ${input.firstName || ''} ${input.lastName}\nContact ID: ${result.id}`;
+          } catch (error) {
+            return `Error creating Monday.com contact: ${error instanceof Error ? error.message : 'Unknown error'}`;
           }
         },
       })

@@ -70,11 +70,15 @@ export async function GET(req: NextRequest) {
     const salesforce = integrations?.find(i => 
       (i.integration_type === 'salesforce' || i.integration_type === 'salesforce_user')
     );
+    const monday = integrations?.find(i => 
+      (i.integration_type === 'monday' || i.integration_type === 'monday_user')
+    );
     
     console.log('🔍 [Integration Status] Raw integration data:', {
       gmail: gmail ? { type: gmail.integration_type, enabled: gmail.is_enabled, hasConfig: !!gmail.configuration } : null,
       outlook: outlook ? { type: outlook.integration_type, enabled: outlook.is_enabled, hasConfig: !!outlook.configuration } : null,
       salesforce: salesforce ? { type: salesforce.integration_type, enabled: salesforce.is_enabled, hasConfig: !!salesforce.configuration } : null,
+      monday: monday ? { type: monday.integration_type, enabled: monday.is_enabled, hasConfig: !!monday.configuration } : null,
     });
 
     // Check if user has tokens in configuration
@@ -97,13 +101,21 @@ export async function GET(req: NextRequest) {
       salesforceConfig.access_token // Org-level
     );
     
+    const mondayConfig = monday?.configuration as any;
+    const mondayHasTokens = monday && mondayConfig && (
+      mondayConfig[userData.id]?.access_token || // User-level
+      mondayConfig.access_token // Org-level
+    );
+    
     console.log('🔍 [Integration Status] Token check:', {
       salesforceIntegrationType: salesforce?.integration_type,
       salesforceEnabled: salesforce?.is_enabled,
       salesforceHasConfig: !!salesforceConfig,
       salesforceHasOrgTokens: !!salesforceConfig?.access_token,
       salesforceHasUserTokens: !!salesforceConfig?.[userData.id]?.access_token,
-      salesforceConfigKeys: salesforceConfig ? Object.keys(salesforceConfig).slice(0, 5) : []
+      salesforceConfigKeys: salesforceConfig ? Object.keys(salesforceConfig).slice(0, 5) : [],
+      mondayEnabled: monday?.is_enabled,
+      mondayHasTokens: !!mondayHasTokens
     });
 
     const status = {
@@ -125,6 +137,12 @@ export async function GET(req: NextRequest) {
         hasUserTokens: !!salesforceHasTokens,
         lastUpdated: salesforce?.updated_at || null
       },
+      monday: {
+        connected: !!mondayHasTokens,
+        enabled: !!monday,
+        hasUserTokens: !!mondayHasTokens,
+        lastUpdated: monday?.updated_at || null
+      },
       emailProvider: gmailHasTokens ? 'google' : outlookHasTokens ? 'microsoft' : null
     };
 
@@ -138,6 +156,7 @@ export async function GET(req: NextRequest) {
       gmail: { connected: false },
       outlook: { connected: false },
       salesforce: { connected: false },
+      monday: { connected: false },
       emailProvider: null
     }, { status: 500 });
   }

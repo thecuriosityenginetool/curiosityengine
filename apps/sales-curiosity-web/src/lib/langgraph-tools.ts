@@ -167,7 +167,19 @@ export function createAgentTools(
         }),
         func: async (input) => {
           try {
-            const result = await querySalesforce(organizationId, input.query, userId);
+            console.log('🔍 [query_crm] Executing SOQL:', input.query);
+            
+            // Add timeout to prevent hanging
+            const timeoutPromise = new Promise((_, reject) => 
+              setTimeout(() => reject(new Error('Query timeout after 10 seconds')), 10000)
+            );
+            
+            const queryPromise = querySalesforce(organizationId, input.query, userId);
+            
+            const result = await Promise.race([queryPromise, timeoutPromise]) as any;
+            
+            console.log('✅ [query_crm] Query completed, records:', result?.totalSize || 0);
+            
             if (result.records && result.records.length > 0) {
               const records = result.records.slice(0, 10); // Limit to 10 for readability
               const formatted = records.map((r: any, i: number) => {
@@ -181,7 +193,8 @@ export function createAgentTools(
             }
             return 'No records found.';
           } catch (error) {
-            return `Error executing query: ${error instanceof Error ? error.message : 'Unknown error'}`;
+            console.error('❌ [query_crm] Error:', error);
+            return `Error executing query: ${error instanceof Error ? error.message : 'Unknown error'}. Try a simpler query or use search_salesforce instead.`;
           }
         },
       }),

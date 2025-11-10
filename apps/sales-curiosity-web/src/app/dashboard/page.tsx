@@ -1623,6 +1623,66 @@ Format with markdown for readability.`;
     }
   }
 
+  async function saveMondayCredentials() {
+    if (!mondayClientId || !mondayClientSecret) {
+      setMondayCredentialsMessage('Please enter both Client ID and Client Secret');
+      return;
+    }
+
+    setMondayCredentialsLoading(true);
+    setMondayCredentialsMessage('');
+
+    try {
+      const response = await fetch('/api/monday/credentials', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        credentials: 'include',
+        body: JSON.stringify({
+          clientId: mondayClientId,
+          clientSecret: mondayClientSecret,
+        }),
+      });
+
+      if (response.ok) {
+        setMondayCredentialsSaved(true);
+        setMondayCredentialsMessage('✅ Credentials saved! You can now click "Connect Monday.com" below.');
+        setMondayClientId('');
+        setMondayClientSecret('');
+        setShowMondaySecret(false);
+      } else {
+        const errorData = await response.json();
+        setMondayCredentialsMessage('❌ ' + (errorData.error || 'Failed to save credentials'));
+      }
+    } catch (error) {
+      console.error('Error saving Monday credentials:', error);
+      setMondayCredentialsMessage('❌ Error saving credentials. Please try again.');
+    } finally {
+      setMondayCredentialsLoading(false);
+    }
+  }
+
+  async function connectMondayOrg() {
+    try {
+      console.log('🟣 [Connect Monday Org] Starting...');
+      const response = await fetch('/api/monday/auth');
+      
+      if (response.ok) {
+        const data = await response.json();
+        if (data.authUrl) {
+          console.log('🟣 [Connect Monday Org] Redirecting to OAuth...');
+          window.location.href = data.authUrl;
+        }
+      } else {
+        const error = await response.json();
+        console.error('❌ [Connect Monday Org] Failed:', error);
+        alert(`❌ ${error.error || 'Failed to connect Monday.com'}`);
+      }
+    } catch (error) {
+      console.error('❌ [Connect Monday Org] Exception:', error);
+      alert(`❌ Error: ${error instanceof Error ? error.message : String(error)}`);
+    }
+  }
+
   // Reset Salesforce credentials and connection
   async function resetSalesforceConnection() {
     if (!confirm('This will remove your Salesforce credentials and disconnect the integration. You will need to re-enter credentials and reconnect. Continue?')) {

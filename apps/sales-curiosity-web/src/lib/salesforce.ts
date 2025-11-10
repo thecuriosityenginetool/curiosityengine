@@ -433,9 +433,12 @@ export async function createSalesforceLead(
     company: string;
     linkedinUrl?: string;
     description?: string;
-  }
+  },
+  userId?: string
 ): Promise<{ id: string; success: boolean }> {
   try {
+    console.log('➕ [createSalesforceLead] Creating lead:', leadData.firstName, leadData.lastName, 'at', leadData.company);
+    
     const payload: any = {
       LastName: leadData.lastName,
       Company: leadData.company,
@@ -448,19 +451,24 @@ export async function createSalesforceLead(
     if (leadData.linkedinUrl) payload.LinkedIn__c = leadData.linkedinUrl; // Custom field if exists
     if (leadData.description) payload.Description = leadData.description;
 
+    console.log('➕ [createSalesforceLead] Payload:', JSON.stringify(payload, null, 2));
+
     const endpoint = `/services/data/${SF_API_VERSION}/sobjects/Lead`;
     
     const result = await salesforceApiRequest(organizationId, endpoint, {
       method: 'POST',
       body: JSON.stringify(payload),
-    });
+    }, userId);
+
+    console.log('✅ [createSalesforceLead] Lead created! ID:', result.id);
 
     return {
       id: result.id,
       success: result.success,
     };
   } catch (error) {
-    console.error('Error creating Salesforce Lead:', error);
+    console.error('❌ [createSalesforceLead] Error:', error);
+    console.error('❌ [createSalesforceLead] Error message:', error instanceof Error ? error.message : String(error));
     throw error;
   }
 }

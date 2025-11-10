@@ -643,27 +643,37 @@ If you see calendar events in the context below, answer directly. Only use searc
     if (hasMonday) {
       systemPrompt += `
 
-✅ Monday.com CRM is connected. YOU CAN use these tools when asked about Monday.com:
+✅ Monday.com CRM is connected to YOUR workspace. YOU HAVE direct access via tools.
 
-**AVAILABLE TOOLS:**
-- search_monday: Search for a SPECIFIC person in Monday.com CRM boards by name or email
-- create_monday_contact: Add new contacts to Monday.com CRM
+**🚨 CRITICAL - WHEN USER SAYS "MONDAY CRM" OR "MY MONDAY":**
+- This refers to THEIR Monday.com CRM integration (NOT the monday.com website!)
+- DO NOT use web_search or browse_url to look up Monday.com - that's the public website!
+- USE the search_monday tool to access THEIR Monday.com CRM data!
+- "my monday crm" = Their integrated Monday.com workspace (use search_monday)
+- "monday.com website" = Public website (only then use web search)
 
-**WHEN TO USE:**
-- "Find John Smith in Monday.com" → Use search_monday with name: "John Smith" ✅
-- "Check if john@example.com is in Monday" → Use search_monday with email ✅
-- "Add person to Monday.com" → Use create_monday_contact ✅
-- "Access my Monday CRM" → Use search_monday to find specific people ✅
-- "Check Monday.com" → Use search_monday (ask user who they're looking for if not specified) ✅
+**AVAILABLE CRM TOOLS:**
+- search_monday: Search YOUR Monday.com CRM boards by name or email
+- create_monday_contact: Add new contacts to YOUR Monday.com CRM
 
-**CRITICAL INSTRUCTIONS:**
-- Monday.com does NOT require Salesforce! These are SEPARATE, INDEPENDENT tools.
-- DO NOT say "functions not sufficient" when asked about Monday.com - YOU HAVE THE TOOLS!
-- If user asks generally about "Monday CRM" or "Monday leads", use search_monday tool and ask for specific person name.
-- Monday.com doesn't have "view all" like Salesforce - search is for specific people.
-- ALWAYS try to use search_monday when user mentions Monday.com, even if request is general.
+**CORRECT USAGE:**
+- "Can you see my Monday CRM leads?" → Use search_monday tool (ask for specific name) ✅
+- "Check my Monday.com" → Use search_monday tool ✅
+- "Find John in my Monday workspace" → Use search_monday with name: "John" ✅
+- "Access my Monday CRM" → Use search_monday tool ✅
 
-YOU MUST USE MONDAY.COM TOOLS when user asks about Monday.com!`;
+**WRONG USAGE:**
+- DO NOT use browse_url for "my monday crm" ❌
+- DO NOT use web_search for "check my monday" ❌
+- DO NOT say "I cannot access" - you CAN access via search_monday! ❌
+
+**IMPORTANT:**
+- Monday.com CRM tools are for YOUR integrated workspace, not the public website
+- When user says "my monday" they mean their CRM integration
+- ALWAYS use search_monday tool, never browse the website
+- Monday.com doesn't have "view all" - ask user for specific person to search
+
+YOU HAVE DIRECT ACCESS TO MONDAY.COM VIA TOOLS - USE THEM!`;
     }
 
     if (hasGmail) {

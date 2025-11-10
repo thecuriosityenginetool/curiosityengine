@@ -953,6 +953,7 @@ When the user mentions vague references like "latest prospect", "that person", "
           if (emailContext) contextSummary.push('Recent Emails');
           if (calendarContext) contextSummary.push('Calendar Events');
           if (hasSalesforce) contextSummary.push('Salesforce CRM');
+          if (hasMonday) contextSummary.push('Monday.com CRM');
           
           if (contextSummary.length > 0) {
             controller.enqueue(

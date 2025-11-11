@@ -6,7 +6,7 @@ export default function PrivacyPolicy() {
         
         <div className="prose prose-lg">
           <p className="text-gray-600 mb-6">
-            <strong>Last Updated:</strong> October 12, 2025
+            <strong>Last Updated:</strong> November 9, 2025
           </p>
 
           <section className="mb-8">
@@ -50,18 +50,59 @@ export default function PrivacyPolicy() {
           </section>
 
           <section className="mb-8">
-            <h2 className="text-2xl font-semibold text-gray-900 mb-4">4. OAuth and Email Access</h2>
+            <h2 className="text-2xl font-semibold text-gray-900 mb-4">4. OAuth and Third-Party Integrations</h2>
+            
+            <h3 className="text-xl font-semibold text-gray-800 mb-3">4.1 Google Workspace (Gmail & Calendar)</h3>
             <p className="text-gray-700 leading-relaxed mb-3">
-              When you sign in with Google or Microsoft, we request permission to:
+              When you connect Google Workspace, we request permission to:
             </p>
-            <ul className="list-disc pl-6 text-gray-700 space-y-2">
-              <li><strong>Send emails:</strong> We send emails only when you explicitly click "Send" in our application</li>
-              <li><strong>Create drafts:</strong> We create email drafts in your account when you use the draft feature</li>
+            <ul className="list-disc pl-6 text-gray-700 space-y-2 mb-4">
+              <li><strong>Gmail - Send emails:</strong> We send emails only when you explicitly click "Send" in our application</li>
+              <li><strong>Gmail - Create drafts:</strong> We create email drafts when you use the AI draft feature</li>
+              <li><strong>Gmail - Search emails:</strong> We search your emails only when you explicitly request it (e.g., "find emails from John")</li>
+              <li><strong>Gmail - Access settings:</strong> We retrieve your default email signature to append to drafted emails</li>
+              <li><strong>Calendar - Read events:</strong> We read your calendar events to provide meeting context and scheduling assistance</li>
+              <li><strong>Calendar - Create events:</strong> We create calendar events only when you explicitly request it</li>
               <li><strong>Profile access:</strong> We access your basic profile information (name, email) for authentication</li>
             </ul>
-            <p className="text-gray-700 leading-relaxed mt-3">
-              We <strong>do not</strong> read your existing emails or access your email inbox without your explicit permission.
+            <p className="text-gray-700 leading-relaxed">
+              We <strong>do not</strong> read the content of your emails, monitor your inbox, or access your data without explicit user action.
             </p>
+
+            <h3 className="text-xl font-semibold text-gray-800 mb-3 mt-6">4.2 Microsoft 365 (Outlook & Calendar)</h3>
+            <p className="text-gray-700 leading-relaxed mb-3">
+              When you connect Microsoft 365, we request permission to:
+            </p>
+            <ul className="list-disc pl-6 text-gray-700 space-y-2 mb-4">
+              <li><strong>Mail.Send:</strong> Send emails on your behalf when you click "Send"</li>
+              <li><strong>Mail.ReadWrite:</strong> Create email drafts and search emails when requested</li>
+              <li><strong>Calendars.Read & Calendars.ReadWrite:</strong> View and create calendar events</li>
+              <li><strong>User.Read:</strong> Access your basic profile for authentication</li>
+            </ul>
+
+            <h3 className="text-xl font-semibold text-gray-800 mb-3 mt-6">4.3 Salesforce CRM</h3>
+            <p className="text-gray-700 leading-relaxed mb-3">
+              When you connect Salesforce, we access:
+            </p>
+            <ul className="list-disc pl-6 text-gray-700 space-y-2 mb-4">
+              <li><strong>Contacts & Leads:</strong> Search and create records to enhance email personalization</li>
+              <li><strong>Notes & Tasks:</strong> Log activities and set follow-up reminders when requested</li>
+              <li><strong>API Access:</strong> Read and write access to your Salesforce data as needed for CRM operations</li>
+            </ul>
+            <p className="text-gray-700 leading-relaxed">
+              All Salesforce access is on-demand based on your explicit requests. We do not continuously sync or monitor your CRM data.
+            </p>
+
+            <h3 className="text-xl font-semibold text-gray-800 mb-3 mt-6">4.4 Revoking Access</h3>
+            <p className="text-gray-700 leading-relaxed">
+              You can revoke any integration's access at any time through:
+            </p>
+            <ul className="list-disc pl-6 text-gray-700 space-y-2">
+              <li>Curiosity Engine dashboard → Connectors → Disconnect button</li>
+              <li>Your Google Account → Security → Third-party apps</li>
+              <li>Your Microsoft Account → Permissions</li>
+              <li>Your Salesforce → Setup → Connected Apps</li>
+            </ul>
           </section>
 
           <section className="mb-8">
@@ -73,14 +114,19 @@ export default function PrivacyPolicy() {
 
           <section className="mb-8">
             <h2 className="text-2xl font-semibold text-gray-900 mb-4">6. Third-Party Services</h2>
-            <p className="text-gray-700 mb-3">We use the following third-party services:</p>
+            <p className="text-gray-700 mb-3">We use the following third-party services to provide and enhance our platform:</p>
             <ul className="list-disc pl-6 text-gray-700 space-y-2">
-              <li><strong>Google OAuth & Gmail API:</strong> For authentication and email sending</li>
-              <li><strong>Microsoft OAuth & Graph API:</strong> For authentication and email sending</li>
-              <li><strong>OpenAI:</strong> For AI-powered content generation</li>
-              <li><strong>Supabase:</strong> For database and authentication services</li>
-              <li><strong>Vercel:</strong> For hosting and deployment</li>
+              <li><strong>Google OAuth, Gmail & Calendar APIs:</strong> For authentication, email drafting/sending, and calendar integration. We only access your Gmail and Calendar data when you explicitly authorize these integrations and request specific actions.</li>
+              <li><strong>Microsoft OAuth & Graph API:</strong> For authentication, Outlook email drafting/sending, and calendar integration. We only access your Outlook and Calendar data when you explicitly authorize these integrations.</li>
+              <li><strong>Salesforce API:</strong> For CRM data synchronization when you connect your Salesforce account. We access only the data necessary to search contacts, create leads, and enhance email drafting.</li>
+              <li><strong>SambaNova Cloud:</strong> For AI-powered content generation and intelligent response generation. Your prompts and conversations are processed through SambaNova's LLM API to provide AI assistance.</li>
+              <li><strong>Tavily Search API:</strong> For web search capabilities when you request current information or research. Search queries are sent to Tavily to retrieve relevant web results.</li>
+              <li><strong>Supabase:</strong> For secure database storage, user authentication, and data management.</li>
+              <li><strong>Vercel:</strong> For application hosting, deployment, and serverless function execution.</li>
             </ul>
+            <p className="text-gray-700 mt-4 leading-relaxed">
+              Each third-party service has its own privacy policy and data handling practices. We carefully select partners that meet high security and privacy standards.
+            </p>
           </section>
 
           <section className="mb-8">

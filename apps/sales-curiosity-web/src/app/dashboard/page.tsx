@@ -976,18 +976,30 @@ export default function DashboardPage() {
       console.log('🟣 [Monday Disconnect] Disconnecting...');
       const response = await fetch('/api/monday/disconnect', {
         method: 'POST',
+        credentials: 'include',
+        headers: {
+          'Content-Type': 'application/json',
+        },
       });
       
+      console.log('🟣 [Monday Disconnect] Response:', response.status, response.ok);
+      
       if (response.ok) {
+        const data = await response.json();
+        console.log('✅ [Monday Disconnect] Success:', data);
         setHasMondayConnection(false);
         alert('✅ Monday.com disconnected successfully');
         await createActivityLog('monday_disconnected', 'Monday.com Disconnected', 'Monday.com integration disconnected');
+        // Refresh connection status
+        await checkConnections();
       } else {
-        alert('❌ Failed to disconnect Monday.com');
+        const error = await response.json();
+        console.error('❌ [Monday Disconnect] Failed:', error);
+        alert(`❌ Failed to disconnect Monday.com: ${error.error || 'Unknown error'}`);
       }
     } catch (error) {
-      console.error('❌ [Monday Disconnect] Error:', error);
-      alert('❌ Error disconnecting Monday.com');
+      console.error('❌ [Monday Disconnect] Exception:', error);
+      alert(`❌ Error disconnecting Monday.com: ${error instanceof Error ? error.message : String(error)}`);
     }
   }
 

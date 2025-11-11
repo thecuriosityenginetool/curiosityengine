@@ -557,12 +557,18 @@ export default function DashboardPage() {
           const { chat } = await chatResponse.json();
           setCurrentChatId(chat.id);
           
-          // Auto-generate chat title based on first message
+          // Immediately reload chat history so new chat appears in sidebar
+          loadChatHistory();
+          
+          // Auto-generate chat title based on first message (async, in background)
           fetch(`/api/chats/${chat.id}/rename`, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ firstMessage: messageContent }),
-          }).then(() => loadChatHistory()); // Reload to show new title
+          }).then(() => {
+            // Reload again after title is generated to update the title in sidebar
+            loadChatHistory();
+          }).catch(err => console.error('Error generating chat title:', err));
         }
       } else {
         // Save user message to existing chat
@@ -747,24 +753,27 @@ export default function DashboardPage() {
                   });
                   
                   // Save final assistant message with parsed thinking
-                  if (currentChatId && accumulatedContent) {
+                  if (currentChatId) {
                     const { thinking, final } = parseThinkingTags(accumulatedContent);
                     // Combine agent steps with AI reasoning for full thinking context
                     const fullThinking = agentSteps + (agentSteps && thinking ? '\n---\n\n**AI Reasoning:**\n' + thinking : thinking);
                     
+                    // Save even if content is empty (for error cases or short responses)
                     await fetch(`/api/chats/${currentChatId}/messages`, {
                       method: 'POST',
                       headers: { 'Content-Type': 'application/json' },
                       body: JSON.stringify({
                         role: 'assistant',
-                        content: final,
+                        content: final || accumulatedContent || 'No response generated',
                         thinking: fullThinking,
                         model: selectedModel
                       }),
                     });
                     console.log('💾 Saved assistant message to chat:', currentChatId);
-                    
-                    // Reload chat history to ensure saved messages appear in sidebar
+                  }
+                  
+                  // Always reload chat history when chat completes (even if save failed)
+                  if (currentChatId) {
                     loadChatHistory();
                   }
                 } else if (parsed.type === 'error') {

@@ -829,16 +829,10 @@ export default function DashboardPage() {
   }
 
   async function connectToSalesforce() {
-    // Smart connection: org admins connect at org-level, others at user-level
-    const isOrgAdmin = userData?.role === 'org_admin' || userData?.role === 'super_admin';
-    
-    if (isOrgAdmin) {
-      console.log('🟣 Admin user detected - connecting at organization level');
-      connectSalesforceOrg();
-    } else {
-      console.log('🟣 Regular user - connecting at user level');
-      connectSalesforce();
-    }
+    // Default to user-level connection for everyone (including admins)
+    // Admins can use the help modal's "Connect Org" tab for org-level connection
+    console.log('🟣 Connecting user-level Salesforce (personal account)');
+    connectSalesforce();
   }
 
   async function connectToGmail() {

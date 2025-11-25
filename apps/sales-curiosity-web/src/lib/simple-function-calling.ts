@@ -201,6 +201,20 @@ export class SimpleFunctionCalling {
 
                 const toolCalls = (response as any).tool_calls;
 
+                // DEBUG: Log the actual tool call structure
+                if (toolCalls && toolCalls.length > 0) {
+                    console.log('🔍 DEBUG [Stream]: Tool calls structure:', JSON.stringify(toolCalls, null, 2));
+                    toolCalls.forEach((tc: any, idx: number) => {
+                        console.log(`🔍 DEBUG [Stream]: Tool call ${idx}:`, {
+                            name: tc.name,
+                            args: tc.args,
+                            arguments: tc.arguments,
+                            id: tc.id,
+                            allKeys: Object.keys(tc)
+                        });
+                    });
+                }
+
                 if (!toolCalls || toolCalls.length === 0) {
                     // Final answer - emit thinking and stream content token by token
                     yield { type: 'thinking', content: 'Formulating response...' };
@@ -235,7 +249,7 @@ export class SimpleFunctionCalling {
                     yield { type: 'tool_start', toolName: toolCall.name, toolArgs: toolCall.args || toolCall.arguments || {} };
 
                     if (onToolCall) {
-                        onToolCall(toolCall.name, toolCall.args);
+                        onToolCall(toolCall.name, toolCall.args || toolCall.arguments || {});
                     }
 
                     const result = await this.executeTool({

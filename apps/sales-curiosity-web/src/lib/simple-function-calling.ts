@@ -123,6 +123,20 @@ export class SimpleFunctionCalling {
                 // Check if LLM wants to call tools
                 const toolCalls = (response as any).tool_calls;
 
+                // DEBUG: Log the actual tool call structure
+                if (toolCalls && toolCalls.length > 0) {
+                    console.log('🔍 DEBUG: Tool calls structure:', JSON.stringify(toolCalls, null, 2));
+                    toolCalls.forEach((tc: any, idx: number) => {
+                        console.log(`🔍 DEBUG: Tool call ${idx}:`, {
+                            name: tc.name,
+                            args: tc.args,
+                            arguments: tc.arguments,
+                            id: tc.id,
+                            allKeys: Object.keys(tc)
+                        });
+                    });
+                }
+
                 if (!toolCalls || toolCalls.length === 0) {
                     // No tools to call, this is the final answer
                     console.log('✅ Final answer received');
@@ -137,7 +151,7 @@ export class SimpleFunctionCalling {
                 for (const toolCall of toolCalls) {
                     const result = await this.executeTool({
                         name: toolCall.name,
-                        arguments: toolCall.args,
+                        arguments: toolCall.args || toolCall.arguments || {},
                     });
                     toolResults.push(`Tool '${toolCall.name}' response: ${result}`);
 

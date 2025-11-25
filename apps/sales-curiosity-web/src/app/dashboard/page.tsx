@@ -788,9 +788,8 @@ export default function DashboardPage() {
                     return newMessages;
                   });
                 } else if (parsed.type === 'tool_result') {
-                  // Add tool result to agent steps
-                  const resultPreview = parsed.result?.substring(0, 150) || 'Result received';
-                  agentSteps += `\n✅ Complete: ${resultPreview}${parsed.result?.length > 150 ? '...' : ''}`;
+                  // Don't show raw tool results - they're too verbose
+                  // The tool completion will be shown via the formatted thinking summary
 
                   // Keep thinking visible until content starts streaming
                   setChatMessages(prev => {
@@ -798,7 +797,7 @@ export default function DashboardPage() {
                     newMessages[newMessages.length - 1] = {
                       ...newMessages[newMessages.length - 1],
                       content: accumulatedContent,
-                      thinking: agentSteps,
+                      thinking: formatThinkingSteps(agentSteps), // Format the steps
                       showThinking: true // Keep showing until response starts
                     };
                     return newMessages;

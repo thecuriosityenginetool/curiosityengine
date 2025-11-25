@@ -54,10 +54,10 @@ const AgentState = Annotation.Root({
  */
 async function agentNode(state: typeof AgentState.State) {
   const { messages, userSelectedModel, retryCount, tools, timeout, modelUsed, toolsExecuted } = state;
-  
+
   // Use the model that was already selected (from state)
   let selectedModel = modelUsed;
-  
+
   // If timeout occurred, try fallback model
   if (timeout && retryCount < 2) {
     const fallback = getFallbackModel(selectedModel, userSelectedModel);
@@ -66,9 +66,9 @@ async function agentNode(state: typeof AgentState.State) {
       console.log(`🔄 [Agent] Retry ${retryCount + 1} with fallback model: ${selectedModel}`);
     }
   }
-  
+
   console.log(`🤖 [Agent Node] Using model: ${selectedModel}`);
-  
+
   // Initialize the model with SambaNova API (OpenAI-compatible)
   const model = new ChatOpenAI({
     modelName: selectedModel,
@@ -80,17 +80,19 @@ async function agentNode(state: typeof AgentState.State) {
     streaming: true,
     maxTokens: 2000, // Limit response length
   });
-  
+
   console.log('🔑 [Agent Node] API Key present:', !!process.env.SAMBANOVA_API_KEY);
   console.log('🔁 [Agent Node] Tools executed before:', toolsExecuted);
-  
+
   // Only bind tools on FIRST call, not after tools have been executed
   // This forces the agent to provide a final summary without calling more tools
   const shouldBindTools = tools.length > 0 && !toolsExecuted;
-  const modelWithTools = shouldBindTools ? model.bindTools(tools) : model;
-  
+  const modelWithTools = shouldBindTools ? model.bindTools(tools, {
+    strict: true // Enforce strict tool calling format
+  }) : model;
+
   console.log('🔧 [Agent Node] Tools bound:', shouldBindTools, 'Tools count:', tools.length);
-  
+
   // If tools were already executed, add strong instruction to generate final response
   let messagesToSend = messages;
   if (toolsExecuted && !shouldBindTools) {
@@ -101,16 +103,16 @@ async function agentNode(state: typeof AgentState.State) {
       new HumanMessage('Based on the tool results above, provide a helpful response to my original question. Be concise and actionable.')
     ];
   }
-  
+
   console.log('📤 [Agent Node] Calling model with', messagesToSend.length, 'messages');
-  
+
   // Call the model
   const response = await modelWithTools.invoke(messagesToSend);
-  
+
   console.log('📥 [Agent Node] Model response received');
   console.log('📥 [Agent Node] Response has content:', !!response.content);
   console.log('📥 [Agent Node] Response has tool_calls:', !!(response as any).tool_calls);
-  
+
   return {
     messages: [response],
     modelUsed: selectedModel,
@@ -122,24 +124,24 @@ async function agentNode(state: typeof AgentState.State) {
  */
 async function toolsNode(state: typeof AgentState.State) {
   const { messages, tools } = state;
-  
+
   console.log('🔧 [Tools Node] Executing tools...');
-  
+
   // Get the last AIMessage which should contain tool calls
   const lastMessage = messages[messages.length - 1];
-  
+
   if (!('tool_calls' in lastMessage) || !lastMessage.tool_calls || lastMessage.tool_calls.length === 0) {
     console.log('⚠️ [Tools Node] No tool calls found');
     return { messages: [] };
   }
-  
+
   const toolResults: BaseMessage[] = [];
-  
+
   // Execute each tool call
   for (const toolCall of lastMessage.tool_calls) {
     const toolName = toolCall.name;
     const tool = tools.find(t => t.name === toolName);
-    
+
     if (!tool) {
       console.error(`❌ [Tools Node] Tool not found: ${toolName}`);
       toolResults.push(
@@ -150,13 +152,13 @@ async function toolsNode(state: typeof AgentState.State) {
       );
       continue;
     }
-    
+
     console.log(`🔧 [Tools Node] Executing: ${toolName}`);
-    
+
     try {
       const result = await tool.invoke(toolCall.args || {});
       console.log(`✅ [Tools Node] ${toolName} completed`);
-      
+
       toolResults.push(
         new ToolMessage({
           content: typeof result === 'string' ? result : JSON.stringify(result),
@@ -173,10 +175,10 @@ async function toolsNode(state: typeof AgentState.State) {
       );
     }
   }
-  
+
   console.log('✅ [Tools Node] All tools executed, returning', toolResults.length, 'results');
-  
-  return { 
+
+  return {
     messages: toolResults,
     toolsExecuted: true // Mark that tools have been executed
   };
@@ -188,18 +190,18 @@ async function toolsNode(state: typeof AgentState.State) {
 function shouldContinue(state: typeof AgentState.State): string {
   const { messages, toolsExecuted } = state;
   const lastMessage = messages[messages.length - 1];
-  
+
   console.log('🔀 [Router] Checking last message:', lastMessage.constructor.name);
   console.log('🔀 [Router] Tools already executed:', toolsExecuted);
   console.log('🔀 [Router] Has tool_calls property:', 'tool_calls' in lastMessage);
   console.log('🔀 [Router] tool_calls value:', (lastMessage as any).tool_calls);
-  
+
   // If the last message has tool calls AND we haven't executed tools yet, go to tool executor
   if ('tool_calls' in lastMessage && (lastMessage as any).tool_calls && (lastMessage as any).tool_calls.length > 0 && !toolsExecuted) {
     console.log('→ [Router] Routing to tool executor node (found', (lastMessage as any).tool_calls.length, 'tool calls)');
     return 'execute_tools';
   }
-  
+
   // Otherwise, we're done
   console.log('→ [Router] Routing to END');
   return END;
@@ -219,10 +221,10 @@ export function createAgentGraph(tools: DynamicStructuredTool[]) {
       [END]: END,
     })
     .addEdge('execute_tools', 'agent'); // After tools, go back to agent for final response
-  
+
   // Compile the graph
   const graph = workflow.compile();
-  
+
   return graph;
 }
 
@@ -249,10 +251,10 @@ export async function invokeAgent(
   }) => void
 ) {
   const graph = createAgentGraph(tools);
-  
+
   console.log('🚀 [Agent] Starting invocation with', tools.length, 'tools');
   console.log('🎯 [Agent] Using model:', selectedModel, '(original selection:', originalUserSelection, ')');
-  
+
   try {
     // Create initial state
     const initialState = {
@@ -264,59 +266,59 @@ export async function invokeAgent(
       modelUsed: selectedModel, // Use the resolved model name directly
       toolsExecuted: false, // Track if tools have been executed
     };
-    
+
     // Stream the graph execution with recursion limit
     const stream = await graph.stream(initialState, {
       streamMode: 'values',
       recursionLimit: 10, // Limit to 10 iterations to prevent infinite loops
     });
-    
+
     let finalResponse = '';
     let toolsExecuted: string[] = [];
     let fullThinking = '';
     let iterationCount = 0;
-    
+
     console.log('🔄 [Agent] Starting stream processing...');
-    
+
     for await (const event of stream) {
       iterationCount++;
       const { messages: stateMessages, modelUsed } = event;
-      
+
       console.log(`📨 [Agent] Iteration ${iterationCount}: Stream event received, messages count:`, stateMessages?.length || 0);
-      
+
       if (!stateMessages || stateMessages.length === 0) continue;
-      
+
       const lastMessage = stateMessages[stateMessages.length - 1];
       console.log(`📨 [Agent] Iteration ${iterationCount}: Last message type:`, lastMessage.constructor.name);
       console.log(`📨 [Agent] Message _getType():`, (lastMessage as any)._getType?.());
-      
+
       // Handle AI responses - use _getType() for minified builds
       const messageType = (lastMessage as any)._getType?.() || lastMessage.constructor.name;
       const isAIMessage = messageType === 'ai' || lastMessage instanceof AIMessage;
-      
+
       if (isAIMessage) {
         // Always send content if present (even if tool_calls also present)
         const content = typeof lastMessage.content === 'string' ? lastMessage.content : '';
         console.log('💬 [Agent] AIMessage content type:', typeof lastMessage.content);
         console.log('💬 [Agent] AIMessage content length:', content.length);
         console.log('💬 [Agent] AIMessage content preview:', content.substring(0, 200));
-        
+
         if (content) {
           finalResponse += content;
-          
+
           // Parse DeepSeek-R1 thinking tags if present
           const thinkMatch = content.match(/<think>([\s\S]*?)<\/think>/);
           const thinking = thinkMatch ? thinkMatch[1].trim() : '';
           let finalContent = content;
-          
+
           if (thinking) {
             // Remove thinking tags from main content
             finalContent = content.replace(/<think>[\s\S]*?<\/think>/g, '').trim();
             fullThinking += thinking;
-            
+
             console.log('🧠 [Agent] Parsed thinking:', thinking.substring(0, 100) + '...');
           }
-          
+
           // Send the final content (without thinking tags)
           if (onStream && finalContent) {
             console.log('💬 [Agent] Sending content chunk, length:', finalContent.length);
@@ -327,7 +329,7 @@ export async function invokeAgent(
             });
           }
         }
-        
+
         // Also check for tool calls
         if ('tool_calls' in lastMessage && lastMessage.tool_calls && lastMessage.tool_calls.length > 0) {
           console.log('🔧 [Agent] Found', lastMessage.tool_calls.length, 'tool calls');
@@ -345,10 +347,10 @@ export async function invokeAgent(
           console.log('📝 [Agent] No tool calls in this message - should be final response');
         }
       }
-      
+
       // Handle tool results - use _getType() for minified builds
       const isToolMessage = (lastMessage as any)._getType?.() === 'tool' || lastMessage instanceof ToolMessage;
-      
+
       if (isToolMessage) {
         const result = typeof lastMessage.content === 'string' ? lastMessage.content : '';
         if (onStream) {
@@ -359,12 +361,12 @@ export async function invokeAgent(
         }
       }
     }
-    
+
     console.log('✅ [Agent] Stream processing complete');
     console.log('✅ [Agent] Final response length:', finalResponse.length);
     console.log('✅ [Agent] Tools executed:', toolsExecuted);
     console.log('✅ [Agent] Thinking length:', fullThinking.length);
-    
+
     // Send thinking if we captured any
     if (onStream && fullThinking) {
       onStream({
@@ -372,19 +374,19 @@ export async function invokeAgent(
         content: fullThinking,
       });
     }
-    
+
     // Send done event
     if (onStream) {
       console.log('🏁 [Agent] Sending done event');
       onStream({ type: 'done' });
     }
-    
+
     return {
       response: finalResponse,
       toolsUsed: toolsExecuted,
       thinking: fullThinking,
     };
-    
+
   } catch (error) {
     console.error('❌ [Agent] Error during invocation:', error);
     if (onStream) {

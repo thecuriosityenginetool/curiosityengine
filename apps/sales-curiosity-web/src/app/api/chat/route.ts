@@ -1107,86 +1107,85 @@ When the user mentions vague references like "latest prospect", "that person", "
               }
             }
           } else {
-            // Use LangGraph for tool-based interactions
-            console.log('🚀 [Chat API] Invoking LangGraph agent with model:', actualModel);
+            // Use SimpleFunctionCalling for tool-based interactions
+            console.log('🚀 [Chat API] Using SimpleFunctionCalling with model:', actualModel);
             console.log('🚀 [Chat API] Tools available:', langchainTools.map(t => t.name));
 
             try {
-              await invokeAgent(
-                langchainMessages,
-                langchainTools,
-                actualModel, // Pass the resolved model name (not "auto")
-                model, // Pass original user selection for fallback logic
-                (event) => {
-                  // Stream events to frontend in SSE format
-                  try {
-                    console.log('📡 [Chat API] Streaming event:', event.type);
+              // Create SimpleFunctionCalling instance
+              const functionCalling = new SimpleFunctionCalling({
+                model: actualModel,
+                apiKey: process.env.SAMBANOVA_API_KEY!,
+                tools: langchainTools,
+                maxIterations: 10,
+                temperature: 0.1,
+              });
 
-                    if (event.type === 'thinking') {
-                      console.log('🧠 [Chat API] Streaming thinking content');
-                      controller.enqueue(
-                        encoder.encode(`data: ${JSON.stringify({
-                          type: 'thinking',
-                          content: event.content
-                        })}\n\n`)
-                      );
-                    } else if (event.type === 'content') {
-                      console.log('💬 [Chat API] Streaming content, length:', event.content?.length || 0);
-                      contentSent = true;
-                      controller.enqueue(
-                        encoder.encode(`data: ${JSON.stringify({
-                          type: 'content',
-                          content: event.content,
-                          model: event.model
-                        })}\n\n`)
-                      );
-                    } else if (event.type === 'tool_start') {
-                      controller.enqueue(
-                        encoder.encode(`data: ${JSON.stringify({
-                          type: 'tool_start',
-                          tool: event.tool
-                        })}\n\n`)
-                      );
-                    } else if (event.type === 'tool_result') {
-                      controller.enqueue(
-                        encoder.encode(`data: ${JSON.stringify({
-                          type: 'tool_result',
-                          result: event.result
-                        })}\n\n`)
-                      );
-                    } else if (event.type === 'done') {
-                      console.log('✅ [Chat API] Agent completed successfully');
-                      controller.enqueue(
-                        encoder.encode(`data: ${JSON.stringify({ type: 'done' })}\n\n`)
-                      );
-                    } else if (event.type === 'error') {
-                      console.error('❌ [Chat API] Agent error event:', event.content);
-                      controller.enqueue(
-                        encoder.encode(`data: ${JSON.stringify({
-                          type: 'error',
-                          error: event.content
-                        })}\n\n`)
-                      );
-                    }
-                  } catch (streamError) {
-                    console.error('❌ [Chat API] Error encoding stream event:', streamError);
-                  }
+              // Use streaming version
+              const stream = functionCalling.stream(
+                message,
+                systemPrompt,
+                // onToolCall
+                (toolName, args) => {
+                  console.log(`🔧 [Chat API] Tool called: ${toolName}`, args);
+                  controller.enqueue(
+                    encoder.encode(`data: ${JSON.stringify({
+                      type: 'tool_start',
+                      tool: toolName
+                    })}\n\n`)
+                  );
+                },
+                // onToolResult
+                (toolName, result) => {
+                  console.log(`✅ [Chat API] Tool result: ${toolName}`);
+                  controller.enqueue(
+                    encoder.encode(`data: ${JSON.stringify({
+                      type: 'tool_result',
+                      result: result.substring(0, 200) // Truncate for display
+                    })}\n\n`)
+                  );
                 }
               );
 
-              console.log('✅ [Chat API] Agent invocation completed, content sent:', contentSent);
+              // Process stream events
+              for await (const event of stream) {
+                console.log('📡 [Chat API] Stream event:', event.type);
+
+                if (event.type === 'content') {
+                  contentSent = true;
+                  controller.enqueue(
+                    encoder.encode(`data: ${JSON.stringify({
+                      type: 'content',
+                      content: event.content,
+                      model: actualModel
+                    })}\n\n`)
+                  );
+                } else if (event.type === 'error') {
+                  console.error('❌ [Chat API] Stream error:', event.content);
+                  controller.enqueue(
+                    encoder.encode(`data: ${JSON.stringify({
+                      type: 'error',
+                      error: event.content
+                    })}\n\n`)
+                  );
+                }
+              }
+
+              console.log('✅ [Chat API] Function calling completed, content sent:', contentSent);
+
+              // Send done event
+              controller.enqueue(
+                encoder.encode(`data: ${JSON.stringify({ type: 'done' })}\n\n`)
+              );
 
               // Safety check - if no content was sent, send fallback message
               if (!contentSent) {
-                console.warn('⚠️ [Chat API] No content generated by LangGraph agent - sending fallback');
+                console.warn('⚠️ [Chat API] No content generated - sending fallback');
                 controller.enqueue(
                   encoder.encode(`data: ${JSON.stringify({
                     type: 'content',
-                    content: 'I apologize, but I was unable to generate a response. This might be due to a configuration issue. Please try again or contact support.'
+                    content: 'I apologize, but I was unable to generate a response. Please try again.'
                   })}\n\n`)
-                );
-                controller.enqueue(
-                  encoder.encode(`data: ${JSON.stringify({ type: 'done' })}\n\n`)
                 );
               }
             } catch (agentError) {

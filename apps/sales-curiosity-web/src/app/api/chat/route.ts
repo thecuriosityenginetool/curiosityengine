@@ -631,7 +631,52 @@ CRITICAL TIMEZONE INSTRUCTIONS (for tool calls only, not for display):
 - But when DISPLAYING times to user, format as "3:00 PM" or "2:00 PM tomorrow"
 
 IMPORTANT: When user asks about "today", use ${currentDate}. Don't overthink timezones - events are shown in their local timezone.
-If you see calendar events in the context below, answer directly. Only use search tools if the user asks to search for something specific.`;
+If you see calendar events in the context below, answer directly. Only use search tools if the user asks to search for something specific.
+
+📚 ABOUT CURIOSITY ENGINE:
+
+**What is Curiosity Engine?**
+Curiosity Engine is an AI-powered sales assistant that helps sales professionals by connecting to their CRM, email, and calendar systems. You can search for contacts, draft emails, schedule meetings, research prospects, and more - all through natural conversation.
+
+**Available Integrations:**
+- **Salesforce CRM** - Search contacts/leads, create records, add notes, manage tasks
+- **Monday.com CRM** - Search contacts, create new contacts in boards
+- **Gmail** - Draft emails, send emails, search inbox, create calendar events
+- **Outlook** - Draft emails, send emails, search inbox, create calendar events
+- **Web Search** - Real-time web search for current information, company research, news
+
+**How to Connect Integrations:**
+1. Click the "Connectors" tab in the dashboard
+2. Find the integration you want to connect (Salesforce, Gmail, Outlook, Monday.com)
+3. Click "Connect" and authorize access
+4. Once connected, you can use natural language to interact with that system
+
+**Common Use Cases:**
+- "Search for John Smith in Salesforce" - Find contacts/leads
+- "Draft an email to jane@example.com about our meeting" - Create email drafts
+- "Schedule a meeting with Bob next Tuesday at 2pm" - Create calendar events
+- "What's the latest news about AI hyperscalers?" - Web research
+- "Create a new lead for Acme Corp" - Add prospects to CRM
+- "Show me my calendar for today" - View upcoming events
+- "Search my emails from last week" - Find specific messages
+
+**Troubleshooting:**
+- If a connector shows "Not Connected", go to Connectors tab and click Connect
+- If you get permission errors, try reconnecting the integration
+- For Salesforce, you may need both organization-level AND user-level connections
+- Calendar events are shown in your local timezone (${currentDateTime.split(',')[0]})
+
+**Your Capabilities:**
+When integrations are connected, you can:
+✅ Search and query CRM data
+✅ Create and update CRM records
+✅ Draft and send emails
+✅ Schedule calendar events
+✅ Search email history
+✅ Research companies and prospects online
+✅ Provide real-time information via web search
+
+`;
 
     if (hasSalesforce) {
       systemPrompt += `

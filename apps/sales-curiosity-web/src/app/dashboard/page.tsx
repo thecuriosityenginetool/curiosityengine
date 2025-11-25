@@ -185,52 +185,49 @@ export default function DashboardPage() {
     return { thinking, final: final.trim() };
   };
 
-  // Helper function to format raw thinking steps into natural language
+  // Helper function to format raw thinking steps into concise natural language summary
   const formatThinkingSteps = (rawSteps: string): string => {
     if (!rawSteps) return '';
 
-    // Convert technical steps into natural language
-    let formatted = rawSteps;
+    const steps: string[] = [];
 
-    // Format tool calls
-    formatted = formatted.replace(/🔧 \[[\d:]+\] Calling tool: ([^\n]+)/g, (_, toolName) => {
+    // Extract key actions from raw steps
+    const toolMatches = rawSteps.matchAll(/🔧 \[[\d:]+\] Calling tool: ([^\n]+)/g);
+    for (const match of toolMatches) {
+      const toolName = match[1].toLowerCase();
       const naturalNames: Record<string, string> = {
-        'search salesforce': 'Searching Salesforce CRM',
-        'web search': 'Searching the web',
-        'browse url': 'Browsing website',
-        'create lead': 'Creating new lead',
-        'create contact': 'Creating new contact',
-        'update record': 'Updating CRM record',
-        'add note': 'Adding note',
-        'create task': 'Creating task',
-        'get activity': 'Retrieving activity history',
-        'create email draft': 'Drafting email',
-        'create gmail draft': 'Drafting email in Gmail',
-        'send email': 'Sending email',
-        'create calendar event': 'Creating calendar event',
-        'search emails': 'Searching emails',
-        'search gmail emails': 'Searching Gmail'
+        'search salesforce': '🔍 Searching Salesforce CRM',
+        'web search': '🌐 Searching the web for current information',
+        'browse url': '🔗 Browsing website',
+        'create lead': '✏️ Creating new lead',
+        'create contact': '✏️ Creating new contact',
+        'update record': '📝 Updating CRM record',
+        'add note': '📌 Adding note',
+        'create task': '✅ Creating task',
+        'get activity': '📊 Retrieving activity history',
+        'create email draft': '✉️ Drafting email',
+        'create gmail draft': '✉️ Drafting email in Gmail',
+        'send email': '📧 Sending email',
+        'create calendar event': '📅 Creating calendar event',
+        'search emails': '📧 Searching emails',
+        'search gmail emails': '📧 Searching Gmail',
+        'query crm': '🔍 Querying CRM database'
       };
-      const natural = naturalNames[toolName.toLowerCase()] || toolName;
-      return `🔍 ${natural}...`;
-    });
-
-    // Format completion messages
-    formatted = formatted.replace(/✅ Complete: ([^\n]+)/g, '✅ $1');
-
-    // Clean up AI Reasoning sections to be more concise
-    formatted = formatted.replace(/\*\*AI Reasoning:\*\*\n([^\n]+)/g, (_, reasoning) => {
-      // Simplify common reasoning patterns
-      if (reasoning.includes('need to search') || reasoning.includes('need to find')) {
-        return '💭 Determining information needed...';
+      const natural = naturalNames[toolName] || `🔧 ${toolName}`;
+      if (!steps.includes(natural)) {
+        steps.push(natural);
       }
-      if (reasoning.includes('use the') && reasoning.includes('tool')) {
-        return '💭 Selecting appropriate tool...';
-      }
-      return `💭 ${reasoning}`;
-    });
+    }
 
-    return formatted;
+    // Limit to 3 most important steps
+    const limitedSteps = steps.slice(0, 3);
+
+    // If we have AI reasoning, add a summary point
+    if (rawSteps.includes('**AI Reasoning:**')) {
+      limitedSteps.push('💭 Analyzing results and formulating response');
+    }
+
+    return limitedSteps.join('\n');
   };
 
   // Function to handle tab changes and update URL

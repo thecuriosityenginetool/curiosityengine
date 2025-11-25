@@ -8,14 +8,10 @@
  */
 
 // Available models (must match SambaNova Cloud model IDs exactly)
+// Simplified to use one model that supports tool use
 export const MODELS = {
-  AUTO: 'Meta-Llama-3.3-70B-Instruct',
-  DEEPSEEK_R1: 'Meta-Llama-3.3-70B-Instruct',
-  DEEPSEEK_R1_RAW: 'Meta-Llama-3.3-70B-Instruct',
-  LLAMA_3_3: 'Meta-Llama-3.3-70B-Instruct',
-  LLAMA_3_1_8B: 'Meta-Llama-3.3-70B-Instruct',
-  DEEPSEEK_V3: 'Meta-Llama-3.3-70B-Instruct',
-  DEEPSEEK_V3_1: 'Meta-Llama-3.3-70B-Instruct',
+  AUTO: 'auto', // Special value for auto-routing
+  LLAMA_3_3: 'Meta-Llama-3.3-70B-Instruct', // Single model that supports tool use
 } as const;
 
 // Tool-based keywords that indicate need for function calling
@@ -79,6 +75,7 @@ export function isToolBasedRequest(message: string): boolean {
 
 /**
  * Select the optimal model based on user preference and request type
+ * Simplified to always use one model that supports tool use
  * 
  * @param userMessage - The user's input message
  * @param userSelectedModel - The model the user selected (or 'auto')
@@ -88,26 +85,16 @@ export function selectModel(
   userMessage: string,
   userSelectedModel: string | null
 ): string {
-  // If user explicitly selected a specific model (not "auto"), honor it
-  if (userSelectedModel && userSelectedModel !== MODELS.AUTO) {
-    console.log('🎯 [Model Router] User selected:', userSelectedModel);
-    return userSelectedModel;
-  }
-
-  // Auto mode - use smart routing
-  const isToolBased = isToolBasedRequest(userMessage);
-
-  if (isToolBased) {
-    console.log('🔧 [Model Router] Tool-based request detected → Using Llama-3.3-70B (R1 does not support tools)');
-    return MODELS.LLAMA_3_3;
-  } else {
-    console.log('🧠 [Model Router] Reasoning-based request detected → Using DeepSeek-R1');
-    return MODELS.DEEPSEEK_R1;
-  }
+  // Always use Meta-Llama-3.3-70B-Instruct which supports tool use
+  // This simplifies the workflow and avoids model routing issues
+  const selectedModel = MODELS.LLAMA_3_3;
+  console.log('🎯 [Model Router] Using simplified model:', selectedModel, '(user selected:', userSelectedModel, ')');
+  return selectedModel;
 }
 
 /**
  * Get fallback model when primary model fails or times out
+ * Simplified - no fallback since we only use one model
  * 
  * @param currentModel - The model that failed/timed out
  * @param userSelectedModel - User's manual selection (if any)
@@ -117,62 +104,27 @@ export function getFallbackModel(
   currentModel: string,
   userSelectedModel: string | null
 ): string | null {
-  // If user manually selected a model, don't override with fallback
-  if (userSelectedModel && userSelectedModel !== MODELS.AUTO) {
-    console.log('⚠️ [Model Router] User manually selected model - no fallback');
-    return null;
-  }
-
-  // If DeepSeek failed, fallback to Llama (more reliable for tools)
-  if (currentModel === MODELS.DEEPSEEK_R1) {
-    console.log('🔄 [Model Router] DeepSeek-R1 timeout → Falling back to Meta-Llama-3.3-70B');
-    return MODELS.LLAMA_3_3;
-  }
-
-  // If Llama failed, try smaller Llama as last resort
-  if (currentModel === MODELS.LLAMA_3_3) {
-    console.log('🔄 [Model Router] Meta-Llama-3.3-70B timeout → Falling back to Meta-Llama-3.1-8B');
-    return MODELS.LLAMA_3_1_8B;
-  }
-
-  // No more fallbacks
-  console.log('❌ [Model Router] No fallback available');
+  // No fallback - using single model approach
+  console.log('❌ [Model Router] No fallback available (using single model)');
   return null;
 }
 
 /**
  * Model configurations for UI display
+ * Simplified to show only the model we actually use
  */
 export const MODEL_OPTIONS = [
   {
     id: MODELS.AUTO,
     name: 'Auto (Recommended)',
-    description: 'Smart model selection based on task',
+    description: 'Uses Meta-Llama 3.3 (70B) - Best for tool use',
     icon: '🤖'
-  },
-  {
-    id: MODELS.DEEPSEEK_R1,
-    name: 'DeepSeek-R1 (67B)',
-    description: 'Most powerful - Best for complex reasoning',
-    icon: '🧠'
   },
   {
     id: MODELS.LLAMA_3_3,
     name: 'Meta-Llama 3.3 (70B)',
     description: 'Fast & reliable - Best for tool use',
     icon: '🔧'
-  },
-  {
-    id: MODELS.DEEPSEEK_V3,
-    name: 'DeepSeek V3',
-    description: 'Powerful general-purpose model',
-    icon: '💡'
-  },
-  {
-    id: MODELS.LLAMA_3_1_8B,
-    name: 'Meta-Llama 3.1 (8B)',
-    description: 'Ultra-fast - Simple tasks',
-    icon: '⚡'
   }
 ];
 

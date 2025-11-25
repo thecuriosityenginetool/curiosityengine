@@ -1,7 +1,7 @@
 'use client';
 
-import { useEffect, useState, useRef } from 'react';
-import { useRouter, useSearchParams } from 'next/navigation';
+import { useEffect, useState, useRef, Suspense } from 'react';
+import { useRouter } from 'next/navigation';
 import { useSession, signOut } from 'next-auth/react';
 import { supabase } from '@/lib/supabase';
 import Image from 'next/image';
@@ -177,17 +177,15 @@ export default function DashboardPage() {
     return { thinking, final: final.trim() };
   };
 
-  const searchParams = useSearchParams();
-
   // Function to handle tab changes and update URL
   const handleTabChange = (tab: string) => {
-    setActiveTab(tab);
+    setActiveTab(tab as any);
 
     // Update URL without reloading
     const url = new URL(window.location.href);
     url.searchParams.set('tab', tab);
     window.history.pushState({}, '', url.toString());
-  };
+  }
 
   useEffect(() => {
     if (status === 'loading') return;

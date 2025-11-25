@@ -35,7 +35,7 @@ import { matchCalendarEventsToSalesforce, buildCalendarContext } from '@/lib/cal
 // LangGraph imports
 import { HumanMessage, SystemMessage, AIMessage } from '@langchain/core/messages';
 import { createAgentTools } from '@/lib/langgraph-tools';
-import { invokeAgent } from '@/lib/langgraph-agent';
+import { SimpleFunctionCalling } from '@/lib/simple-function-calling';
 import { selectModel, isToolBasedRequest } from '@/lib/model-router';
 
 const supabase = createClient(

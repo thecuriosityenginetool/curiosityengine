@@ -10,7 +10,7 @@ const supabase = createClient(
 export async function POST(req: NextRequest) {
   try {
     console.log('🟩 [Gmail Disconnect] Starting disconnect...');
-    
+
     const session = await auth();
     if (!session?.user?.email) {
       console.error('❌ [Gmail Disconnect] No session');
@@ -34,12 +34,12 @@ export async function POST(req: NextRequest) {
     const organizationId = userData.organization_id || userData.id;
     console.log('🟩 [Gmail Disconnect] Organization:', organizationId);
 
-    // Remove user's tokens from configuration
+    // Remove user's tokens from configuration (handle both 'gmail' and 'gmail_user' types)
     const { data: existing } = await supabase
       .from('organization_integrations')
-      .select('id, configuration')
+      .select('id, configuration, integration_type')
       .eq('organization_id', organizationId)
-      .eq('integration_type', 'gmail_user')
+      .in('integration_type', ['gmail', 'gmail_user'])
       .maybeSingle();
 
     if (existing) {

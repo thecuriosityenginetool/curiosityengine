@@ -14,9 +14,9 @@ const supabase = createClient(
 export async function POST(req: NextRequest) {
   try {
     console.log('🟣 [Monday Disconnect] API called');
-    
+
     const session = await auth();
-    
+
     if (!session?.user?.email) {
       console.error('❌ [Monday Disconnect] No session');
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
@@ -36,19 +36,19 @@ export async function POST(req: NextRequest) {
 
     console.log('🟣 [Monday Disconnect] User:', user.id, 'Org:', user.organization_id);
 
-    // Find Monday.com integration
+    // Find Monday.com integration (handle both 'monday' and 'monday_user' types)
     const { data: integration } = await supabase
       .from('organization_integrations')
-      .select('id, configuration')
+      .select('id, configuration, integration_type')
       .eq('organization_id', user.organization_id)
-      .eq('integration_type', 'monday_user')
+      .in('integration_type', ['monday', 'monday_user'])
       .maybeSingle();
 
     if (!integration) {
       console.log('⚠️ [Monday Disconnect] No integration found');
-      return NextResponse.json({ 
-        ok: true, 
-        message: 'Monday.com was not connected' 
+      return NextResponse.json({
+        ok: true,
+        message: 'Monday.com was not connected'
       });
     }
 
@@ -60,7 +60,7 @@ export async function POST(req: NextRequest) {
     }
 
     // If no other users have tokens, disable the integration
-    const remainingUsers = Object.keys(config).filter(key => 
+    const remainingUsers = Object.keys(config).filter(key =>
       key !== 'client_id' && key !== 'client_secret'
     );
 
@@ -86,14 +86,14 @@ export async function POST(req: NextRequest) {
 
     console.log('✅ [Monday Disconnect] Disconnected successfully');
 
-    return NextResponse.json({ 
-      ok: true, 
-      message: 'Monday.com disconnected successfully' 
+    return NextResponse.json({
+      ok: true,
+      message: 'Monday.com disconnected successfully'
     });
   } catch (error) {
     console.error('❌ [Monday Disconnect] Exception:', error);
-    return NextResponse.json({ 
-      error: String(error) 
+    return NextResponse.json({
+      error: String(error)
     }, { status: 500 });
   }
 }

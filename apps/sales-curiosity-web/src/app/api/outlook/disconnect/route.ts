@@ -10,7 +10,7 @@ const supabase = createClient(
 export async function POST(req: NextRequest) {
   try {
     const session = await auth();
-    
+
     if (!session?.user?.email) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
@@ -26,21 +26,21 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: 'User not found' }, { status: 404 });
     }
 
-    // Delete Outlook connection
+    // Delete Outlook connection (handle both 'outlook' and 'outlook_user' types)
     const { error } = await supabase
       .from('organization_integrations')
       .delete()
       .eq('organization_id', userData.organization_id)
-      .eq('integration_type', 'outlook');
+      .in('integration_type', ['outlook', 'outlook_user']);
 
     if (error) {
       console.error('Error disconnecting Outlook:', error);
       return NextResponse.json({ error: 'Failed to disconnect Outlook' }, { status: 500 });
     }
 
-    return NextResponse.json({ 
-      success: true, 
-      message: 'Outlook disconnected successfully' 
+    return NextResponse.json({
+      success: true,
+      message: 'Outlook disconnected successfully'
     });
 
   } catch (error) {

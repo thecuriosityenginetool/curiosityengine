@@ -11,16 +11,16 @@ const supabase = createClient(
 // POST - Auto-generate chat title based on content
 export async function POST(
   req: NextRequest,
-  { params }: { params: { chatId: string } }
+  { params }: { params: Promise<{ chatId: string }> }
 ) {
   try {
     const session = await auth();
-    
+
     if (!session?.user?.email) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
-    const { chatId } = params;
+    const { chatId } = await params;
     const { firstMessage } = await req.json();
 
     if (!firstMessage) {
@@ -46,23 +46,23 @@ export async function POST(
     });
 
     let title = completion.choices[0]?.message?.content?.trim() || 'New Conversation';
-    
+
     // Strip any thinking tags that might appear
     title = title.replace(/<think>[\s\S]*?<\/think>/g, '').trim();
-    
+
     // Remove any remaining XML-like tags
     title = title.replace(/<[^>]+>/g, '').trim();
-    
+
     // If title is empty after stripping, use default
     if (!title) {
       title = 'New Conversation';
     }
-    
+
     // Ensure max 50 chars
     if (title.length > 50) {
       title = title.substring(0, 47) + '...';
     }
-    
+
     console.log('✅ Generated title:', title);
 
     // Update chat title

@@ -5,9 +5,9 @@ import { createClient } from '@supabase/supabase-js';
 import { salesforceTools } from '@/lib/salesforce-tools';
 import { outlookTools } from '@/lib/outlook-tools';
 import { gmailTools } from '@/lib/gmail-tools';
-import { 
-  searchPersonInSalesforce, 
-  createSalesforceLead, 
+import {
+  searchPersonInSalesforce,
+  createSalesforceLead,
   createSalesforceContact,
   updateSalesforceContact,
   updateSalesforceLead,
@@ -118,7 +118,7 @@ Task ID: ${result.id}`;
       case 'get_activity': {
         const activity = await getRecentActivity(organizationId, args.recordId, userId);
         let response = 'Recent Activity:\n\n';
-        
+
         if (activity.tasks.length > 0) {
           response += `📋 Tasks (${activity.tasks.length}):\n`;
           activity.tasks.slice(0, 5).forEach((task: any) => {
@@ -126,7 +126,7 @@ Task ID: ${result.id}`;
           });
           response += '\n';
         }
-        
+
         if (activity.events.length > 0) {
           response += `📅 Events (${activity.events.length}):\n`;
           activity.events.slice(0, 5).forEach((event: any) => {
@@ -134,14 +134,14 @@ Task ID: ${result.id}`;
           });
           response += '\n';
         }
-        
+
         if (activity.notes.length > 0) {
           response += `📝 Notes (${activity.notes.length}):\n`;
           activity.notes.slice(0, 3).forEach((note: any) => {
             response += `- ${note.Title} - ${new Date(note.CreatedDate).toLocaleDateString()}\n`;
           });
         }
-        
+
         return response || 'No recent activity found.';
       }
 
@@ -255,7 +255,7 @@ Event ID: ${result.id}`;
           const subject = headers.find((h: any) => h.name === 'Subject')?.value || 'No subject';
           const date = headers.find((h: any) => h.name === 'Date')?.value || '';
           const snippet = email.snippet || '';
-          
+
           return `From: ${from}
 Subject: ${subject}
 Date: ${date}
@@ -274,7 +274,7 @@ ${emailList}`;
           endDate: args.endDate,
           maxResults: args.maxResults
         });
-        
+
         if (events.length === 0) {
           return `No calendar events found matching "${args.query}"`;
         }
@@ -283,7 +283,7 @@ ${emailList}`;
           const start = event.start?.dateTime || event.start?.date;
           const end = event.end?.dateTime || event.end?.date;
           const attendees = event.attendees?.map((a: any) => a.email).join(', ') || 'No attendees';
-          
+
           return `📅 ${event.summary}
 When: ${new Date(start).toLocaleString()} - ${new Date(end).toLocaleString()}
 ${event.location ? `Location: ${event.location}` : ''}
@@ -302,20 +302,20 @@ ${eventList}`;
         if (emails.length === 0) {
           return `No emails found matching "${args.query}"`;
         }
-        
+
         let response = `Found ${emails.length} email(s) matching "${args.query}":\n\n`;
         emails.forEach((email: any, index: number) => {
           const from = email.from?.emailAddress?.name || email.from?.emailAddress?.address || 'Unknown';
           const subject = email.subject || '(No subject)';
           const date = new Date(email.receivedDateTime).toLocaleString();
           const preview = email.bodyPreview?.substring(0, 150) || '';
-          
+
           response += `${index + 1}. From: ${from}\n`;
           response += `   Subject: ${subject}\n`;
           response += `   Date: ${date}\n`;
           response += `   Preview: ${preview}...\n\n`;
         });
-        
+
         return response;
       }
 
@@ -330,12 +330,12 @@ ${eventList}`;
 
 export async function POST(req: NextRequest) {
   const encoder = new TextEncoder();
-  
+
   try {
     console.log('🤖 [Chat API] Request received');
     const session = await auth();
     console.log('🤖 [Chat API] Session check:', session ? 'Valid' : 'None');
-    
+
     if (!session?.user?.email) {
       return new Response(
         encoder.encode(JSON.stringify({ error: 'Unauthorized' })),
@@ -345,8 +345,8 @@ export async function POST(req: NextRequest) {
 
     console.log('🤖 [Chat API] Parsing request body...');
     const { message, conversationHistory = [], userContext, calendarEvents = [], model } = await req.json();
-    console.log('🤖 [Chat API] Request parsed:', { 
-      hasMessage: !!message, 
+    console.log('🤖 [Chat API] Request parsed:', {
+      hasMessage: !!message,
       eventsCount: calendarEvents.length,
       events: calendarEvents.map((e: any) => ({ title: e.title, start: e.start }))
     });
@@ -386,7 +386,7 @@ export async function POST(req: NextRequest) {
       .maybeSingle();
 
     const hasSalesforce = !!salesforceIntegration;
-    
+
     // Check if Monday.com is enabled
     console.log('🟣 [Chat API] Checking Monday.com for org:', user.organization_id);
     const { data: mondayIntegration, error: mondayError } = await supabase
@@ -407,13 +407,13 @@ export async function POST(req: NextRequest) {
 
     const hasMonday = !!mondayIntegration;
     console.log('🟣 [Chat API] hasMonday final value:', hasMonday);
-    
+
     console.log('🔍 Salesforce integration check:', {
       organizationId: user.organization_id,
       hasSalesforce,
       integration: salesforceIntegration
     });
-    
+
     console.log('🟣 Monday.com integration check:', {
       organizationId: user.organization_id,
       hasMonday,
@@ -430,7 +430,7 @@ export async function POST(req: NextRequest) {
       .maybeSingle();
 
     const hasOutlook = !!outlookIntegration;
-    
+
     console.log('📧 Outlook integration check:', {
       organizationId: user.organization_id,
       hasOutlook,
@@ -447,7 +447,7 @@ export async function POST(req: NextRequest) {
       .maybeSingle();
 
     const hasGmail = !!gmailIntegration;
-    
+
     console.log('📬 Gmail integration check:', {
       organizationId: user.organization_id,
       hasGmail,
@@ -485,13 +485,13 @@ export async function POST(req: NextRequest) {
         const text = extractedText.length > 5000 ? extractedText.substring(0, 5000) + '...' : extractedText;
         return `\n📄 **${m.file_name}** [${m.category}]:\n${text}`;
       }).join('\n\n');
-      
+
       console.log('📚 Added sales materials to context:', materials.length, 'files');
     }
 
     // Get current date and time FIRST (needed for calendar context)
     const now = new Date();
-    const currentDateTime = now.toLocaleString('en-US', { 
+    const currentDateTime = now.toLocaleString('en-US', {
       weekday: 'long',
       year: 'numeric',
       month: 'long',
@@ -517,7 +517,7 @@ export async function POST(req: NextRequest) {
       } catch (error) {
         console.error('Error matching calendar events:', error);
         // Fall back to simple calendar display
-        calendarContext = `\n\nUpcoming Calendar Events:\n${calendarEvents.map((event: any) => 
+        calendarContext = `\n\nUpcoming Calendar Events:\n${calendarEvents.map((event: any) =>
           `- ${event.title} at ${event.start} ${event.description ? '(' + event.description + ')' : ''}`
         ).join('\n')}`;
       }
@@ -569,7 +569,7 @@ ${calendarEvents.map((event: any, index: number) => {
             const subject = email.subject || '(No subject)';
             const date = new Date(email.receivedDateTime).toLocaleDateString();
             const preview = email.bodyPreview?.substring(0, 100) || '';
-            
+
             emailContext += `\n${index + 1}. From: ${from} <${fromEmail}>\n`;
             emailContext += `   Subject: ${subject}\n`;
             emailContext += `   Date: ${date}\n`;
@@ -592,11 +592,15 @@ ISO Date: ${currentDate}
 Timezone: America/New_York (UTC-05:00 EST or UTC-04:00 EDT)
 
 🚨 CRITICAL RESPONSE FORMATTING:
-- NEVER show raw JSON, tool calls, or function parameters to the user
-- NEVER output strings like {"type": "function", "name": ...} - this is internal data only
-- When using tools, let them execute in the background, then provide a clean human response
-- Format all times in 12-hour format (3:00 PM, not 15:00 or T15:00:00-05:00)
-- Be conversational and natural - respond like a helpful human assistant would
+- NEVER show raw JSON, tool calls, or function parameters to the user in the final response.
+- NEVER output strings like {"type": "function", "name": ...} - this is internal data only.
+- IF YOU NEED TO REASON OR "THINK" BEFORE ANSWERING:
+  - Use the <think>...</think> tags for your internal reasoning process.
+  - Anything inside <think> tags will be shown in a collapsible "Thinking" section.
+  - Anything OUTSIDE <think> tags must be the final, clean response to the user.
+- When using tools, let them execute in the background, then provide a clean human response.
+- Format all times in 12-hour format (3:00 PM, not 15:00 or T15:00:00-05:00).
+- Be conversational and natural - respond like a helpful human assistant would.
 
 CRITICAL TIMEZONE INSTRUCTIONS (for tool calls only, not for display):
 - When creating calendar events, ALWAYS include timezone offset in ISO 8601 format
@@ -649,7 +653,7 @@ If you see calendar events in the context below, answer directly. Only use searc
 
 **YOU MUST USE THESE TOOLS - They are available and working!**`;
     }
-    
+
     if (hasMonday) {
       systemPrompt += `
 
@@ -940,7 +944,7 @@ When the user mentions vague references like "latest prospect", "that person", "
     // Check if LangGraph is enabled (can be disabled via env var for debugging)
     // LangGraph is now ALWAYS used for tool-based requests to avoid JSON parsing errors
     console.log('🔀 [Chat API] LangGraph will be used automatically for tool requests');
-    
+
     // Detect if this specific message needs tools (not just if tools exist)
     const messageNeedsTools = isToolBasedRequest(message);
     console.log('🔍 [Chat API] Message needs tools:', messageNeedsTools);
@@ -981,7 +985,7 @@ When the user mentions vague references like "latest prospect", "that person", "
           if (calendarContext) contextSummary.push('Calendar Events');
           if (hasSalesforce) contextSummary.push('Salesforce CRM');
           if (hasMonday) contextSummary.push('Monday.com CRM');
-          
+
           if (contextSummary.length > 0) {
             controller.enqueue(
               encoder.encode(`data: ${JSON.stringify({
@@ -995,23 +999,23 @@ When the user mentions vague references like "latest prospect", "that person", "
           // FORCE LangGraph for tool-based requests to avoid SambaNova JSON parsing errors
           // Only use direct API for simple non-tool conversations
           const shouldUseLangGraph = langchainTools.length > 0 && messageNeedsTools;
-          
+
           let contentSent = false; // Track if any content was sent
-          
+
           if (!shouldUseLangGraph) {
             // No tools needed - use direct API call for simple conversation
-            console.log('📞 [Chat API] Using direct API (no tools needed), reason:', 
-              !messageNeedsTools ? 'message is conversational' : 
-              'no tools available'
+            console.log('📞 [Chat API] Using direct API (no tools needed), reason:',
+              !messageNeedsTools ? 'message is conversational' :
+                'no tools available'
             );
-            
+
             const completion = await openai.chat.completions.create({
               model: actualModel,
               messages,
               stream: true,
               max_tokens: 2000,
             });
-            
+
             for await (const chunk of completion) {
               const delta = chunk.choices[0]?.delta;
               if (delta?.content) {
@@ -1041,100 +1045,100 @@ When the user mentions vague references like "latest prospect", "that person", "
             // Use LangGraph for tool-based interactions
             console.log('🚀 [Chat API] Invoking LangGraph agent with model:', actualModel);
             console.log('🚀 [Chat API] Tools available:', langchainTools.map(t => t.name));
-            
+
             try {
               await invokeAgent(
-              langchainMessages,
-              langchainTools,
-              actualModel, // Pass the resolved model name (not "auto")
-              model, // Pass original user selection for fallback logic
-              (event) => {
-                // Stream events to frontend in SSE format
-                try {
-                  console.log('📡 [Chat API] Streaming event:', event.type);
-                  
-                  if (event.type === 'thinking') {
-                    console.log('🧠 [Chat API] Streaming thinking content');
-                    controller.enqueue(
-                      encoder.encode(`data: ${JSON.stringify({
-                        type: 'thinking',
-                        content: event.content
-                      })}\n\n`)
-                    );
-                  } else if (event.type === 'content') {
-                    console.log('💬 [Chat API] Streaming content, length:', event.content?.length || 0);
-                    contentSent = true;
-                    controller.enqueue(
-                      encoder.encode(`data: ${JSON.stringify({
-                        type: 'content',
-                        content: event.content,
-                        model: event.model
-                      })}\n\n`)
-                    );
-                  } else if (event.type === 'tool_start') {
-                    controller.enqueue(
-                      encoder.encode(`data: ${JSON.stringify({
-                        type: 'tool_start',
-                        tool: event.tool
-                      })}\n\n`)
-                    );
-                  } else if (event.type === 'tool_result') {
-                    controller.enqueue(
-                      encoder.encode(`data: ${JSON.stringify({
-                        type: 'tool_result',
-                        result: event.result
-                      })}\n\n`)
-                    );
-                  } else if (event.type === 'done') {
-                    console.log('✅ [Chat API] Agent completed successfully');
-                    controller.enqueue(
-                      encoder.encode(`data: ${JSON.stringify({ type: 'done' })}\n\n`)
-                    );
-                  } else if (event.type === 'error') {
-                    console.error('❌ [Chat API] Agent error event:', event.content);
-                    controller.enqueue(
-                      encoder.encode(`data: ${JSON.stringify({
-                        type: 'error',
-                        error: event.content
-                      })}\n\n`)
-                    );
+                langchainMessages,
+                langchainTools,
+                actualModel, // Pass the resolved model name (not "auto")
+                model, // Pass original user selection for fallback logic
+                (event) => {
+                  // Stream events to frontend in SSE format
+                  try {
+                    console.log('📡 [Chat API] Streaming event:', event.type);
+
+                    if (event.type === 'thinking') {
+                      console.log('🧠 [Chat API] Streaming thinking content');
+                      controller.enqueue(
+                        encoder.encode(`data: ${JSON.stringify({
+                          type: 'thinking',
+                          content: event.content
+                        })}\n\n`)
+                      );
+                    } else if (event.type === 'content') {
+                      console.log('💬 [Chat API] Streaming content, length:', event.content?.length || 0);
+                      contentSent = true;
+                      controller.enqueue(
+                        encoder.encode(`data: ${JSON.stringify({
+                          type: 'content',
+                          content: event.content,
+                          model: event.model
+                        })}\n\n`)
+                      );
+                    } else if (event.type === 'tool_start') {
+                      controller.enqueue(
+                        encoder.encode(`data: ${JSON.stringify({
+                          type: 'tool_start',
+                          tool: event.tool
+                        })}\n\n`)
+                      );
+                    } else if (event.type === 'tool_result') {
+                      controller.enqueue(
+                        encoder.encode(`data: ${JSON.stringify({
+                          type: 'tool_result',
+                          result: event.result
+                        })}\n\n`)
+                      );
+                    } else if (event.type === 'done') {
+                      console.log('✅ [Chat API] Agent completed successfully');
+                      controller.enqueue(
+                        encoder.encode(`data: ${JSON.stringify({ type: 'done' })}\n\n`)
+                      );
+                    } else if (event.type === 'error') {
+                      console.error('❌ [Chat API] Agent error event:', event.content);
+                      controller.enqueue(
+                        encoder.encode(`data: ${JSON.stringify({
+                          type: 'error',
+                          error: event.content
+                        })}\n\n`)
+                      );
+                    }
+                  } catch (streamError) {
+                    console.error('❌ [Chat API] Error encoding stream event:', streamError);
                   }
-                } catch (streamError) {
-                  console.error('❌ [Chat API] Error encoding stream event:', streamError);
                 }
+              );
+
+              console.log('✅ [Chat API] Agent invocation completed, content sent:', contentSent);
+
+              // Safety check - if no content was sent, send fallback message
+              if (!contentSent) {
+                console.warn('⚠️ [Chat API] No content generated by LangGraph agent - sending fallback');
+                controller.enqueue(
+                  encoder.encode(`data: ${JSON.stringify({
+                    type: 'content',
+                    content: 'I apologize, but I was unable to generate a response. This might be due to a configuration issue. Please try again or contact support.'
+                  })}\n\n`)
+                );
+                controller.enqueue(
+                  encoder.encode(`data: ${JSON.stringify({ type: 'done' })}\n\n`)
+                );
               }
-            );
-            
-            console.log('✅ [Chat API] Agent invocation completed, content sent:', contentSent);
-            
-            // Safety check - if no content was sent, send fallback message
-            if (!contentSent) {
-              console.warn('⚠️ [Chat API] No content generated by LangGraph agent - sending fallback');
+            } catch (agentError) {
+              console.error('❌ [Chat API] Agent invocation failed:', agentError);
+              console.error('❌ [Chat API] Error details:', agentError);
+
+              // Send error as content so user sees something
               controller.enqueue(
                 encoder.encode(`data: ${JSON.stringify({
                   type: 'content',
-                  content: 'I apologize, but I was unable to generate a response. This might be due to a configuration issue. Please try again or contact support.'
+                  content: `Sorry, I encountered an error: ${agentError instanceof Error ? agentError.message : 'Unknown error'}. Please try again.`
                 })}\n\n`)
               );
               controller.enqueue(
                 encoder.encode(`data: ${JSON.stringify({ type: 'done' })}\n\n`)
               );
             }
-          } catch (agentError) {
-            console.error('❌ [Chat API] Agent invocation failed:', agentError);
-            console.error('❌ [Chat API] Error details:', agentError);
-            
-            // Send error as content so user sees something
-            controller.enqueue(
-              encoder.encode(`data: ${JSON.stringify({
-                type: 'content',
-                content: `Sorry, I encountered an error: ${agentError instanceof Error ? agentError.message : 'Unknown error'}. Please try again.`
-              })}\n\n`)
-            );
-            controller.enqueue(
-              encoder.encode(`data: ${JSON.stringify({ type: 'done' })}\n\n`)
-            );
-          }
           }
 
           controller.close();

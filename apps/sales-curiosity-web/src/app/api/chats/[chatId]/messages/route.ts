@@ -10,16 +10,16 @@ const supabase = createClient(
 // GET - Retrieve messages for a chat
 export async function GET(
   req: NextRequest,
-  { params }: { params: { chatId: string } }
+  { params }: { params: Promise<{ chatId: string }> }
 ) {
   try {
     const session = await auth();
-    
+
     if (!session?.user?.email) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
-    const { chatId } = params;
+    const { chatId } = await params;
 
     // Verify user owns this chat
     const { data: user } = await supabase
@@ -65,16 +65,16 @@ export async function GET(
 // POST - Add a message to a chat
 export async function POST(
   req: NextRequest,
-  { params }: { params: { chatId: string } }
+  { params }: { params: Promise<{ chatId: string }> }
 ) {
   try {
     const session = await auth();
-    
+
     if (!session?.user?.email) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
-    const { chatId } = params;
+    const { chatId } = await params;
     const body = await req.json();
     const { role, content, metadata } = body;
 
@@ -109,7 +109,7 @@ export async function POST(
 
     // Extract thinking and model from body if provided
     const { thinking, model, ...restBody } = body;
-    
+
     // Add message
     const { data: message, error } = await supabase
       .from('chat_messages')
@@ -125,7 +125,7 @@ export async function POST(
       })
       .select()
       .maybeSingle();
-    
+
     console.log('💾 Saved message to database:', { chatId, role, hasThinking: !!thinking, model });
 
     if (error) {

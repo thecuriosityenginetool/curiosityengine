@@ -1,7 +1,7 @@
 'use client';
 
 import { useEffect, useState, useRef } from 'react';
-import { useRouter } from 'next/navigation';
+import { useRouter, useSearchParams } from 'next/navigation';
 import { useSession, signOut } from 'next-auth/react';
 import { supabase } from '@/lib/supabase';
 import Image from 'next/image';
@@ -65,7 +65,7 @@ export default function DashboardPage() {
   const [userData, setUserData] = useState<User | null>(null);
   const [activeTab, setActiveTab] = useState<'dashboard' | 'leads' | 'context' | 'integrations' | 'logs'>('dashboard');
   const [settingsSubTab, setSettingsSubTab] = useState<'profile' | 'team' | 'knowledge'>('profile');
-  
+
   // Dashboard state
   const [calendarEvents, setCalendarEvents] = useState<CalendarEvent[]>([]);
   const [chatMessages, setChatMessages] = useState<ChatMessage[]>([]);
@@ -76,14 +76,14 @@ export default function DashboardPage() {
   const [selectedEvent, setSelectedEvent] = useState<CalendarEvent | null>(null);
   const [showEventMenu, setShowEventMenu] = useState(false);
   const chatEndRef = useRef<HTMLDivElement>(null);
-  
+
   // AI Model selection state
   const [selectedModel, setSelectedModel] = useState('auto');
   const [showModelInfo, setShowModelInfo] = useState(false);
   const [modelSwitchNotification, setModelSwitchNotification] = useState('');
   const [showConversations, setShowConversations] = useState(true);
   const [showModelDropdown, setShowModelDropdown] = useState(false);
-  
+
   // Available models from SambaNova Cloud (only models that support tool/function calling)
   // Model IDs must match SambaNova Cloud exactly
   const availableModels = [
@@ -94,15 +94,15 @@ export default function DashboardPage() {
     { id: 'DeepSeek-V3.1', name: 'DeepSeek V3.1', provider: 'SambaNova', description: 'Latest DeepSeek version' },
     { id: 'Meta-Llama-3.1-8B-Instruct', name: 'Llama 3.1 8B', provider: 'SambaNova', description: 'Ultra-fast - Simple tasks' },
   ];
-  
+
   // Leads state
   const [leads, setLeads] = useState<Lead[]>([]);
   const [selectedLead, setSelectedLead] = useState<Lead | null>(null);
-  
+
   // Activity logs state
   const [activityLogs, setActivityLogs] = useState<any[]>([]);
   const [expandedLogId, setExpandedLogId] = useState<string | null>(null);
-  
+
   // Settings state
   const [profileData, setProfileData] = useState({
     full_name: '',
@@ -112,7 +112,7 @@ export default function DashboardPage() {
   });
   const [salesMaterials, setSalesMaterials] = useState<any[]>([]);
   const [userPermissions, setUserPermissions] = useState<any>(null);
-  
+
   // Team invitation state
   const [inviteEmail, setInviteEmail] = useState('');
   const [inviteRole, setInviteRole] = useState<'member' | 'org_admin'>('member');
@@ -123,7 +123,7 @@ export default function DashboardPage() {
   const [uploadingFile, setUploadingFile] = useState(false);
   const [uploadMessage, setUploadMessage] = useState('');
   const [uploadMessageType, setUploadMessageType] = useState<'success' | 'error' | ''>('');
-  
+
   // Connection modal state
   const [showConnectionModal, setShowConnectionModal] = useState(false);
   const [connectionService, setConnectionService] = useState<'outlook' | 'salesforce' | null>(null);
@@ -133,13 +133,13 @@ export default function DashboardPage() {
   const [hasMondayConnection, setHasMondayConnection] = useState(false);
   const [connectedEmailProvider, setConnectedEmailProvider] = useState<'google' | 'microsoft' | null>(null);
   const [isSyncingCalendar, setIsSyncingCalendar] = useState(false);
-  
+
   // Integration help modal state
   const [showIntegrationHelp, setShowIntegrationHelp] = useState(false);
   const [selectedIntegration, setSelectedIntegration] = useState<'salesforce' | 'gmail' | 'outlook' | 'linkedin' | 'hubspot' | 'monday' | null>(null);
   const [salesforceHelpTab, setSalesforceHelpTab] = useState<'tools' | 'user' | 'org'>('tools');
   const [mondayHelpTab, setMondayHelpTab] = useState<'tools' | 'user' | 'org'>('user');
-  
+
   // Salesforce credentials state
   const [sfClientId, setSfClientId] = useState('');
   const [sfClientSecret, setSfClientSecret] = useState('');
@@ -147,7 +147,7 @@ export default function DashboardPage() {
   const [sfCredentialsLoading, setSfCredentialsLoading] = useState(false);
   const [sfCredentialsMessage, setSfCredentialsMessage] = useState('');
   const [showSfSecret, setShowSfSecret] = useState(false);
-  
+
   // Monday.com credentials state
   const [mondayClientId, setMondayClientId] = useState('');
   const [mondayClientSecret, setMondayClientSecret] = useState('');
@@ -155,47 +155,64 @@ export default function DashboardPage() {
   const [mondayCredentialsLoading, setMondayCredentialsLoading] = useState(false);
   const [mondayCredentialsMessage, setMondayCredentialsMessage] = useState('');
   const [showMondaySecret, setShowMondaySecret] = useState(false);
-  
+
   // Chrome extension detection
   const [hasChromeExtension, setHasChromeExtension] = useState<boolean | null>(null);
-  
+
   // Card mouse positions for animations
-  const [cardMousePositions, setCardMousePositions] = useState<{[key: string]: {x: number, y: number}}>({});
+  const [cardMousePositions, setCardMousePositions] = useState<{ [key: string]: { x: number, y: number } }>({});
 
   // Helper function to parse thinking tags from DeepSeek-R1 responses
   const parseThinkingTags = (content: string): { thinking: string; final: string } => {
     const thinkMatch = content.match(/<think>([\s\S]*?)(?:<\/think>|$)/);
     const thinking = thinkMatch ? thinkMatch[1].trim() : '';
-    
+
     let final = '';
     if (content.includes('</think>')) {
       final = content.split('</think>')[1] || '';
     } else if (!content.includes('<think>')) {
       final = content;
     }
-    
+
     return { thinking, final: final.trim() };
+  };
+
+  const searchParams = useSearchParams();
+
+  // Function to handle tab changes and update URL
+  const handleTabChange = (tab: string) => {
+    setActiveTab(tab);
+
+    // Update URL without reloading
+    const url = new URL(window.location.href);
+    url.searchParams.set('tab', tab);
+    window.history.pushState({}, '', url.toString());
   };
 
   useEffect(() => {
     if (status === 'loading') return;
-    
+
     if (status === 'unauthenticated') {
       router.push('/login');
       return;
     }
-    
+
     if (status === 'authenticated' && session?.user) {
       checkAuth();
-      
+
       // Check for URL parameters from extension or OAuth redirects
       const params = new URLSearchParams(window.location.search);
-      
+
       // Handle OAuth success/error messages
       const successMessage = params.get('success');
       const errorMessage = params.get('error');
       const tabParam = params.get('tab');
-      
+
+      // Set active tab from URL if present
+      if (tabParam && ['dashboard', 'leads', 'context', 'integrations', 'logs'].includes(tabParam)) {
+        setActiveTab(tabParam);
+      }
+
       if (successMessage) {
         console.log('✅ OAuth Success:', successMessage);
         // Show success message briefly
@@ -205,22 +222,22 @@ export default function DashboardPage() {
             checkConnections();
           }
         }, 500);
-        
-        // Switch to integrations tab if specified
+
+        // Switch to integrations tab if specified (already handled above, but ensuring)
         if (tabParam === 'integrations') {
           setActiveTab('integrations');
         }
       }
-      
+
       if (errorMessage) {
         console.error('❌ OAuth Error:', errorMessage);
       }
-      
+
       // Check for extension chat opening
       if (params.get('openChat') === 'true') {
         const profileName = params.get('profile');
         const analysis = params.get('analysis');
-        
+
         if (profileName && analysis) {
           setTimeout(() => {
             handleOpenChatFromExtension(decodeURIComponent(profileName), decodeURIComponent(analysis));
@@ -234,7 +251,7 @@ export default function DashboardPage() {
     if (user) {
       checkConnections(); // Check connections on mount
     }
-    
+
     if (activeTab === 'dashboard' && user) {
       loadCalendarEvents();
       loadChatHistory();
@@ -270,7 +287,7 @@ export default function DashboardPage() {
         setShowEventMenu(false);
       }
     };
-    
+
     if (showEventMenu) {
       document.addEventListener('click', handleClickOutside);
       return () => document.removeEventListener('click', handleClickOutside);
@@ -285,7 +302,7 @@ export default function DashboardPage() {
         setShowModelDropdown(false);
       }
     };
-    
+
     if (showModelDropdown) {
       document.addEventListener('click', handleClickOutside);
       return () => document.removeEventListener('click', handleClickOutside);
@@ -300,7 +317,7 @@ export default function DashboardPage() {
         setShowAccountMenu(false);
       }
     };
-    
+
     if (showAccountMenu) {
       document.addEventListener('click', handleClickOutside);
       return () => document.removeEventListener('click', handleClickOutside);
@@ -315,7 +332,7 @@ export default function DashboardPage() {
       }
 
       setUser(session.user);
-      
+
       // Fetch user data from database
       let { data: userData, error: userError } = await supabase
         .from('users')
@@ -328,14 +345,14 @@ export default function DashboardPage() {
       } else {
         // User doesn't exist - auto-create via API
         console.log('🆕 User not found, creating record for:', session.user.email);
-        
+
         try {
           const createResponse = await fetch('/api/user/ensure-exists', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             credentials: 'include'
           });
-          
+
           if (createResponse.ok) {
             // Fetch again
             const { data: newUserData } = await supabase
@@ -343,7 +360,7 @@ export default function DashboardPage() {
               .select('*')
               .eq('email', session.user.email)
               .maybeSingle();
-            
+
             if (newUserData) {
               setUserData(newUserData);
             } else {
@@ -410,7 +427,7 @@ export default function DashboardPage() {
   async function loadLeads() {
     try {
       console.log('Loading leads for user:', user.id);
-      
+
       const { data, error } = await supabase
         .from('linkedin_analyses')
         .select('*')
@@ -468,7 +485,7 @@ export default function DashboardPage() {
           metadata: metadata || {}
         }),
       });
-      
+
       if (!response.ok) {
         const errorData = await response.json();
         console.error('❌ Activity log creation failed:', {
@@ -477,7 +494,7 @@ export default function DashboardPage() {
         });
         throw new Error(`Activity log failed: ${errorData.error || response.statusText}`);
       }
-      
+
       console.log('✅ Activity log created successfully');
       if (activeTab === 'logs') {
         loadActivityLogs();
@@ -556,10 +573,10 @@ export default function DashboardPage() {
         if (chatResponse.ok) {
           const { chat } = await chatResponse.json();
           setCurrentChatId(chat.id);
-          
+
           // Immediately reload chat history so new chat appears in sidebar
           loadChatHistory();
-          
+
           // Auto-generate chat title based on first message (async, in background)
           fetch(`/api/chats/${chat.id}/rename`, {
             method: 'POST',
@@ -584,12 +601,12 @@ export default function DashboardPage() {
 
       console.log('🤖 Sending message to SambaNova Cloud:', { model: selectedModel });
       console.log('📤 Fetch URL:', '/api/chat');
-      console.log('📤 Payload:', { 
+      console.log('📤 Payload:', {
         messageLength: messageContent.length,
         historyLength: chatMessages.length,
         model: selectedModel
       });
-      
+
       const response = await fetch('/api/chat', {
         method: 'POST',
         headers: {
@@ -627,9 +644,9 @@ export default function DashboardPage() {
         while (true) {
           const { done, value } = await reader.read();
           chunkCount++;
-          
+
           console.log(`📦 Chunk ${chunkCount}:`, done ? 'Stream done' : `${value?.length || 0} bytes`);
-          
+
           if (done) {
             console.log('✅ Stream finished after', chunkCount, 'chunks');
             break;
@@ -664,23 +681,35 @@ export default function DashboardPage() {
                   }
                 } else if (parsed.type === 'content') {
                   accumulatedContent += parsed.content;
-                  
+
                   // Parse thinking tags from DeepSeek-R1 response
                   const { thinking, final } = parseThinkingTags(accumulatedContent);
-                  
+
+                  // Clean potential JSON leaks from final content
+                  // Sometimes models output tool calls as JSON in the content stream
+                  let cleanFinal = final;
+                  if (cleanFinal.includes('```json') && cleanFinal.includes('"tool":')) {
+                    cleanFinal = cleanFinal.replace(/```json[\s\S]*?"tool":[\s\S]*?```/g, '');
+                  }
+                  if (cleanFinal.includes('{') && cleanFinal.includes('"tool":')) {
+                    // Aggressive cleanup for raw JSON objects that might not be in code blocks
+                    // This regex looks for JSON-like structures containing "tool":
+                    cleanFinal = cleanFinal.replace(/\{[\s\S]*?"tool":[\s\S]*?\}/g, '');
+                  }
+
                   // Combine AI reasoning with agent steps
                   const fullThinking = agentSteps + (agentSteps && thinking ? '\n---\n\n**AI Reasoning:**\n' + thinking : thinking);
-                  
+
                   // Update the assistant message in real-time
                   setChatMessages(prev => {
                     const newMessages = [...prev];
                     const lastMessage = newMessages[newMessages.length - 1];
                     newMessages[newMessages.length - 1] = {
                       ...lastMessage,
-                      content: final,
+                      content: cleanFinal,
                       thinking: fullThinking,
                       // Collapse thinking as soon as any real content starts (more than just whitespace)
-                      showThinking: final.trim().length === 0 ? lastMessage.showThinking : false,
+                      showThinking: cleanFinal.trim().length === 0 ? lastMessage.showThinking : false,
                       model: selectedModel // Track which model generated this
                     };
                     return newMessages;
@@ -690,20 +719,20 @@ export default function DashboardPage() {
                   const toolName = parsed.tool.replace(/_/g, ' ');
                   const timestamp = new Date().toLocaleTimeString();
                   agentSteps += `\n🔧 [${timestamp}] Calling tool: ${toolName}`;
-                  
+
                   // Show detailed indicator with icon
                   const toolIcon = parsed.tool === 'search_salesforce' ? '🔍' :
                     parsed.tool === 'search_emails' || parsed.tool === 'search_gmail_emails' ? '📧' :
-                    parsed.tool === 'create_lead' || parsed.tool === 'create_contact' ? '✏️' :
-                    parsed.tool === 'update_record' ? '📝' :
-                    parsed.tool === 'create_task' ? '✅' :
-                    parsed.tool === 'get_activity' ? '📊' :
-                    parsed.tool === 'add_note' ? '📌' :
-                    parsed.tool === 'web_search' ? '🌐' :
-                    parsed.tool === 'browse_url' ? '🔗' :
-                    parsed.tool === 'create_gmail_draft' || parsed.tool === 'create_email_draft' ? '✉️' :
-                    parsed.tool === 'create_calendar_event' || parsed.tool === 'create_google_calendar_event' ? '📅' : '⚙️';
-                  
+                      parsed.tool === 'create_lead' || parsed.tool === 'create_contact' ? '✏️' :
+                        parsed.tool === 'update_record' ? '📝' :
+                          parsed.tool === 'create_task' ? '✅' :
+                            parsed.tool === 'get_activity' ? '📊' :
+                              parsed.tool === 'add_note' ? '📌' :
+                                parsed.tool === 'web_search' ? '🌐' :
+                                  parsed.tool === 'browse_url' ? '🔗' :
+                                    parsed.tool === 'create_gmail_draft' || parsed.tool === 'create_email_draft' ? '✉️' :
+                                      parsed.tool === 'create_calendar_event' || parsed.tool === 'create_google_calendar_event' ? '📅' : '⚙️';
+
                   // Don't add to accumulated content, will show in thinking section
                   setChatMessages(prev => {
                     const newMessages = [...prev];
@@ -719,7 +748,7 @@ export default function DashboardPage() {
                   // Add tool result to agent steps
                   const resultPreview = parsed.result?.substring(0, 150) || 'Result received';
                   agentSteps += `\n✅ Complete: ${resultPreview}${parsed.result?.length > 150 ? '...' : ''}`;
-                  
+
                   // Keep thinking visible until content starts streaming
                   setChatMessages(prev => {
                     const newMessages = [...prev];
@@ -740,24 +769,34 @@ export default function DashboardPage() {
                       // Get current content and thinking
                       const currentMsg = newMessages[lastMessageIdx];
                       const { thinking: parsedThinking, final: parsedFinal } = parseThinkingTags(accumulatedContent || currentMsg.content);
+
+                      // Clean potential JSON leaks
+                      let cleanFinal = parsedFinal;
+                      if (cleanFinal.includes('```json') && cleanFinal.includes('"tool":')) {
+                        cleanFinal = cleanFinal.replace(/```json[\s\S]*?"tool":[\s\S]*?```/g, '');
+                      }
+                      if (cleanFinal.includes('{') && cleanFinal.includes('"tool":')) {
+                        cleanFinal = cleanFinal.replace(/\{[\s\S]*?"tool":[\s\S]*?\}/g, '');
+                      }
+
                       const fullThinking = agentSteps + (agentSteps && parsedThinking ? '\n---\n\n**AI Reasoning:**\n' + parsedThinking : parsedThinking);
-                      
+
                       newMessages[lastMessageIdx] = {
                         ...currentMsg,
-                        content: parsedFinal || currentMsg.content,
+                        content: cleanFinal || currentMsg.content,
                         thinking: fullThinking || currentMsg.thinking,
                         showThinking: false // Force collapse on completion
                       };
                     }
                     return newMessages;
                   });
-                  
+
                   // Save final assistant message with parsed thinking
                   if (currentChatId) {
                     const { thinking, final } = parseThinkingTags(accumulatedContent);
                     // Combine agent steps with AI reasoning for full thinking context
                     const fullThinking = agentSteps + (agentSteps && thinking ? '\n---\n\n**AI Reasoning:**\n' + thinking : thinking);
-                    
+
                     // Save even if content is empty (for error cases or short responses)
                     await fetch(`/api/chats/${currentChatId}/messages`, {
                       method: 'POST',
@@ -771,7 +810,7 @@ export default function DashboardPage() {
                     });
                     console.log('💾 Saved assistant message to chat:', currentChatId);
                   }
-                  
+
                   // Always reload chat history when chat completes (even if save failed)
                   if (currentChatId) {
                     loadChatHistory();
@@ -856,16 +895,16 @@ export default function DashboardPage() {
     if (!confirm('Are you sure you want to disconnect Salesforce?')) {
       return;
     }
-    
+
     try {
       console.log('🟪 [Disconnect SF] Starting disconnect...');
       const response = await fetch('/api/salesforce/disconnect', {
         method: 'POST',
         credentials: 'include',
       });
-      
+
       console.log('🟪 [Disconnect SF] Response:', response.status, response.ok);
-      
+
       if (response.ok) {
         const data = await response.json();
         console.log('✅ [Disconnect SF] Success:', data);
@@ -939,7 +978,7 @@ export default function DashboardPage() {
     try {
       console.log('🟣 [Monday Connect] Initiating OAuth...');
       const response = await fetch('/api/monday/auth-user');
-      
+
       if (response.ok) {
         const data = await response.json();
         if (data.authUrl) {
@@ -965,7 +1004,7 @@ export default function DashboardPage() {
     if (!confirm('Are you sure you want to disconnect Monday.com?')) {
       return;
     }
-    
+
     try {
       console.log('🟣 [Monday Disconnect] Disconnecting...');
       const response = await fetch('/api/monday/disconnect', {
@@ -975,9 +1014,9 @@ export default function DashboardPage() {
           'Content-Type': 'application/json',
         },
       });
-      
+
       console.log('🟣 [Monday Disconnect] Response:', response.status, response.ok);
-      
+
       if (response.ok) {
         const data = await response.json();
         console.log('✅ [Monday Disconnect] Success:', data);
@@ -1001,7 +1040,7 @@ export default function DashboardPage() {
     try {
       console.log('🟩 [Connect Google] Step 1: Starting connection flow...');
       console.log('🟩 [Connect Google] Step 2: Fetching /api/gmail/auth-user...');
-      
+
       const response = await fetch('/api/gmail/auth-user', {
         method: 'GET',
         credentials: 'include',
@@ -1009,14 +1048,14 @@ export default function DashboardPage() {
           'Content-Type': 'application/json',
         },
       });
-      
+
       console.log('🟩 [Connect Google] Step 3: Response received. Status:', response.status);
       console.log('🟩 [Connect Google] Response headers:', Object.fromEntries(response.headers.entries()));
-      
+
       if (response.ok) {
         const data = await response.json();
         console.log('🟩 [Connect Google] Step 4: Response data:', data);
-        
+
         if (data.authUrl) {
           console.log('🟩 [Connect Google] Step 5: Got authUrl, redirecting...');
           console.log('🟩 [Connect Google] Auth URL:', data.authUrl);
@@ -1035,7 +1074,7 @@ export default function DashboardPage() {
         console.error('❌ [Connect Google] Response not OK. Status:', response.status);
         const errorData = await response.text();
         console.error('❌ [Connect Google] Error response:', errorData);
-        
+
         try {
           const errorJson = JSON.parse(errorData);
           alert(`Error: ${errorJson.error || 'Unknown error connecting to Google'}`);
@@ -1064,7 +1103,7 @@ export default function DashboardPage() {
     try {
       setShowEventMenu(false);
       setIsSendingMessage(true);
-      
+
       const userMessageContent = `Meeting Insights for: ${event.title}`;
       const prompt = `Provide meeting insights and preparation for:
 Title: ${event.title}
@@ -1104,7 +1143,7 @@ Please provide:
       setChatMessages([userMessage]);
 
       console.log('🤖 Meeting Insights - Using SambaNova model:', selectedModel);
-      
+
       const response = await fetch('/api/chat', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -1171,7 +1210,7 @@ Please provide:
             }),
           });
         }
-        
+
         await createActivityLog('meeting_scheduled', `Meeting Insights: ${event.title}`, `Generated insights for meeting with ${event.attendees?.join(', ')}`);
         loadChatHistory(); // Reload chat list
       }
@@ -1186,7 +1225,7 @@ Please provide:
     try {
       setShowEventMenu(false);
       setIsSendingMessage(true);
-      
+
       const userMessageContent = `Generate Email for: ${event.title}`;
       const prompt = `You are writing a follow-up email for a meeting. Write ONLY the email body - no instructions, no meta-text, no suggestions to customize.
 
@@ -1296,7 +1335,7 @@ IMPORTANT: Write ONLY the email body. Do NOT include phrases like "Feel free to 
             }),
           });
         }
-        
+
         await createActivityLog('email_draft_created', `Email Generated: ${event.title}`, `Generated email for meeting with ${event.attendees?.join(', ')}`);
         loadChatHistory(); // Reload chat list
       }
@@ -1306,11 +1345,11 @@ IMPORTANT: Write ONLY the email body. Do NOT include phrases like "Feel free to 
       setIsSendingMessage(false);
     }
   }
-  
+
   async function handleOpenChatFromExtension(profileName: string, analysis: string) {
     try {
       setIsSendingMessage(true);
-      
+
       const userMessageContent = `Draft an email to ${profileName}`;
       const prompt = `Based on this LinkedIn profile analysis, draft a professional outreach email:
 
@@ -1408,11 +1447,11 @@ Format with markdown for readability.`;
             }),
           });
         }
-        
+
         await createActivityLog('linkedin_analysis', `LinkedIn Profile: ${profileName}`, 'Opened from Chrome extension');
         loadChatHistory();
       }
-      
+
       // Clear URL parameters
       window.history.replaceState({}, '', '/dashboard');
     } catch (error) {
@@ -1425,60 +1464,60 @@ Format with markdown for readability.`;
   async function checkConnections() {
     try {
       console.log('🔍 [Dashboard] Checking all integrations...');
-      
+
       // Use comprehensive status endpoint
       const statusResponse = await fetch('/api/integrations/status');
-      
+
       if (statusResponse.ok) {
         const status = await statusResponse.json();
         console.log('✅ [Dashboard] Integration status received:', status);
-        
+
         // Update Gmail connection
         const gmailConnected = status.gmail?.connected === true;
-        console.log('🔍 [Dashboard] Gmail:', { 
+        console.log('🔍 [Dashboard] Gmail:', {
           connected: gmailConnected,
           enabled: status.gmail?.enabled,
           hasTokens: status.gmail?.hasUserTokens
         });
         setHasGmailConnection(gmailConnected);
-        
+
         // Update Outlook connection
         const outlookConnected = status.outlook?.connected === true;
-        console.log('🔍 [Dashboard] Outlook:', { 
+        console.log('🔍 [Dashboard] Outlook:', {
           connected: outlookConnected,
           enabled: status.outlook?.enabled,
           hasTokens: status.outlook?.hasUserTokens
         });
         setHasOutlookConnection(outlookConnected);
-        
+
         // Update Salesforce connection
         const salesforceConnected = status.salesforce?.connected === true;
-        console.log('🔍 [Dashboard] Salesforce:', { 
+        console.log('🔍 [Dashboard] Salesforce:', {
           connected: salesforceConnected,
           enabled: status.salesforce?.enabled,
           hasTokens: status.salesforce?.hasUserTokens
         });
         setHasSalesforceConnection(salesforceConnected);
-        
+
         // Update Monday.com connection
         const mondayConnected = status.monday?.connected === true;
-        console.log('🔍 [Dashboard] Monday.com:', { 
+        console.log('🔍 [Dashboard] Monday.com:', {
           connected: mondayConnected,
           enabled: status.monday?.enabled,
           hasTokens: status.monday?.hasUserTokens
         });
         setHasMondayConnection(mondayConnected);
-        
+
         // Set email provider
         const emailProvider = status.emailProvider;
         console.log('🔍 [Dashboard] Email provider:', emailProvider);
         setConnectedEmailProvider(emailProvider);
-        
+
       } else {
         console.error('❌ [Dashboard] Status endpoint failed:', statusResponse.status);
         const errorText = await statusResponse.text();
         console.error('❌ [Dashboard] Error response:', errorText);
-        
+
         // Fall back to individual checks if comprehensive endpoint fails
         console.log('⚠️ [Dashboard] Falling back to individual status checks...');
         await checkConnectionsIndividually();
@@ -1564,11 +1603,11 @@ Format with markdown for readability.`;
       });
       console.log('🔵 Step 3: Response received. Status:', response.status);
       console.log('🔵 Step 3: Response headers:', Object.fromEntries(response.headers.entries()));
-      
+
       if (response.ok) {
         const data = await response.json();
         console.log('🔵 Step 4: Response data:', data);
-        
+
         if (data.authUrl) {
           console.log('🔵 Step 5: Got authUrl, redirecting to:', data.authUrl);
           console.log('🔵 Step 5: About to set window.location.href...');
@@ -1695,7 +1734,7 @@ Format with markdown for readability.`;
     try {
       console.log('🟣 [Connect Monday Org] Starting...');
       const response = await fetch('/api/monday/auth');
-      
+
       if (response.ok) {
         const data = await response.json();
         if (data.authUrl) {
@@ -1752,7 +1791,7 @@ Format with markdown for readability.`;
   async function connectSalesforceOrg() {
     try {
       console.log('🟣 Connecting organization-level Salesforce...');
-      
+
       const response = await fetch('/api/salesforce/auth', {
         method: 'GET',
         credentials: 'include',
@@ -1760,10 +1799,10 @@ Format with markdown for readability.`;
           'Content-Type': 'application/json',
         },
       });
-      
+
       if (response.ok) {
         const data = await response.json();
-        
+
         if (data.authUrl) {
           console.log('🟣 Redirecting to Salesforce authorization...');
           window.location.href = data.authUrl;
@@ -1774,7 +1813,7 @@ Format with markdown for readability.`;
       } else {
         const errorData = await response.json();
         console.error('❌ Salesforce auth error:', errorData);
-        
+
         if (errorData.needsCredentials) {
           alert('Please enter your Salesforce Consumer Key and Consumer Secret first (scroll up in the "Connect Org" tab).');
         } else {
@@ -1800,11 +1839,11 @@ Format with markdown for readability.`;
         },
       });
       console.log('🟣 Step 3: Response received. Status:', response.status);
-      
+
       if (response.ok) {
         const data = await response.json();
         console.log('🟣 Step 4: Response data:', data);
-        
+
         if (data.authUrl) {
           console.log('🟣 Step 5: Got authUrl, redirecting to:', data.authUrl);
           window.location.href = data.authUrl;
@@ -1840,10 +1879,10 @@ Format with markdown for readability.`;
 
     try {
       console.log('📧 Creating Outlook draft:', { subject, contentLength: content.length, recipients });
-      
+
       // Clean up any meta-text or instructions from AI response
       let cleanedContent = content;
-      
+
       // Remove common AI meta-phrases
       const metaPhrases = [
         /Feel free to customize.*?(\n|$)/gi,
@@ -1855,14 +1894,14 @@ Format with markdown for readability.`;
         /Let me know if.*?(\n|$)/gi,
         /^---\s*$/gm, // Remove standalone dividers
       ];
-      
+
       metaPhrases.forEach(phrase => {
         cleanedContent = cleanedContent.replace(phrase, '');
       });
-      
+
       // Trim extra whitespace
       cleanedContent = cleanedContent.trim();
-      
+
       // Use provided recipients or try to extract from content
       let recipientEmail = 'recipient@example.com';
       if (recipients && recipients.length > 0) {
@@ -1871,13 +1910,13 @@ Format with markdown for readability.`;
         const emailMatch = cleanedContent.match(/([a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,})/i);
         if (emailMatch) recipientEmail = emailMatch[1];
       }
-      
+
       // Convert markdown to HTML for Outlook
       const htmlContent = await marked(cleanedContent, {
         breaks: true,
         gfm: true,
       });
-      
+
       // Wrap in professional email styling
       const styledHtml = `
         <div style="font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; font-size: 14px; line-height: 1.6; color: #333;">
@@ -1888,7 +1927,7 @@ Format with markdown for readability.`;
           </div>
         </div>
       `;
-      
+
       // Call the Outlook draft creation API
       const response = await fetch('/api/outlook/create-draft', {
         method: 'POST',
@@ -1911,13 +1950,13 @@ Format with markdown for readability.`;
 
       const result = await response.json();
       console.log('✅ Draft created successfully:', result);
-      
+
       alert(`✅ Email draft created successfully in Outlook!
 Recipient: ${recipientEmail}
 Subject: ${subject || 'Draft from Curiosity Engine'}
 
 The draft is now in your Outlook Drafts folder and ready to send.`);
-      
+
       await createActivityLog('email_draft_created', `Email Draft: ${subject || 'Draft from Curiosity Engine'}`, `Draft created for ${recipientEmail}`);
     } catch (error) {
       console.error('❌ Error creating draft:', error);
@@ -1938,7 +1977,7 @@ The draft is now in your Outlook Drafts folder and ready to send.`);
       // This is a simple implementation - can be enhanced with better AI parsing
       const leadName = selectedEvent?.title || 'Unknown Lead';
       const company = selectedEvent?.description || 'Unknown Company';
-      
+
       const response = await fetch('/api/salesforce/enrich-lead', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -2193,7 +2232,7 @@ The draft is now in your Outlook Drafts folder and ready to send.`);
                 className="h-12 w-auto"
               />
             </div>
-            
+
             {/* Account Menu - Far Right */}
             <div className="relative account-menu-container">
               <button
@@ -2210,10 +2249,10 @@ The draft is now in your Outlook Drafts folder and ready to send.`);
                 <div className="w-9 h-9 rounded-full bg-gradient-to-br from-[#F95B14] to-orange-600 flex items-center justify-center text-white font-semibold text-sm">
                   {(userData?.full_name || userData?.email || 'U')[0].toUpperCase()}
                 </div>
-                <svg 
+                <svg
                   className={`w-4 h-4 text-gray-400 transition-transform ${showAccountMenu ? 'rotate-180' : ''}`}
-                  fill="none" 
-                  stroke="currentColor" 
+                  fill="none"
+                  stroke="currentColor"
                   viewBox="0 0 24 24"
                 >
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
@@ -2276,11 +2315,11 @@ The draft is now in your Outlook Drafts folder and ready to send.`);
                         </div>
                       </button>
                     )}
-                    
+
                     <button
                       onClick={() => {
                         setShowAccountMenu(false);
-                        setActiveTab('context');
+                        handleTabChange('context');
                       }}
                       className="w-full px-4 py-3 text-left hover:bg-gray-50 transition-colors flex items-center space-x-3"
                     >
@@ -2316,7 +2355,7 @@ The draft is now in your Outlook Drafts folder and ready to send.`);
             </div>
           </div>
         </div>
-        
+
         {/* Horizontal Navigation Menu - Below Logo/Account */}
         <div className="w-full border-t border-gray-100">
           <div className="w-full px-6">
@@ -2330,12 +2369,11 @@ The draft is now in your Outlook Drafts folder and ready to send.`);
               ].map((tab) => (
                 <button
                   key={tab.id}
-                  onClick={() => setActiveTab(tab.id as any)}
-                  className={`flex items-center gap-2 px-4 py-3 text-sm font-medium transition-all duration-150 border-b-2 ${
-                    activeTab === tab.id
-                      ? 'border-[#F95B14] text-[#F95B14]'
-                      : 'border-transparent text-gray-600 hover:text-gray-900 hover:border-gray-300'
-                  }`}
+                  onClick={() => handleTabChange(tab.id as any)}
+                  className={`flex items-center gap-2 px-4 py-3 text-sm font-medium transition-all duration-150 border-b-2 ${activeTab === tab.id
+                    ? 'border-[#F95B14] text-[#F95B14]'
+                    : 'border-transparent text-gray-600 hover:text-gray-900 hover:border-gray-300'
+                    }`}
                 >
                   {tab.icon}
                   <span>{tab.label}</span>
@@ -2354,94 +2392,92 @@ The draft is now in your Outlook Drafts folder and ready to send.`);
             {/* Chat History Sidebar - Always Visible */}
             <div className="lg:col-span-2 h-full overflow-hidden">
               <div className="bg-white border-r border-gray-100 h-full flex flex-col w-64">
-                  <div className="p-3">
-                    <motion.button
-                      whileHover={{ scale: 1.01, y: -1 }}
-                      whileTap={{ scale: 0.99 }}
-                      onClick={startNewChat}
-                      className="w-full bg-[#F95B14] text-white px-3 py-2.5 rounded-lg hover:bg-orange-600 transition-all duration-200 flex items-center justify-center gap-2 font-medium text-sm shadow-sm hover:shadow"
-                    >
-                      <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
-                      </svg>
+                <div className="p-3">
+                  <motion.button
+                    whileHover={{ scale: 1.01, y: -1 }}
+                    whileTap={{ scale: 0.99 }}
+                    onClick={startNewChat}
+                    className="w-full bg-[#F95B14] text-white px-3 py-2.5 rounded-lg hover:bg-orange-600 transition-all duration-200 flex items-center justify-center gap-2 font-medium text-sm shadow-sm hover:shadow"
+                  >
+                    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
+                    </svg>
                     New chat
                   </motion.button>
                 </div>
 
-                  {/* Chat History Section */}
-                  <div className="flex-1 overflow-hidden flex flex-col">
-                    {/* Section Title - Sticky & Collapsible */}
-                    <div className="sticky top-0 bg-white z-10 px-3 pt-4 pb-2 border-b border-gray-100">
-                      <button
-                        onClick={() => setShowConversations(!showConversations)}
-                        className="w-full flex items-center justify-between group hover:bg-gray-50 rounded-lg px-2 py-1 transition-colors"
+                {/* Chat History Section */}
+                <div className="flex-1 overflow-hidden flex flex-col">
+                  {/* Section Title - Sticky & Collapsible */}
+                  <div className="sticky top-0 bg-white z-10 px-3 pt-4 pb-2 border-b border-gray-100">
+                    <button
+                      onClick={() => setShowConversations(!showConversations)}
+                      className="w-full flex items-center justify-between group hover:bg-gray-50 rounded-lg px-2 py-1 transition-colors"
+                    >
+                      <h3 className="text-xs font-semibold text-gray-500 uppercase tracking-wider">
+                        Conversations
+                      </h3>
+                      <svg
+                        className={`w-4 h-4 text-gray-400 group-hover:text-gray-600 transition-all duration-200 ${showConversations ? '' : '-rotate-90'
+                          }`}
+                        fill="none"
+                        stroke="currentColor"
+                        viewBox="0 0 24 24"
                       >
-                        <h3 className="text-xs font-semibold text-gray-500 uppercase tracking-wider">
-                          Conversations
-                        </h3>
-                        <svg 
-                          className={`w-4 h-4 text-gray-400 group-hover:text-gray-600 transition-all duration-200 ${
-                            showConversations ? '' : '-rotate-90'
-                          }`}
-                          fill="none" 
-                          stroke="currentColor" 
-                          viewBox="0 0 24 24"
-                        >
-                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
-                        </svg>
-                      </button>
-                    </div>
-                    
-                    {/* Scrollable Conversations List */}
-                    {showConversations && (
-                      <div className="flex-1 overflow-y-auto px-2">
-                        {chatHistory.length === 0 && (
-                          <div className="p-8 text-center">
-                            <svg className="w-8 h-8 mx-auto mb-2 text-gray-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z" />
-                            </svg>
-                            <p className="text-xs text-gray-500">No chats yet</p>
-                          </div>
-                        )}
-                        <div className="space-y-0.5 py-2">
-                      {chatHistory.map((chat) => (
-                        <motion.button
-                          key={chat.id}
-                          whileHover={{ x: 2, backgroundColor: 'rgba(249, 250, 251, 1)' }}
-                          whileTap={{ scale: 0.99 }}
-                          onClick={() => loadChat(chat.id)}
-                          className={`w-full text-left px-3 py-3 rounded-lg transition-all duration-150 group relative ${
-                            currentChatId === chat.id 
-                              ? 'bg-gray-100 text-gray-900' 
-                              : 'text-gray-700'
-                          }`}
-                        >
-                          {currentChatId === chat.id && (
-                            <motion.div 
-                              layoutId="activeChatIndicator"
-                              className="absolute left-0 top-1/2 -translate-y-1/2 w-1 h-8 bg-[#F95B14] rounded-r-full"
-                              transition={{ type: "spring", stiffness: 500, damping: 30 }}
-                            />
-                          )}
-                          <div className="flex items-start gap-2.5">
-                            <svg className="w-4 h-4 mt-0.5 flex-shrink-0 text-gray-400 group-hover:text-gray-600 transition-colors" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z" />
-                            </svg>
-                            <div className="flex-1 min-w-0">
-                              <p className="text-sm font-medium truncate">{chat.title}</p>
-                              <p className="text-xs text-gray-400 mt-0.5">
-                                {new Date(chat.updated_at).toLocaleDateString()}
-                              </p>
-                            </div>
-                          </div>
-                        </motion.button>
-                      ))}
-                        </div>
-                      </div>
-                    )}
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+                      </svg>
+                    </button>
                   </div>
+
+                  {/* Scrollable Conversations List */}
+                  {showConversations && (
+                    <div className="flex-1 overflow-y-auto px-2">
+                      {chatHistory.length === 0 && (
+                        <div className="p-8 text-center">
+                          <svg className="w-8 h-8 mx-auto mb-2 text-gray-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z" />
+                          </svg>
+                          <p className="text-xs text-gray-500">No chats yet</p>
+                        </div>
+                      )}
+                      <div className="space-y-0.5 py-2">
+                        {chatHistory.map((chat) => (
+                          <motion.button
+                            key={chat.id}
+                            whileHover={{ x: 2, backgroundColor: 'rgba(249, 250, 251, 1)' }}
+                            whileTap={{ scale: 0.99 }}
+                            onClick={() => loadChat(chat.id)}
+                            className={`w-full text-left px-3 py-3 rounded-lg transition-all duration-150 group relative ${currentChatId === chat.id
+                              ? 'bg-gray-100 text-gray-900'
+                              : 'text-gray-700'
+                              }`}
+                          >
+                            {currentChatId === chat.id && (
+                              <motion.div
+                                layoutId="activeChatIndicator"
+                                className="absolute left-0 top-1/2 -translate-y-1/2 w-1 h-8 bg-[#F95B14] rounded-r-full"
+                                transition={{ type: "spring", stiffness: 500, damping: 30 }}
+                              />
+                            )}
+                            <div className="flex items-start gap-2.5">
+                              <svg className="w-4 h-4 mt-0.5 flex-shrink-0 text-gray-400 group-hover:text-gray-600 transition-colors" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z" />
+                              </svg>
+                              <div className="flex-1 min-w-0">
+                                <p className="text-sm font-medium truncate">{chat.title}</p>
+                                <p className="text-xs text-gray-400 mt-0.5">
+                                  {new Date(chat.updated_at).toLocaleDateString()}
+                                </p>
+                              </div>
+                            </div>
+                          </motion.button>
+                        ))}
+                      </div>
+                    </div>
+                  )}
                 </div>
               </div>
+            </div>
 
             {/* AI Chat - Takes remaining 10 columns */}
             <div className="lg:col-span-10 h-full overflow-hidden flex flex-col relative">
@@ -2466,7 +2502,7 @@ The draft is now in your Outlook Drafts folder and ready to send.`);
                         <h2 className="text-2xl font-semibold text-gray-900 mb-2">What can I help you with?</h2>
                         <p className="text-sm text-gray-600">Choose a prompt or type your own message below</p>
                       </div>
-                      
+
                       {/* Sample Prompt Cards */}
                       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                         {/* Calendar Prompt */}
@@ -2613,9 +2649,8 @@ The draft is now in your Outlook Drafts folder and ready to send.`);
 
                   {chatMessages.map((msg, idx) => (
                     <div key={idx} className={`flex ${msg.role === 'user' ? 'justify-end' : 'justify-start'}`}>
-                      <div className={`max-w-[80%] ${
-                        msg.role === 'user' ? '' : 'space-y-2'
-                      }`}>
+                      <div className={`max-w-[80%] ${msg.role === 'user' ? '' : 'space-y-2'
+                        }`}>
                         {/* Thinking Section - Show AI processing steps */}
                         {msg.role === 'assistant' && msg.thinking && (
                           <div className="mb-3">
@@ -2632,7 +2667,7 @@ The draft is now in your Outlook Drafts folder and ready to send.`);
                                   </div>
                                   <button
                                     onClick={() => {
-                                      setChatMessages(prev => prev.map((m, i) => 
+                                      setChatMessages(prev => prev.map((m, i) =>
                                         i === idx ? { ...m, showThinking: false } : m
                                       ));
                                     }}
@@ -2658,7 +2693,7 @@ The draft is now in your Outlook Drafts folder and ready to send.`);
                                       .replace(/✅ Complete:.*Found (\d+) results/i, '✅ Found $1 relevant results')
                                       .replace(/✅ Complete:.*Error/i, '⚠️ Encountered an issue, adjusting approach...')
                                       .replace(/✅ Tool result:/i, '✅ Retrieved information:');
-                                    
+
                                     return <div key={i} className="pl-2">{naturalLine}</div>;
                                   })}
                                 </div>
@@ -2667,7 +2702,7 @@ The draft is now in your Outlook Drafts folder and ready to send.`);
                             {!msg.showThinking && (
                               <button
                                 onClick={() => {
-                                  setChatMessages(prev => prev.map((m, i) => 
+                                  setChatMessages(prev => prev.map((m, i) =>
                                     i === idx ? { ...m, showThinking: !m.showThinking } : m
                                   ));
                                 }}
@@ -2684,78 +2719,77 @@ The draft is now in your Outlook Drafts folder and ready to send.`);
                             )}
                           </div>
                         )}
-                        
-                        <div className={`rounded-lg px-4 py-2 overflow-hidden ${
-                        msg.role === 'user' 
-                          ? 'bg-[#F95B14] text-white' 
+
+                        <div className={`rounded-lg px-4 py-2 overflow-hidden ${msg.role === 'user'
+                          ? 'bg-[#F95B14] text-white'
                           : 'bg-gray-100 text-gray-900'
-                      }`} style={{ wordBreak: 'break-word', overflowWrap: 'break-word' }}>
-                        <div className="text-sm prose prose-sm max-w-none break-words overflow-wrap-anywhere prose-headings:font-bold prose-headings:text-gray-900 prose-h1:text-base prose-h2:text-base prose-h3:text-sm prose-headings:mt-3 prose-headings:mb-2 prose-p:my-2 prose-p:leading-relaxed prose-ul:my-2 prose-ul:space-y-1 prose-li:my-0.5 prose-strong:text-gray-900 prose-strong:font-semibold prose-code:text-xs prose-code:bg-gray-200 prose-code:px-1 prose-code:py-0.5 prose-code:rounded prose-code:break-all prose-pre:bg-gray-800 prose-pre:text-gray-100 prose-pre:p-3 prose-pre:rounded-lg prose-pre:overflow-x-auto prose-pre:max-w-full">
-                          <ReactMarkdown 
-                            remarkPlugins={[remarkGfm]}
-                            className="break-words"
-                            components={{
-                              code: ({node, inline, ...props}) => 
-                                inline ? 
-                                  <code className="bg-gray-200 px-1.5 py-0.5 rounded text-xs" style={{wordBreak: 'break-word'}} {...props} /> : 
-                                  <code {...props} />,
-                              pre: ({node, children, ...props}) => (
-                                <div className="my-3 rounded-lg overflow-hidden border border-gray-300 max-w-full">
-                                  <div className="bg-gray-800 px-3 py-2 flex items-center justify-between">
-                                    <span className="text-xs text-gray-400">Code</span>
-                                    <button
-                                      onClick={() => {
-                                        const codeText = node?.children?.[0]?.children?.[0]?.value || '';
-                                        navigator.clipboard.writeText(codeText);
-                                      }}
-                                      className="text-xs text-gray-400 hover:text-white transition-colors px-2 py-1 rounded hover:bg-gray-700"
-                                    >
-                                      Copy
-                                    </button>
+                          }`} style={{ wordBreak: 'break-word', overflowWrap: 'break-word' }}>
+                          <div className="text-sm prose prose-sm max-w-none break-words overflow-wrap-anywhere prose-headings:font-bold prose-headings:text-gray-900 prose-h1:text-base prose-h2:text-base prose-h3:text-sm prose-headings:mt-3 prose-headings:mb-2 prose-p:my-2 prose-p:leading-relaxed prose-ul:my-2 prose-ul:space-y-1 prose-li:my-0.5 prose-strong:text-gray-900 prose-strong:font-semibold prose-code:text-xs prose-code:bg-gray-200 prose-code:px-1 prose-code:py-0.5 prose-code:rounded prose-code:break-all prose-pre:bg-gray-800 prose-pre:text-gray-100 prose-pre:p-3 prose-pre:rounded-lg prose-pre:overflow-x-auto prose-pre:max-w-full">
+                            <ReactMarkdown
+                              remarkPlugins={[remarkGfm]}
+                              className="break-words"
+                              components={{
+                                code: ({ node, inline, ...props }) =>
+                                  inline ?
+                                    <code className="bg-gray-200 px-1.5 py-0.5 rounded text-xs" style={{ wordBreak: 'break-word' }} {...props} /> :
+                                    <code {...props} />,
+                                pre: ({ node, children, ...props }) => (
+                                  <div className="my-3 rounded-lg overflow-hidden border border-gray-300 max-w-full">
+                                    <div className="bg-gray-800 px-3 py-2 flex items-center justify-between">
+                                      <span className="text-xs text-gray-400">Code</span>
+                                      <button
+                                        onClick={() => {
+                                          const codeText = node?.children?.[0]?.children?.[0]?.value || '';
+                                          navigator.clipboard.writeText(codeText);
+                                        }}
+                                        className="text-xs text-gray-400 hover:text-white transition-colors px-2 py-1 rounded hover:bg-gray-700"
+                                      >
+                                        Copy
+                                      </button>
+                                    </div>
+                                    <pre className="bg-gray-900 text-gray-100 p-4 overflow-x-auto text-xs max-w-full" style={{ margin: 0 }} {...props}>{children}</pre>
                                   </div>
-                                  <pre className="bg-gray-900 text-gray-100 p-4 overflow-x-auto text-xs max-w-full" style={{margin: 0}} {...props}>{children}</pre>
-                                </div>
-                              ),
-                              h1: ({node, ...props}) => <h1 className="text-base font-bold text-gray-900 mt-3 mb-2" {...props} />,
-                              h2: ({node, ...props}) => <h2 className="text-base font-bold text-gray-900 mt-3 mb-2" {...props} />,
-                              h3: ({node, ...props}) => <h3 className="text-sm font-bold text-gray-900 mt-3 mb-2" {...props} />,
-                              p: ({node, ...props}) => <p className="my-2 leading-relaxed" {...props} />,
-                              ul: ({node, ...props}) => <ul className="my-2 space-y-1.5 list-none pl-0" {...props} />,
-                              ol: ({node, ...props}) => <ol className="my-2 space-y-1.5 pl-6 list-decimal" {...props} />,
-                              a: ({node, href, children, ...props}) => (
-                                <a 
-                                  href={href} 
-                                  target="_blank" 
-                                  rel="noopener noreferrer"
-                                  className="text-blue-600 hover:text-blue-800 underline hover:no-underline transition-colors font-medium break-all"
-                                  {...props}
-                                >
-                                  {children}
-                                </a>
-                              ),
-                              li: ({node, children, ...props}) => {
-                                const isOrdered = props.className?.includes('task-list-item') === false;
-                                return (
-                                  <li className="my-1 flex items-start gap-2" {...props}>
-                                    {!isOrdered && <span className="text-orange-500 flex-shrink-0 leading-relaxed mt-0.5">•</span>}
-                                    <span className="flex-1 leading-relaxed">{children}</span>
-                                  </li>
-                                );
-                              },
-                              strong: ({node, ...props}) => <strong className="font-semibold text-gray-900" {...props} />,
-                            }}
-                          >
-                            {msg.content}
-                          </ReactMarkdown>
-                        </div>
-                        <div className="flex items-center justify-between text-xs opacity-70 mt-1">
-                          <span>{new Date(msg.timestamp).toLocaleTimeString()}</span>
-                          {msg.role === 'assistant' && msg.model && (
-                            <span className="text-[10px] bg-blue-100 text-blue-700 px-2 py-0.5 rounded ml-2">
-                              {availableModels.find(m => m.id === msg.model)?.name || msg.model}
-                            </span>
-                          )}
-                        </div>
+                                ),
+                                h1: ({ node, ...props }) => <h1 className="text-base font-bold text-gray-900 mt-3 mb-2" {...props} />,
+                                h2: ({ node, ...props }) => <h2 className="text-base font-bold text-gray-900 mt-3 mb-2" {...props} />,
+                                h3: ({ node, ...props }) => <h3 className="text-sm font-bold text-gray-900 mt-3 mb-2" {...props} />,
+                                p: ({ node, ...props }) => <p className="my-2 leading-relaxed" {...props} />,
+                                ul: ({ node, ...props }) => <ul className="my-2 space-y-1.5 list-none pl-0" {...props} />,
+                                ol: ({ node, ...props }) => <ol className="my-2 space-y-1.5 pl-6 list-decimal" {...props} />,
+                                a: ({ node, href, children, ...props }) => (
+                                  <a
+                                    href={href}
+                                    target="_blank"
+                                    rel="noopener noreferrer"
+                                    className="text-blue-600 hover:text-blue-800 underline hover:no-underline transition-colors font-medium break-all"
+                                    {...props}
+                                  >
+                                    {children}
+                                  </a>
+                                ),
+                                li: ({ node, children, ...props }) => {
+                                  const isOrdered = props.className?.includes('task-list-item') === false;
+                                  return (
+                                    <li className="my-1 flex items-start gap-2" {...props}>
+                                      {!isOrdered && <span className="text-orange-500 flex-shrink-0 leading-relaxed mt-0.5">•</span>}
+                                      <span className="flex-1 leading-relaxed">{children}</span>
+                                    </li>
+                                  );
+                                },
+                                strong: ({ node, ...props }) => <strong className="font-semibold text-gray-900" {...props} />,
+                              }}
+                            >
+                              {msg.content}
+                            </ReactMarkdown>
+                          </div>
+                          <div className="flex items-center justify-between text-xs opacity-70 mt-1">
+                            <span>{new Date(msg.timestamp).toLocaleTimeString()}</span>
+                            {msg.role === 'assistant' && msg.model && (
+                              <span className="text-[10px] bg-blue-100 text-blue-700 px-2 py-0.5 rounded ml-2">
+                                {availableModels.find(m => m.id === msg.model)?.name || msg.model}
+                              </span>
+                            )}
+                          </div>
                         </div>
                         {/* Action buttons for assistant messages */}
                         {msg.role === 'assistant' && (
@@ -2768,10 +2802,10 @@ The draft is now in your Outlook Drafts folder and ready to send.`);
                                   className="w-10 h-10 rounded-full bg-white border-2 border-gray-200 flex items-center justify-center cursor-pointer hover:border-[#F95B14] hover:shadow-md transition-all"
                                 >
                                   <svg className="w-5 h-5" viewBox="0 0 23 23" xmlns="http://www.w3.org/2000/svg">
-                                    <path fill="#f35325" d="M1 1h10v10H1z"/>
-                                    <path fill="#81bc06" d="M12 1h10v10H12z"/>
-                                    <path fill="#05a6f0" d="M1 12h10v10H1z"/>
-                                    <path fill="#ffba08" d="M12 12h10v10H12z"/>
+                                    <path fill="#f35325" d="M1 1h10v10H1z" />
+                                    <path fill="#81bc06" d="M12 1h10v10H12z" />
+                                    <path fill="#05a6f0" d="M1 12h10v10H1z" />
+                                    <path fill="#ffba08" d="M12 12h10v10H12z" />
                                   </svg>
                                 </button>
                                 {/* Hover tooltip - positioned to the right */}
@@ -2834,12 +2868,12 @@ The draft is now in your Outlook Drafts folder and ready to send.`);
                       {modelSwitchNotification}
                     </div>
                   )}
-                  
+
                   {/* Model Selector - Custom Dropdown */}
                   <div className="mb-3 flex items-center justify-between">
                     <div className="flex items-center space-x-2 flex-1">
                       <label className="text-xs font-medium text-gray-600">AI Model:</label>
-                      
+
                       {/* Custom Dropdown */}
                       <div className="relative flex-1 max-w-md model-dropdown-container">
                         <button
@@ -2858,10 +2892,10 @@ The draft is now in your Outlook Drafts folder and ready to send.`);
                               {availableModels.find(m => m.id === selectedModel)?.description}
                             </span>
                           </div>
-                          <svg 
-                            className={`w-4 h-4 text-gray-400 transition-transform ${showModelDropdown ? 'rotate-180' : ''}`} 
-                            fill="none" 
-                            stroke="currentColor" 
+                          <svg
+                            className={`w-4 h-4 text-gray-400 transition-transform ${showModelDropdown ? 'rotate-180' : ''}`}
+                            fill="none"
+                            stroke="currentColor"
                             viewBox="0 0 24 24"
                           >
                             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
@@ -2881,16 +2915,14 @@ The draft is now in your Outlook Drafts folder and ready to send.`);
                                   setTimeout(() => setModelSwitchNotification(''), 3000);
                                   console.log('🔄 Model switched to:', model.id);
                                 }}
-                                className={`w-full text-left px-4 py-3 hover:bg-gray-50 transition-colors border-b border-gray-100 last:border-b-0 ${
-                                  selectedModel === model.id ? 'bg-orange-50' : ''
-                                }`}
+                                className={`w-full text-left px-4 py-3 hover:bg-gray-50 transition-colors border-b border-gray-100 last:border-b-0 ${selectedModel === model.id ? 'bg-orange-50' : ''
+                                  }`}
                               >
                                 <div className="flex items-start justify-between">
                                   <div className="flex-1">
                                     <div className="flex items-center space-x-2 mb-1">
-                                      <span className={`text-sm font-semibold ${
-                                        selectedModel === model.id ? 'text-[#F95B14]' : 'text-gray-900'
-                                      }`}>
+                                      <span className={`text-sm font-semibold ${selectedModel === model.id ? 'text-[#F95B14]' : 'text-gray-900'
+                                        }`}>
                                         {model.name}
                                       </span>
                                       {selectedModel === model.id && (
@@ -3023,57 +3055,55 @@ The draft is now in your Outlook Drafts folder and ready to send.`);
 
                   {calendarEvents.map((event, index) => (
                     <div key={event.id} className="relative" style={{ zIndex: calendarEvents.length - index }}>
-                      <div 
+                      <div
                         className="border border-gray-200 rounded-lg p-3 hover:border-[#F95B14] hover:bg-orange-50 transition-all cursor-pointer group"
                         onClick={(e) => handleCalendarEventClick(event, e)}
                       >
-                      <div className="flex items-start justify-between">
-                        <div className="flex-1">
+                        <div className="flex items-start justify-between">
+                          <div className="flex-1">
                             <div className="flex items-center gap-2">
-                          <h3 className="font-medium text-gray-900 text-sm">{event.title}</h3>
+                              <h3 className="font-medium text-gray-900 text-sm">{event.title}</h3>
                               <span className="text-xs text-gray-400 group-hover:text-[#F95B14] transition-colors">
                                 ⚡ Actions
                               </span>
                             </div>
-                          <p className="text-xs text-gray-600 mt-1">
-                            {new Date(event.start).toLocaleString('en-US', {
-                              month: 'short',
-                              day: 'numeric',
-                              hour: 'numeric',
-                              minute: '2-digit',
-                              hour12: true,
-                              timeZone: Intl.DateTimeFormat().resolvedOptions().timeZone
-                            })}
-                          </p>
-                          {event.description && event.description.trim() && (
-                            <p className="text-xs text-gray-500 mt-1 overflow-hidden max-w-full break-words" style={{
-                              display: '-webkit-box',
-                              WebkitLineClamp: 2,
-                              WebkitBoxOrient: 'vertical' as any,
-                              textOverflow: 'ellipsis',
-                              wordBreak: 'break-word',
-                              overflowWrap: 'break-word'
-                            }}>
-                              {event.description.replace(/\.{3,}/g, '...').trim()}
+                            <p className="text-xs text-gray-600 mt-1">
+                              {new Date(event.start).toLocaleString('en-US', {
+                                month: 'short',
+                                day: 'numeric',
+                                hour: 'numeric',
+                                minute: '2-digit',
+                                hour12: true,
+                                timeZone: Intl.DateTimeFormat().resolvedOptions().timeZone
+                              })}
                             </p>
-                          )}
+                            {event.description && event.description.trim() && (
+                              <p className="text-xs text-gray-500 mt-1 overflow-hidden max-w-full break-words" style={{
+                                display: '-webkit-box',
+                                WebkitLineClamp: 2,
+                                WebkitBoxOrient: 'vertical' as any,
+                                textOverflow: 'ellipsis',
+                                wordBreak: 'break-word',
+                                overflowWrap: 'break-word'
+                              }}>
+                                {event.description.replace(/\.{3,}/g, '...').trim()}
+                              </p>
+                            )}
+                          </div>
+                          <span className={`text-xs px-2 py-1 rounded-full ${event.type === 'meeting' ? 'bg-blue-100 text-blue-800' :
+                            event.type === 'demo' ? 'bg-green-100 text-green-800' :
+                              'bg-purple-100 text-purple-800'
+                            }`}>
+                            {event.type || 'event'}
+                          </span>
                         </div>
-                        <span className={`text-xs px-2 py-1 rounded-full ${
-                          event.type === 'meeting' ? 'bg-blue-100 text-blue-800' :
-                          event.type === 'demo' ? 'bg-green-100 text-green-800' :
-                          'bg-purple-100 text-purple-800'
-                        }`}>
-                          {event.type || 'event'}
-                        </span>
                       </div>
-                      </div>
-                      
+
                       {/* Dropdown Menu - appears below for first 2 items, above for last items */}
                       {showEventMenu && selectedEvent?.id === event.id && (
-                        <div 
-                          className={`absolute left-0 w-full bg-white border border-gray-200 rounded-lg shadow-lg z-50 ${
-                            index <= 1 ? 'top-full mt-1' : 'bottom-full mb-1'
-                          }`}
+                        <div
+                          className={`absolute left-0 w-full bg-white border border-gray-200 rounded-lg shadow-lg z-50 ${index <= 1 ? 'top-full mt-1' : 'bottom-full mb-1'
+                            }`}
                           onClick={(e) => e.stopPropagation()}
                         >
                           <button
@@ -3129,9 +3159,8 @@ The draft is now in your Outlook Drafts folder and ready to send.`);
                     <div
                       key={lead.id}
                       onClick={() => setSelectedLead(lead)}
-                      className={`p-4 cursor-pointer transition-colors ${
-                        selectedLead?.id === lead.id ? 'bg-orange-50 border-l-4 border-[#F95B14]' : 'hover:bg-gray-50'
-                      }`}
+                      className={`p-4 cursor-pointer transition-colors ${selectedLead?.id === lead.id ? 'bg-orange-50 border-l-4 border-[#F95B14]' : 'hover:bg-gray-50'
+                        }`}
                     >
                       <h3 className="font-medium text-gray-900">{lead.profile_name || 'Unknown Profile'}</h3>
                       <p className="text-xs text-gray-600 mt-1">
@@ -3150,9 +3179,9 @@ The draft is now in your Outlook Drafts folder and ready to send.`);
                   <>
                     <div className="p-6 border-b border-gray-200">
                       <h2 className="text-2xl font-bold text-gray-900">{selectedLead.profile_name || 'Unknown Profile'}</h2>
-                      <a 
-                        href={selectedLead.linkedin_url} 
-                        target="_blank" 
+                      <a
+                        href={selectedLead.linkedin_url}
+                        target="_blank"
                         rel="noopener noreferrer"
                         className="text-sm text-blue-600 hover:underline mt-1 inline-block"
                       >
@@ -3162,7 +3191,7 @@ The draft is now in your Outlook Drafts folder and ready to send.`);
 
                     <div className="p-6">
                       <h3 className="text-lg font-semibold text-gray-900 mb-4">AI Analysis</h3>
-                      <div 
+                      <div
                         className="prose prose-sm max-w-none"
                         dangerouslySetInnerHTML={{ __html: selectedLead.ai_analysis || 'No analysis available yet' }}
                       />
@@ -3191,11 +3220,10 @@ The draft is now in your Outlook Drafts folder and ready to send.`);
                 {/* Profile Section */}
                 <button
                   onClick={() => setSettingsSubTab('profile')}
-                  className={`w-full flex items-center gap-3 px-4 py-3 text-left rounded-lg transition-all ${
-                    settingsSubTab === 'profile'
-                      ? 'bg-blue-50 text-blue-700 font-medium'
-                      : 'text-gray-700 hover:bg-gray-50'
-                  }`}
+                  className={`w-full flex items-center gap-3 px-4 py-3 text-left rounded-lg transition-all ${settingsSubTab === 'profile'
+                    ? 'bg-blue-50 text-blue-700 font-medium'
+                    : 'text-gray-700 hover:bg-gray-50'
+                    }`}
                 >
                   <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
@@ -3210,31 +3238,29 @@ The draft is now in your Outlook Drafts folder and ready to send.`);
                       <h3 className="text-xs font-semibold text-gray-500 uppercase tracking-wider">
                         Organization
                       </h3>
-                  </div>
+                    </div>
 
                     {/* Team Management */}
-                  <button
+                    <button
                       onClick={() => setSettingsSubTab('team')}
-                      className={`w-full flex items-center gap-3 px-4 py-3 text-left rounded-lg transition-all ${
-                        settingsSubTab === 'team'
-                          ? 'bg-blue-50 text-blue-700 font-medium'
-                          : 'text-gray-700 hover:bg-gray-50'
-                      }`}
+                      className={`w-full flex items-center gap-3 px-4 py-3 text-left rounded-lg transition-all ${settingsSubTab === 'team'
+                        ? 'bg-blue-50 text-blue-700 font-medium'
+                        : 'text-gray-700 hover:bg-gray-50'
+                        }`}
                     >
                       <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z" />
                       </svg>
                       <span>Users</span>
-                  </button>
+                    </button>
 
                     {/* Knowledge Base */}
                     <button
                       onClick={() => setSettingsSubTab('knowledge')}
-                      className={`w-full flex items-center gap-3 px-4 py-3 text-left rounded-lg transition-all ${
-                        settingsSubTab === 'knowledge'
-                          ? 'bg-blue-50 text-blue-700 font-medium'
-                          : 'text-gray-700 hover:bg-gray-50'
-                      }`}
+                      className={`w-full flex items-center gap-3 px-4 py-3 text-left rounded-lg transition-all ${settingsSubTab === 'knowledge'
+                        ? 'bg-blue-50 text-blue-700 font-medium'
+                        : 'text-gray-700 hover:bg-gray-50'
+                        }`}
                     >
                       <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253" />
@@ -3244,7 +3270,7 @@ The draft is now in your Outlook Drafts folder and ready to send.`);
                   </>
                 )}
               </nav>
-              </div>
+            </div>
 
             {/* Right Content Area */}
             <div className="flex-1 overflow-y-auto">
@@ -3256,43 +3282,43 @@ The draft is now in your Outlook Drafts folder and ready to send.`);
                     userContext={userData?.user_context || { aboutMe: '', objectives: '' }}
                     onSaveProfile={saveProfileData}
                     onSaveContext={async (context) => {
-                  try {
-                    console.log('💾 Saving context...', context);
-                    
-                    if (!session?.user?.email) {
-                      alert('No session found. Please refresh and try again.');
-                      return;
-                    }
+                      try {
+                        console.log('💾 Saving context...', context);
 
-                    console.log('🔑 Using NextAuth session for:', session.user.email);
+                        if (!session?.user?.email) {
+                          alert('No session found. Please refresh and try again.');
+                          return;
+                        }
 
-                    const response = await fetch('/api/user/context', {
-                      method: 'PUT',
-                      headers: {
-                        'Content-Type': 'application/json',
-                      },
+                        console.log('🔑 Using NextAuth session for:', session.user.email);
+
+                        const response = await fetch('/api/user/context', {
+                          method: 'PUT',
+                          headers: {
+                            'Content-Type': 'application/json',
+                          },
                           credentials: 'include',
-                      body: JSON.stringify({ userContext: context }),
-                    });
+                          body: JSON.stringify({ userContext: context }),
+                        });
 
-                    console.log('📡 Response status:', response.status);
-                    const data = await response.json();
-                    console.log('📡 Response data:', data);
+                        console.log('📡 Response status:', response.status);
+                        const data = await response.json();
+                        console.log('📡 Response data:', data);
 
-                    if (response.ok) {
-                      alert('✅ Context saved successfully!');
-                      if (userData) {
-                        setUserData({ ...userData, user_context: context });
+                        if (response.ok) {
+                          alert('✅ Context saved successfully!');
+                          if (userData) {
+                            setUserData({ ...userData, user_context: context });
+                          }
+                        } else {
+                          alert(`❌ Error saving: ${data.error || 'Unknown error'}`);
+                        }
+                      } catch (error) {
+                        console.error('❌ Error saving context:', error);
+                        alert(`❌ Error: ${error instanceof Error ? error.message : 'Unknown error'}`);
                       }
-                    } else {
-                      alert(`❌ Error saving: ${data.error || 'Unknown error'}`);
-                    }
-                  } catch (error) {
-                    console.error('❌ Error saving context:', error);
-                    alert(`❌ Error: ${error instanceof Error ? error.message : 'Unknown error'}`);
-                  }
-                }}
-              />
+                    }}
+                  />
                 )}
 
                 {/* Team Tab */}
@@ -3312,8 +3338,8 @@ The draft is now in your Outlook Drafts folder and ready to send.`);
                     uploadMessage={uploadMessage}
                     uploadMessageType={uploadMessageType}
                   />
-                    )}
-                  </div>
+                )}
+              </div>
             </div>
           </div>
         )}
@@ -3337,7 +3363,7 @@ The draft is now in your Outlook Drafts folder and ready to send.`);
                 Connect your CRM, email, and calendar tools. Our AI agents will automatically sync data, create drafts, and schedule meetings across all your platforms.
               </p>
             </div>
-            
+
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
               {/* Salesforce */}
               <div className="rounded-2xl border border-gray-200 bg-white p-6 hover:shadow-lg transition-all hover:border-gray-300 relative group">
@@ -3354,12 +3380,12 @@ The draft is now in your Outlook Drafts folder and ready to send.`);
                     <path strokeLinecap="round" strokeLinejoin="round" d="M12 18v-5.25m0 0a6.01 6.01 0 001.5-.189m-1.5.189a6.01 6.01 0 01-1.5-.189m3.75 7.478a12.06 12.06 0 01-4.5 0m3.75 2.383a14.406 14.406 0 01-3 0M14.25 18v-.192c0-.983.658-1.823 1.508-2.316a7.5 7.5 0 10-7.517 0c.85.493 1.509 1.333 1.509 2.316V18" />
                   </svg>
                 </button>
-                
+
                 <div>
                   <div className="flex items-center gap-4 mb-6">
-                    <Image 
-                      src="/salesforcelogo.svg" 
-                      alt="Salesforce" 
+                    <Image
+                      src="/salesforcelogo.svg"
+                      alt="Salesforce"
                       width={40}
                       height={40}
                       className="w-10 h-10"
@@ -3420,12 +3446,12 @@ The draft is now in your Outlook Drafts folder and ready to send.`);
                     <path strokeLinecap="round" strokeLinejoin="round" d="M12 18v-5.25m0 0a6.01 6.01 0 001.5-.189m-1.5.189a6.01 6.01 0 01-1.5-.189m3.75 7.478a12.06 12.06 0 01-4.5 0m3.75 2.383a14.406 14.406 0 01-3 0M14.25 18v-.192c0-.983.658-1.823 1.508-2.316a7.5 7.5 0 10-7.517 0c.85.493 1.509 1.333 1.509 2.316V18" />
                   </svg>
                 </button>
-                
+
                 <div>
                   <div className="flex items-center gap-4 mb-6">
                     <div className="w-10 h-10 bg-blue-600 rounded-lg flex items-center justify-center">
                       <svg className="w-6 h-6 text-white" fill="currentColor" viewBox="0 0 24 24">
-                        <path d="M20.447 20.452h-3.554v-5.569c0-1.328-.027-3.037-1.852-3.037-1.853 0-2.136 1.445-2.136 2.939v5.667H9.351V9h3.414v1.561h.046c.477-.9 1.637-1.85 3.37-1.85 3.601 0 4.267 2.37 4.267 5.455v6.286zM5.337 7.433c-1.144 0-2.063-.926-2.063-2.065 0-1.138.92-2.063 2.063-2.063 1.14 0 2.064.925 2.064 2.063 0 1.139-.925 2.065-2.064 2.065zm1.782 13.019H3.555V9h3.564v11.452zM22.225 0H1.771C.792 0 0 .774 0 1.729v20.542C0 23.227.792 24 1.771 24h20.451C23.2 24 24 23.227 24 22.271V1.729C24 .774 23.2 0 22.222 0h.003z"/>
+                        <path d="M20.447 20.452h-3.554v-5.569c0-1.328-.027-3.037-1.852-3.037-1.853 0-2.136 1.445-2.136 2.939v5.667H9.351V9h3.414v1.561h.046c.477-.9 1.637-1.85 3.37-1.85 3.601 0 4.267 2.37 4.267 5.455v6.286zM5.337 7.433c-1.144 0-2.063-.926-2.063-2.065 0-1.138.92-2.063 2.063-2.063 1.14 0 2.064.925 2.064 2.063 0 1.139-.925 2.065-2.064 2.065zm1.782 13.019H3.555V9h3.564v11.452zM22.225 0H1.771C.792 0 0 .774 0 1.729v20.542C0 23.227.792 24 1.771 24h20.451C23.2 24 24 23.227 24 22.271V1.729C24 .774 23.2 0 22.222 0h.003z" />
                       </svg>
                     </div>
                     <div className="flex-1">
@@ -3495,12 +3521,12 @@ The draft is now in your Outlook Drafts folder and ready to send.`);
                     <path strokeLinecap="round" strokeLinejoin="round" d="M12 18v-5.25m0 0a6.01 6.01 0 001.5-.189m-1.5.189a6.01 6.01 0 01-1.5-.189m3.75 7.478a12.06 12.06 0 01-4.5 0m3.75 2.383a14.406 14.406 0 01-3 0M14.25 18v-.192c0-.983.658-1.823 1.508-2.316a7.5 7.5 0 10-7.517 0c.85.493 1.509 1.333 1.509 2.316V18" />
                   </svg>
                 </button>
-                
+
                 <div>
                   <div className="flex items-center gap-4 mb-6">
-                    <Image 
-                      src="/Gmail Icon.svg" 
-                      alt="Google Workspace" 
+                    <Image
+                      src="/Gmail Icon.svg"
+                      alt="Google Workspace"
                       width={40}
                       height={40}
                       className="w-10 h-10"
@@ -3553,11 +3579,10 @@ The draft is now in your Outlook Drafts folder and ready to send.`);
                             connectToGoogle().catch(err => console.error('Error:', err));
                           }}
                           disabled={connectedEmailProvider === 'microsoft'}
-                          className={`px-4 py-2 text-sm font-medium rounded-lg transition-colors ${
-                            connectedEmailProvider === 'microsoft'
-                              ? 'text-gray-400 bg-gray-100 cursor-not-allowed'
-                              : 'text-white bg-[#F95B14] hover:bg-orange-600'
-                          }`}
+                          className={`px-4 py-2 text-sm font-medium rounded-lg transition-colors ${connectedEmailProvider === 'microsoft'
+                            ? 'text-gray-400 bg-gray-100 cursor-not-allowed'
+                            : 'text-white bg-[#F95B14] hover:bg-orange-600'
+                            }`}
                         >
                           Connect
                         </button>
@@ -3581,12 +3606,12 @@ The draft is now in your Outlook Drafts folder and ready to send.`);
                     <path strokeLinecap="round" strokeLinejoin="round" d="M12 18v-5.25m0 0a6.01 6.01 0 001.5-.189m-1.5.189a6.01 6.01 0 01-1.5-.189m3.75 7.478a12.06 12.06 0 01-4.5 0m3.75 2.383a14.406 14.406 0 01-3 0M14.25 18v-.192c0-.983.658-1.823 1.508-2.316a7.5 7.5 0 10-7.517 0c.85.493 1.509 1.333 1.509 2.316V18" />
                   </svg>
                 </button>
-                
+
                 <div>
                   <div className="flex items-center gap-4 mb-6">
-                    <Image 
-                      src="/Outlook_icon.svg" 
-                      alt="Outlook" 
+                    <Image
+                      src="/Outlook_icon.svg"
+                      alt="Outlook"
                       width={40}
                       height={40}
                       className="w-10 h-10"
@@ -3640,11 +3665,10 @@ The draft is now in your Outlook Drafts folder and ready to send.`);
                             connectToOutlook().catch(err => console.error('🔴 Button click error:', err));
                           }}
                           disabled={connectedEmailProvider === 'google'}
-                          className={`px-4 py-2 text-sm font-medium rounded-lg transition-colors ${
-                            connectedEmailProvider === 'google'
-                              ? 'text-gray-400 bg-gray-100 cursor-not-allowed'
-                              : 'text-white bg-[#F95B14] hover:bg-orange-600'
-                          }`}
+                          className={`px-4 py-2 text-sm font-medium rounded-lg transition-colors ${connectedEmailProvider === 'google'
+                            ? 'text-gray-400 bg-gray-100 cursor-not-allowed'
+                            : 'text-white bg-[#F95B14] hover:bg-orange-600'
+                            }`}
                         >
                           Connect
                         </button>
@@ -3672,7 +3696,7 @@ The draft is now in your Outlook Drafts folder and ready to send.`);
                   <div className="flex items-center gap-4 mb-6">
                     <div className="w-10 h-10 bg-gradient-to-br from-pink-500 to-orange-500 rounded-lg flex items-center justify-center">
                       <svg className="w-6 h-6 text-white" fill="currentColor" viewBox="0 0 24 24">
-                        <path d="M12 0C5.373 0 0 5.373 0 12s5.373 12 12 12 12-5.373 12-12S18.627 0 12 0zm0 2c5.523 0 10 4.477 10 10s-4.477 10-10 10S2 17.523 2 12 6.477 2 12 2zm0 3a1.5 1.5 0 100 3 1.5 1.5 0 000-3zm-4 0a1.5 1.5 0 100 3 1.5 1.5 0 000-3zm8 0a1.5 1.5 0 100 3 1.5 1.5 0 000-3zM12 9a1.5 1.5 0 100 3 1.5 1.5 0 000-3zm-4 0a1.5 1.5 0 100 3 1.5 1.5 0 000-3zm8 0a1.5 1.5 0 100 3 1.5 1.5 0 000-3zm-4 7a1.5 1.5 0 100 3 1.5 1.5 0 000-3zm-4 0a1.5 1.5 0 100 3 1.5 1.5 0 000-3zm8 0a1.5 1.5 0 100 3 1.5 1.5 0 000-3z"/>
+                        <path d="M12 0C5.373 0 0 5.373 0 12s5.373 12 12 12 12-5.373 12-12S18.627 0 12 0zm0 2c5.523 0 10 4.477 10 10s-4.477 10-10 10S2 17.523 2 12 6.477 2 12 2zm0 3a1.5 1.5 0 100 3 1.5 1.5 0 000-3zm-4 0a1.5 1.5 0 100 3 1.5 1.5 0 000-3zm8 0a1.5 1.5 0 100 3 1.5 1.5 0 000-3zM12 9a1.5 1.5 0 100 3 1.5 1.5 0 000-3zm-4 0a1.5 1.5 0 100 3 1.5 1.5 0 000-3zm8 0a1.5 1.5 0 100 3 1.5 1.5 0 000-3zm-4 7a1.5 1.5 0 100 3 1.5 1.5 0 000-3zm-4 0a1.5 1.5 0 100 3 1.5 1.5 0 000-3zm8 0a1.5 1.5 0 100 3 1.5 1.5 0 000-3z" />
                       </svg>
                     </div>
                     <div className="flex-1">
@@ -3731,12 +3755,12 @@ The draft is now in your Outlook Drafts folder and ready to send.`);
                     <path strokeLinecap="round" strokeLinejoin="round" d="M12 18v-5.25m0 0a6.01 6.01 0 001.5-.189m-1.5.189a6.01 6.01 0 01-1.5-.189m3.75 7.478a12.06 12.06 0 01-4.5 0m3.75 2.383a14.406 14.406 0 01-3 0M14.25 18v-.192c0-.983.658-1.823 1.508-2.316a7.5 7.5 0 10-7.517 0c.85.493 1.509 1.333 1.509 2.316V18" />
                   </svg>
                 </button>
-                
+
                 <div>
                   <div className="flex items-center gap-4 mb-6">
-                    <Image 
-                      src="/hubspot-1.svg" 
-                      alt="HubSpot" 
+                    <Image
+                      src="/hubspot-1.svg"
+                      alt="HubSpot"
                       width={40}
                       height={40}
                       className="w-10 h-10"
@@ -3799,7 +3823,7 @@ The draft is now in your Outlook Drafts folder and ready to send.`);
                         <>
                           <div className="w-8 h-8 bg-blue-600 rounded-lg flex items-center justify-center">
                             <svg className="w-5 h-5 text-white" fill="currentColor" viewBox="0 0 24 24">
-                              <path d="M20.447 20.452h-3.554v-5.569c0-1.328-.027-3.037-1.852-3.037-1.853 0-2.136 1.445-2.136 2.939v5.667H9.351V9h3.414v1.561h.046c.477-.9 1.637-1.85 3.37-1.85 3.601 0 4.267 2.37 4.267 5.455v6.286zM5.337 7.433c-1.144 0-2.063-.926-2.063-2.065 0-1.138.92-2.063 2.063-2.063 1.14 0 2.064.925 2.064 2.063 0 1.139-.925 2.065-2.064 2.065zm1.782 13.019H3.555V9h3.564v11.452zM22.225 0H1.771C.792 0 0 .774 0 1.729v20.542C0 23.227.792 24 1.771 24h20.451C23.2 24 24 23.227 24 22.271V1.729C24 .774 23.2 0 22.222 0h.003z"/>
+                              <path d="M20.447 20.452h-3.554v-5.569c0-1.328-.027-3.037-1.852-3.037-1.853 0-2.136 1.445-2.136 2.939v5.667H9.351V9h3.414v1.561h.046c.477-.9 1.637-1.85 3.37-1.85 3.601 0 4.267 2.37 4.267 5.455v6.286zM5.337 7.433c-1.144 0-2.063-.926-2.063-2.065 0-1.138.92-2.063 2.063-2.063 1.14 0 2.064.925 2.064 2.063 0 1.139-.925 2.065-2.064 2.065zm1.782 13.019H3.555V9h3.564v11.452zM22.225 0H1.771C.792 0 0 .774 0 1.729v20.542C0 23.227.792 24 1.771 24h20.451C23.2 24 24 23.227 24 22.271V1.729C24 .774 23.2 0 22.222 0h.003z" />
                             </svg>
                           </div>
                           <h2 className="text-2xl font-bold text-gray-900">LinkedIn Chrome Extension</h2>
@@ -3815,7 +3839,7 @@ The draft is now in your Outlook Drafts folder and ready to send.`);
                         <>
                           <div className="w-8 h-8 bg-gradient-to-br from-pink-500 to-orange-500 rounded-lg flex items-center justify-center">
                             <svg className="w-5 h-5 text-white" fill="currentColor" viewBox="0 0 24 24">
-                              <path d="M12 0C5.373 0 0 5.373 0 12s5.373 12 12 12 12-5.373 12-12S18.627 0 12 0zm0 2c5.523 0 10 4.477 10 10s-4.477 10-10 10S2 17.523 2 12 6.477 2 12 2zm0 3a1.5 1.5 0 100 3 1.5 1.5 0 000-3zm-4 0a1.5 1.5 0 100 3 1.5 1.5 0 000-3zm8 0a1.5 1.5 0 100 3 1.5 1.5 0 000-3z"/>
+                              <path d="M12 0C5.373 0 0 5.373 0 12s5.373 12 12 12 12-5.373 12-12S18.627 0 12 0zm0 2c5.523 0 10 4.477 10 10s-4.477 10-10 10S2 17.523 2 12 6.477 2 12 2zm0 3a1.5 1.5 0 100 3 1.5 1.5 0 000-3zm-4 0a1.5 1.5 0 100 3 1.5 1.5 0 000-3zm8 0a1.5 1.5 0 100 3 1.5 1.5 0 000-3z" />
                             </svg>
                           </div>
                           <h2 className="text-2xl font-bold text-gray-900">Monday.com Integration</h2>
@@ -3831,7 +3855,7 @@ The draft is now in your Outlook Drafts folder and ready to send.`);
                       </svg>
                     </button>
                   </div>
-                  
+
                   <div className="p-6">
                     {selectedIntegration === 'monday' && (
                       <div className="space-y-4">
@@ -3840,21 +3864,19 @@ The draft is now in your Outlook Drafts folder and ready to send.`);
                           <nav className="flex space-x-8">
                             <button
                               onClick={() => setMondayHelpTab('user')}
-                              className={`pb-3 px-1 border-b-2 font-medium text-sm transition-colors ${
-                                mondayHelpTab === 'user'
-                                  ? 'border-[#F95B14] text-[#F95B14]'
-                                  : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
-                              }`}
+                              className={`pb-3 px-1 border-b-2 font-medium text-sm transition-colors ${mondayHelpTab === 'user'
+                                ? 'border-[#F95B14] text-[#F95B14]'
+                                : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
+                                }`}
                             >
                               Quick Connect
                             </button>
                             <button
                               onClick={() => setMondayHelpTab('org')}
-                              className={`pb-3 px-1 border-b-2 font-medium text-sm transition-colors ${
-                                mondayHelpTab === 'org'
-                                  ? 'border-[#F95B14] text-[#F95B14]'
-                                  : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
-                              }`}
+                              className={`pb-3 px-1 border-b-2 font-medium text-sm transition-colors ${mondayHelpTab === 'org'
+                                ? 'border-[#F95B14] text-[#F95B14]'
+                                : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
+                                }`}
                             >
                               Organization Setup
                             </button>
@@ -3982,31 +4004,28 @@ The draft is now in your Outlook Drafts folder and ready to send.`);
                           <nav className="flex space-x-8">
                             <button
                               onClick={() => setSalesforceHelpTab('tools')}
-                              className={`pb-3 px-1 border-b-2 font-medium text-sm transition-colors ${
-                                salesforceHelpTab === 'tools'
-                                  ? 'border-[#F95B14] text-[#F95B14]'
-                                  : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
-                              }`}
+                              className={`pb-3 px-1 border-b-2 font-medium text-sm transition-colors ${salesforceHelpTab === 'tools'
+                                ? 'border-[#F95B14] text-[#F95B14]'
+                                : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
+                                }`}
                             >
                               Tools
                             </button>
                             <button
                               onClick={() => setSalesforceHelpTab('user')}
-                              className={`pb-3 px-1 border-b-2 font-medium text-sm transition-colors ${
-                                salesforceHelpTab === 'user'
-                                  ? 'border-[#F95B14] text-[#F95B14]'
-                                  : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
-                              }`}
+                              className={`pb-3 px-1 border-b-2 font-medium text-sm transition-colors ${salesforceHelpTab === 'user'
+                                ? 'border-[#F95B14] text-[#F95B14]'
+                                : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
+                                }`}
                             >
                               User Connect
                             </button>
                             <button
                               onClick={() => setSalesforceHelpTab('org')}
-                              className={`pb-3 px-1 border-b-2 font-medium text-sm transition-colors ${
-                                salesforceHelpTab === 'org'
-                                  ? 'border-[#F95B14] text-[#F95B14]'
-                                  : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
-                              }`}
+                              className={`pb-3 px-1 border-b-2 font-medium text-sm transition-colors ${salesforceHelpTab === 'org'
+                                ? 'border-[#F95B14] text-[#F95B14]'
+                                : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
+                                }`}
                             >
                               Connect Org
                             </button>
@@ -4172,7 +4191,7 @@ The draft is now in your Outlook Drafts folder and ready to send.`);
                               <div className="bg-gray-50 border border-gray-200 rounded-lg p-4">
                                 <h4 className="font-semibold text-gray-900 mb-2">Note</h4>
                                 <p className="text-sm text-gray-700">
-                                  Your personal connection takes priority over any organization-level connection. 
+                                  Your personal connection takes priority over any organization-level connection.
                                   This means you'll always use YOUR Salesforce data when drafting emails.
                                 </p>
                               </div>
@@ -4203,7 +4222,7 @@ The draft is now in your Outlook Drafts folder and ready to send.`);
                                     </p>
                                   </div>
                                 </div>
-                                
+
                                 {sfCredentialsSaved ? (
                                   <div className="space-y-3">
                                     <div className="bg-green-50 border border-green-200 rounded-lg p-4">
@@ -4238,7 +4257,7 @@ The draft is now in your Outlook Drafts folder and ready to send.`);
                                         className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-orange-500 font-mono text-sm"
                                       />
                                     </div>
-                                    
+
                                     <div>
                                       <label className="block text-sm font-medium text-gray-700 mb-2">
                                         Consumer Secret (Client Secret) <span className="text-red-500">*</span>
@@ -4270,17 +4289,16 @@ The draft is now in your Outlook Drafts folder and ready to send.`);
                                         </button>
                                       </div>
                                     </div>
-                                    
+
                                     {sfCredentialsMessage && (
-                                      <div className={`p-3 rounded-lg text-sm ${
-                                        sfCredentialsMessage.includes('✅') 
-                                          ? 'bg-green-50 text-green-800 border border-green-200' 
-                                          : 'bg-red-50 text-red-800 border border-red-200'
-                                      }`}>
+                                      <div className={`p-3 rounded-lg text-sm ${sfCredentialsMessage.includes('✅')
+                                        ? 'bg-green-50 text-green-800 border border-green-200'
+                                        : 'bg-red-50 text-red-800 border border-red-200'
+                                        }`}>
                                         {sfCredentialsMessage}
                                       </div>
                                     )}
-                                    
+
                                     <button
                                       onClick={saveSalesforceCredentials}
                                       disabled={sfCredentialsLoading || !sfClientId || !sfClientSecret}
@@ -4305,7 +4323,7 @@ The draft is now in your Outlook Drafts folder and ready to send.`);
                                     </p>
                                   </div>
                                 </div>
-                                
+
                                 <button
                                   onClick={connectSalesforceOrg}
                                   disabled={!sfCredentialsSaved}
@@ -4454,7 +4472,7 @@ The draft is now in your Outlook Drafts folder and ready to send.`);
                         </div>
                       </div>
                     )}
-                    
+
                     {selectedIntegration === 'gmail' && (
                       <div className="space-y-6">
                         <div>
@@ -4514,7 +4532,7 @@ The draft is now in your Outlook Drafts folder and ready to send.`);
                         </div>
                       </div>
                     )}
-                    
+
                     {selectedIntegration === 'outlook' && (
                       <div className="space-y-6">
                         <div>
@@ -4568,7 +4586,7 @@ The draft is now in your Outlook Drafts folder and ready to send.`);
                         </div>
                       </div>
                     )}
-                    
+
                     {selectedIntegration === 'linkedin' && (
                       <div className="space-y-6">
                         <div>
@@ -4611,7 +4629,7 @@ The draft is now in your Outlook Drafts folder and ready to send.`);
                         </div>
                       </div>
                     )}
-                    
+
                     {selectedIntegration === 'hubspot' && (
                       <div className="space-y-6">
                         <div>
@@ -4671,10 +4689,10 @@ The draft is now in your Outlook Drafts folder and ready to send.`);
 
                 {activityLogs.map((log) => {
                   const isExpanded = expandedLogId === log.id;
-                  
+
                   // Modern icon mapping
                   const getIcon = (type: string) => {
-                    switch(type) {
+                    switch (type) {
                       case 'email_draft_created':
                         return (
                           <div className="w-10 h-10 rounded-full bg-blue-100 flex items-center justify-center">
@@ -4712,7 +4730,7 @@ The draft is now in your Outlook Drafts folder and ready to send.`);
                         return (
                           <div className="w-10 h-10 rounded-full bg-blue-100 flex items-center justify-center">
                             <svg className="w-5 h-5 text-blue-700" fill="currentColor" viewBox="0 0 24 24">
-                              <path d="M20.447 20.452h-3.554v-5.569c0-1.328-.027-3.037-1.852-3.037-1.853 0-2.136 1.445-2.136 2.939v5.667H9.351V9h3.414v1.561h.046c.477-.9 1.637-1.85 3.37-1.85 3.601 0 4.267 2.37 4.267 5.455v6.286zM5.337 7.433c-1.144 0-2.063-.926-2.063-2.065 0-1.138.92-2.063 2.063-2.063 1.14 0 2.064.925 2.064 2.063 0 1.139-.925 2.065-2.064 2.065zm1.782 13.019H3.555V9h3.564v11.452zM22.225 0H1.771C.792 0 0 .774 0 1.729v20.542C0 23.227.792 24 1.771 24h20.451C23.2 24 24 23.227 24 22.271V1.729C24 .774 23.2 0 22.222 0h.003z"/>
+                              <path d="M20.447 20.452h-3.554v-5.569c0-1.328-.027-3.037-1.852-3.037-1.853 0-2.136 1.445-2.136 2.939v5.667H9.351V9h3.414v1.561h.046c.477-.9 1.637-1.85 3.37-1.85 3.601 0 4.267 2.37 4.267 5.455v6.286zM5.337 7.433c-1.144 0-2.063-.926-2.063-2.065 0-1.138.92-2.063 2.063-2.063 1.14 0 2.064.925 2.064 2.063 0 1.139-.925 2.065-2.064 2.065zm1.782 13.019H3.555V9h3.564v11.452zM22.225 0H1.771C.792 0 0 .774 0 1.729v20.542C0 23.227.792 24 1.771 24h20.451C23.2 24 24 23.227 24 22.271V1.729C24 .774 23.2 0 22.222 0h.003z" />
                             </svg>
                           </div>
                         );
@@ -4734,10 +4752,10 @@ The draft is now in your Outlook Drafts folder and ready to send.`);
                         );
                     }
                   };
-                  
+
                   return (
-                    <motion.div 
-                      key={log.id} 
+                    <motion.div
+                      key={log.id}
                       initial={{ opacity: 0, y: 20 }}
                       animate={{ opacity: 1, y: 0 }}
                       className="bg-white border border-gray-200 rounded-xl overflow-hidden hover:shadow-md transition-all duration-200"
@@ -4749,23 +4767,22 @@ The draft is now in your Outlook Drafts folder and ready to send.`);
                         <div className="flex items-start gap-4">
                           {/* Icon */}
                           {getIcon(log.action_type)}
-                          
+
                           {/* Content */}
                           <div className="flex-1 min-w-0">
                             <div className="flex items-center justify-between mb-1">
                               <h3 className="font-semibold text-gray-900 text-base">{log.action_title}</h3>
                               <div className="flex items-center gap-2">
-                                <span className={`px-2.5 py-1 text-xs font-medium rounded-full ${
-                                  log.status === 'completed' ? 'bg-green-100 text-green-700' :
+                                <span className={`px-2.5 py-1 text-xs font-medium rounded-full ${log.status === 'completed' ? 'bg-green-100 text-green-700' :
                                   log.status === 'failed' ? 'bg-red-100 text-red-700' :
-                                  'bg-yellow-100 text-yellow-700'
-                                }`}>
+                                    'bg-yellow-100 text-yellow-700'
+                                  }`}>
                                   {log.status}
                                 </span>
-                                <svg 
+                                <svg
                                   className={`w-5 h-5 text-gray-400 transition-transform ${isExpanded ? 'rotate-180' : ''}`}
-                                  fill="none" 
-                                  stroke="currentColor" 
+                                  fill="none"
+                                  stroke="currentColor"
                                   viewBox="0 0 24 24"
                                 >
                                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
@@ -4786,7 +4803,7 @@ The draft is now in your Outlook Drafts folder and ready to send.`);
                           </div>
                         </div>
                       </button>
-                      
+
                       {/* Expanded Details */}
                       {isExpanded && log.metadata && (
                         <div className="border-t border-gray-200 bg-gray-50 p-5">
@@ -4850,7 +4867,7 @@ The draft is now in your Outlook Drafts folder and ready to send.`);
               </div>
 
               <p className="text-gray-600 text-center mb-6">
-                {connectionService === 'outlook' 
+                {connectionService === 'outlook'
                   ? 'Connect your Outlook account to create email drafts directly from the dashboard.'
                   : 'Connect your Salesforce account to enrich leads and sync CRM data automatically.'}
               </p>
@@ -4884,8 +4901,8 @@ The draft is now in your Outlook Drafts folder and ready to send.`);
   );
 }
 
-function ContextForm({ context, onSave }: { 
-  context: { aboutMe: string; objectives: string }; 
+function ContextForm({ context, onSave }: {
+  context: { aboutMe: string; objectives: string };
   onSave: (context: { aboutMe: string; objectives: string }) => void;
 }) {
   const [aboutMe, setAboutMe] = useState(context.aboutMe);

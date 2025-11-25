@@ -22,7 +22,7 @@ export async function GET(req: NextRequest) {
     if (error) {
       const errorDescription = searchParams.get('error_description');
       console.error('Salesforce OAuth error:', error, errorDescription);
-      
+
       return NextResponse.redirect(
         new URL(
           `/dashboard?error=${encodeURIComponent(errorDescription || error)}`,
@@ -67,7 +67,8 @@ export async function GET(req: NextRequest) {
     }
 
     // Exchange code for tokens (use user-callback redirect URI)
-    const userCallbackUri = `${process.env.NEXT_PUBLIC_APP_URL}/api/salesforce/user-callback`;
+    const userCallbackUri = process.env.SALESFORCE_USER_REDIRECT_URI || `${process.env.NEXT_PUBLIC_APP_URL}/api/salesforce/user-callback`;
+    console.log('💠 Exchanging code for tokens with URI:', userCallbackUri);
     console.log('💠 Exchanging code for tokens...');
     const tokens = await exchangeCodeForTokens(code, userCallbackUri);
     console.log('✅ Tokens received from Salesforce');
@@ -77,7 +78,7 @@ export async function GET(req: NextRequest) {
     console.log('💠 Checking for existing connection...');
     console.log('   Organization ID:', organizationId);
     console.log('   User ID:', userId);
-    
+
     const { data: existing, error: queryError } = await supabase
       .from('organization_integrations')
       .select('id, configuration')
@@ -118,7 +119,7 @@ export async function GET(req: NextRequest) {
         console.error('❌ Error updating connection:', updateError);
         throw updateError;
       }
-      console.log('✅ Connection updated successfully');
+      console.log('✅ Connection updated successfully for user:', userId);
     } else {
       // Create new user-level integration
       console.log('💠 Creating new connection...');
@@ -137,7 +138,7 @@ export async function GET(req: NextRequest) {
         console.error('❌ Error inserting connection:', insertError);
         throw insertError;
       }
-      console.log('✅ Connection created successfully');
+      console.log('✅ Connection created successfully for user:', userId);
     }
 
     // Redirect back to dashboard with success message

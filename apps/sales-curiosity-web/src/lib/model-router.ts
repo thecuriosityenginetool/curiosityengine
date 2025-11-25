@@ -98,8 +98,8 @@ export function selectModel(
   const isToolBased = isToolBasedRequest(userMessage);
 
   if (isToolBased) {
-    console.log('🔧 [Model Router] Tool-based request detected → Using DeepSeek-R1 (User Override)');
-    return MODELS.DEEPSEEK_R1;
+    console.log('🔧 [Model Router] Tool-based request detected → Using Llama-3.3-70B (R1 does not support tools)');
+    return MODELS.LLAMA_3_3;
   } else {
     console.log('🧠 [Model Router] Reasoning-based request detected → Using DeepSeek-R1');
     return MODELS.DEEPSEEK_R1;

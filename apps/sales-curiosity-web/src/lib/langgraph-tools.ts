@@ -170,22 +170,25 @@ export function createAgentTools(
         description: `Query Salesforce CRM to get leads, contacts, or opportunities. 
 
 WHEN TO USE:
-- User asks: "show leads", "check leads", "review leads", "list my leads"
+- User asks: "show leads", "check leads", "review leads", "list my leads", "recent leads"
 - User asks: "see contacts", "show contacts", "list contacts"  
 - User asks: "show opportunities", "check deals", "list opportunities"
 
-EXAMPLE QUERIES (copy these exactly):
-- For leads: SELECT Id, Name, Email, Company FROM Lead ORDER BY CreatedDate DESC LIMIT 10
-- For contacts: SELECT Id, Name, Email, Title FROM Contact ORDER BY CreatedDate DESC LIMIT 10
-- For opportunities: SELECT Id, Name, Amount, StageName FROM Opportunity ORDER BY CreatedDate DESC LIMIT 10
+REQUIRED PARAMETER:
+- "query" (REQUIRED): A complete SOQL query string. You MUST provide this parameter.
+
+EXAMPLE QUERIES (use these exact formats):
+- For leads: {"query": "SELECT Id, Name, Email, Company FROM Lead ORDER BY CreatedDate DESC LIMIT 10"}
+- For contacts: {"query": "SELECT Id, Name, Email, Title FROM Contact ORDER BY CreatedDate DESC LIMIT 10"}
+- For opportunities: {"query": "SELECT Id, Name, Amount, StageName FROM Opportunity ORDER BY CreatedDate DESC LIMIT 10"}
 
 CRITICAL RULES:
-- ALWAYS provide a complete SOQL query in the 'query' parameter
+- ALWAYS provide the "query" parameter with a complete SOQL query
 - Use simple SELECT statements - NO WHERE clauses with quotes
 - If you need filtered searches, use search_salesforce tool instead
-- NEVER call this tool with empty arguments {}`,
+- NEVER call this tool with empty arguments {} - you MUST include {"query": "..."}`,
         schema: z.object({
-          query: z.string().describe('Complete SOQL query. Example: SELECT Id, Name, Email, Company FROM Lead ORDER BY CreatedDate DESC LIMIT 10'),
+          query: z.string().describe('REQUIRED: Complete SOQL query string. Example: "SELECT Id, Name, Email, Company FROM Lead ORDER BY CreatedDate DESC LIMIT 10". This parameter is MANDATORY and cannot be empty.'),
         }),
         func: async (input) => {
           try {

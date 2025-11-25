@@ -61,6 +61,25 @@ export class SimpleFunctionCalling {
                 delete jsonSchema.$schema;
             }
 
+            // Explicitly ensure required fields are set for critical tools
+            // For query_crm, query parameter is always required
+            if (tool.name === 'query_crm' && jsonSchema.properties?.query) {
+                if (!jsonSchema.required) {
+                    jsonSchema.required = [];
+                }
+                if (!jsonSchema.required.includes('query')) {
+                    jsonSchema.required.push('query');
+                }
+            }
+
+            // Log schema for debugging
+            if (tool.name === 'query_crm') {
+                console.log('🔍 [Schema] query_crm schema:', JSON.stringify({
+                    properties: jsonSchema.properties,
+                    required: jsonSchema.required
+                }, null, 2));
+            }
+
             return {
                 type: 'function',
                 function: {
@@ -211,7 +230,19 @@ CRITICAL TOOL USE INSTRUCTIONS:
         const messages: any[] = [];
 
         if (systemPrompt) {
-            messages.push(new SystemMessage(systemPrompt));
+            // Enhance system prompt with explicit tool argument requirements
+            const enhancedSystemPrompt = `${systemPrompt}
+
+CRITICAL TOOL USE REQUIREMENTS:
+- When calling ANY tool, you MUST provide ALL required parameters
+- For query_crm tool: You MUST provide a "query" parameter with a complete SOQL query
+- Example for query_crm: {"name": "query_crm", "arguments": {"query": "SELECT Id, Name, Email, Company FROM Lead ORDER BY CreatedDate DESC LIMIT 10"}}
+- NEVER call a tool with empty arguments {}
+- If you're unsure what query to use, use these defaults:
+  * For leads: SELECT Id, Name, Email, Company FROM Lead ORDER BY CreatedDate DESC LIMIT 10
+  * For contacts: SELECT Id, Name, Email, Title FROM Contact ORDER BY CreatedDate DESC LIMIT 10
+  * For opportunities: SELECT Id, Name, Amount, StageName FROM Opportunity ORDER BY CreatedDate DESC LIMIT 10`;
+            messages.push(new SystemMessage(enhancedSystemPrompt));
         }
 
         messages.push(new HumanMessage(query));
@@ -270,21 +301,42 @@ CRITICAL TOOL USE INSTRUCTIONS:
 
                 // Execute tools with thinking updates
                 for (const toolCall of toolCalls) {
+                    // Extract arguments - try multiple possible fields
+                    const toolArgs = toolCall.args || toolCall.arguments || (toolCall as any).tool_input || {};
+                    
+                    // Validate arguments are not empty for tools that require parameters
+                    if (Object.keys(toolArgs).length === 0) {
+                        // For query_crm, this is critical - reject and ask model to retry
+                        if (toolCall.name === 'query_crm') {
+                            const errorMsg = `Error: query_crm tool requires a "query" parameter with a SOQL query. You called it with empty arguments. Please retry with a proper query like: {"query": "SELECT Id, Name, Email, Company FROM Lead ORDER BY CreatedDate DESC LIMIT 10"}`;
+                            console.error(`❌ ${errorMsg}`);
+                            
+                            // Add error message to conversation so model can retry
+                            messages.push(new ToolMessage({
+                                content: errorMsg,
+                                tool_call_id: toolCall.id || `tool_${iteration}`,
+                            }));
+                            
+                            yield { type: 'error', content: errorMsg };
+                            continue; // Skip this tool call and let model retry
+                        }
+                    }
+
                     // Emit thinking before tool execution
                     yield {
                         type: 'thinking',
                         content: `Executing: ${toolCall.name}`
                     };
 
-                    yield { type: 'tool_start', toolName: toolCall.name, toolArgs: toolCall.args || toolCall.arguments || (toolCall as any).tool_input || {} };
+                    yield { type: 'tool_start', toolName: toolCall.name, toolArgs };
 
                     if (onToolCall) {
-                        onToolCall(toolCall.name, toolCall.args || toolCall.arguments || (toolCall as any).tool_input || {});
+                        onToolCall(toolCall.name, toolArgs);
                     }
 
                     const result = await this.executeTool({
                         name: toolCall.name,
-                        arguments: toolCall.args || toolCall.arguments || (toolCall as any).tool_input || {},
+                        arguments: toolArgs,
                     });
 
                     yield { type: 'tool_result', toolName: toolCall.name, toolResult: result };

@@ -2599,14 +2599,6 @@ The draft is now in your Outlook Drafts folder and ready to send.`);
                                   className="h-7 w-auto"
                                 />
                               )}
-                              {/* Monday.com Logo */}
-                              {hasMondayConnection && (
-                                <img
-                                  src="/monday-logo.svg"
-                                  alt="Monday.com"
-                                  className="h-7 w-auto"
-                                />
-                              )}
                             </div>
                             <h3 className="text-base font-semibold text-gray-900 mb-2 group-hover:text-blue-600 transition-colors">
                               Research my late stage leads

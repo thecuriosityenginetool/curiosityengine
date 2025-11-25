@@ -199,6 +199,8 @@ export class SimpleFunctionCalling {
 
         messages.push(new HumanMessage(query));
 
+        let lastToolCalls: any = null;
+
         for (let iteration = 0; iteration < this.maxIterations; iteration++) {
             // Emit thinking step at start of iteration
             yield { type: 'thinking', content: `Analyzing your request (step ${iteration + 1})...` };
@@ -209,6 +211,7 @@ export class SimpleFunctionCalling {
                 });
 
                 const toolCalls = (response as any).tool_calls;
+                lastToolCalls = toolCalls;
 
                 // DEBUG: Log the actual tool call structure
                 if (toolCalls && toolCalls.length > 0) {
@@ -284,6 +287,6 @@ export class SimpleFunctionCalling {
             }
         }
 
-        throw new Error(`Max iterations reached`);
+        throw new Error(`Max iterations reached. Last tool calls: ${JSON.stringify(lastToolCalls, null, 2)}`);
     }
 }

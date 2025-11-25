@@ -1151,7 +1151,16 @@ When the user mentions vague references like "latest prospect", "that person", "
               for await (const event of stream) {
                 console.log('📡 [Chat API] Stream event:', event.type);
 
-                if (event.type === 'content') {
+                if (event.type === 'thinking') {
+                  // Forward thinking steps to frontend
+                  console.log('🧠 [Chat API] Thinking:', event.content);
+                  controller.enqueue(
+                    encoder.encode(`data: ${JSON.stringify({
+                      type: 'thinking',
+                      content: event.content
+                    })}\n\n`)
+                  );
+                } else if (event.type === 'content') {
                   contentSent = true;
                   controller.enqueue(
                     encoder.encode(`data: ${JSON.stringify({

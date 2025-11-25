@@ -42,7 +42,7 @@ export class SimpleFunctionCalling {
                 baseURL: 'https://api.sambanova.ai/v1',
             },
             temperature: config.temperature || 0.1,
-            streaming: false,
+            streaming: true,
             maxTokens: 2000,
         });
     }
@@ -171,7 +171,8 @@ export class SimpleFunctionCalling {
         messages.push(new HumanMessage(query));
 
         for (let iteration = 0; iteration < this.maxIterations; iteration++) {
-            yield { type: 'iteration', content: `Iteration ${iteration + 1}` };
+            // Emit thinking step at start of iteration
+            yield { type: 'thinking', content: `Analyzing your request (step ${iteration + 1})...` };
 
             try {
                 const response = await this.llm.invoke(messages, {
@@ -181,15 +182,36 @@ export class SimpleFunctionCalling {
                 const toolCalls = (response as any).tool_calls;
 
                 if (!toolCalls || toolCalls.length === 0) {
-                    // Final answer
-                    yield { type: 'content', content: response.content as string };
+                    // Final answer - emit thinking and stream content token by token
+                    yield { type: 'thinking', content: 'Formulating response...' };
+
+                    // Stream the final response token by token
+                    const streamResponse = await this.llm.stream(messages);
+                    for await (const chunk of streamResponse) {
+                        if (chunk.content) {
+                            yield { type: 'content', content: chunk.content as string };
+                        }
+                    }
                     return;
                 }
 
+                // Emit thinking about tool usage
+                const toolNames = toolCalls.map((t: any) => t.name).join(', ');
+                yield {
+                    type: 'thinking',
+                    content: `Using ${toolCalls.length} tool(s): ${toolNames}`
+                };
+
                 messages.push(response);
 
-                // Execute tools
+                // Execute tools with thinking updates
                 for (const toolCall of toolCalls) {
+                    // Emit thinking before tool execution
+                    yield {
+                        type: 'thinking',
+                        content: `Executing: ${toolCall.name}`
+                    };
+
                     yield { type: 'tool_start', toolName: toolCall.name, toolArgs: toolCall.args };
 
                     if (onToolCall) {

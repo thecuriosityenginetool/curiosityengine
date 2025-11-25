@@ -66,22 +66,32 @@ export async function POST(req: NextRequest) {
 
     if (remainingUsers.length === 0) {
       console.log('🟣 [Monday Disconnect] No users left, disabling integration');
-      await supabase
+      const { error: updateError } = await supabase
         .from('organization_integrations')
         .update({
           is_enabled: false,
           updated_at: new Date().toISOString(),
         })
         .eq('id', integration.id);
+      
+      if (updateError) {
+        console.error('❌ [Monday Disconnect] Error disabling integration:', updateError);
+        throw updateError;
+      }
     } else {
       console.log('🟣 [Monday Disconnect] Other users still connected, updating config');
-      await supabase
+      const { error: updateError } = await supabase
         .from('organization_integrations')
         .update({
           configuration: config,
           updated_at: new Date().toISOString(),
         })
         .eq('id', integration.id);
+      
+      if (updateError) {
+        console.error('❌ [Monday Disconnect] Error updating config:', updateError);
+        throw updateError;
+      }
     }
 
     console.log('✅ [Monday Disconnect] Disconnected successfully');

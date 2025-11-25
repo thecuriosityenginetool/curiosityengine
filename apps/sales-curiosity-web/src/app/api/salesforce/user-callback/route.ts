@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { exchangeCodeForTokens } from '@/lib/salesforce';
 import { createClient } from '@supabase/supabase-js';
+import { disconnectOtherCRMs } from '@/lib/crm-helpers';
 
 const supabase = createClient(
   process.env.NEXT_PUBLIC_SUPABASE_URL!,
@@ -91,6 +92,13 @@ export async function GET(req: NextRequest) {
     }
 
     console.log('💠 Existing connection:', existing ? 'Found' : 'Not found');
+
+    // Disconnect other CRMs before connecting Salesforce
+    try {
+      await disconnectOtherCRMs(organizationId, 'salesforce');
+    } catch (error) {
+      console.error('⚠️ [Salesforce Callback] Error disconnecting other CRMs (continuing anyway):', error);
+    }
 
     // Store user-specific tokens in configuration with user_id key
     const userTokens = {

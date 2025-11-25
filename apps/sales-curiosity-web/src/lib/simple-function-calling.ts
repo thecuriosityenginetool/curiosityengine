@@ -244,7 +244,7 @@ CRITICAL TOOL USE REQUIREMENTS:
   * Option 2: Get all leads with query_crm, then filter in your response
   * DO NOT use: WHERE StageName = 'Closed Won' (this breaks JSON parsing)
 - Default queries to use:
-  * For leads: SELECT Id, Name, Email, Company, StageName FROM Lead ORDER BY CreatedDate DESC LIMIT 10
+  * For leads: SELECT Id, Name, Email, Company, Status FROM Lead ORDER BY CreatedDate DESC LIMIT 10
   * For contacts: SELECT Id, Name, Email, Title FROM Contact ORDER BY CreatedDate DESC LIMIT 10
   * For opportunities: SELECT Id, Name, Amount, StageName FROM Opportunity ORDER BY CreatedDate DESC LIMIT 10`;
             messages.push(new SystemMessage(enhancedSystemPrompt));
@@ -348,8 +348,8 @@ CRITICAL TOOL USE REQUIREMENTS:
                             const lastUserMessage = messages.find(m => m instanceof HumanMessage);
                             const userText = lastUserMessage ? (lastUserMessage as any).content?.toLowerCase() || '' : '';
                             
-                            // Default query for leads
-                            let defaultQuery = 'SELECT Id, Name, Email, Company, StageName FROM Lead ORDER BY CreatedDate DESC LIMIT 10';
+                            // Default query for leads (StageName doesn't exist on Lead, only on Opportunity)
+                            let defaultQuery = 'SELECT Id, Name, Email, Company, Status FROM Lead ORDER BY CreatedDate DESC LIMIT 10';
                             
                             // Adjust based on user request if we can infer it
                             if (userText.includes('contact')) {
@@ -387,7 +387,7 @@ CRITICAL TOOL USE REQUIREMENTS:
                                 toolArgs.query = sanitizedQuery;
                             } else {
                                 // Fallback to default
-                                toolArgs.query = 'SELECT Id, Name, Email, Company, StageName FROM Lead ORDER BY CreatedDate DESC LIMIT 10';
+                                toolArgs.query = 'SELECT Id, Name, Email, Company, Status FROM Lead ORDER BY CreatedDate DESC LIMIT 10';
                             }
                             
                             // Don't show error to user - just fix it silently

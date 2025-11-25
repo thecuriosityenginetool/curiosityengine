@@ -709,7 +709,7 @@ When integrations are connected, you can:
    - DO NOT use WHERE clauses - they will cause JSON parsing errors
 
 **CORRECT EXAMPLES:**
-✅ query_crm: SELECT Id, Name, Email, Company, StageName FROM Lead ORDER BY CreatedDate DESC LIMIT 10
+✅ query_crm: SELECT Id, Name, Email, Company, Status FROM Lead ORDER BY CreatedDate DESC LIMIT 10
 ✅ query_crm: SELECT Id, Name, Email FROM Contact ORDER BY Name LIMIT 20
 ✅ query_crm: SELECT Id, Name, Amount, StageName FROM Opportunity ORDER BY CreatedDate DESC LIMIT 10
 

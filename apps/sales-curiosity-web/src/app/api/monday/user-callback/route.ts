@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { exchangeCodeForTokens } from '@/lib/monday';
 import { createClient } from '@supabase/supabase-js';
+import { disconnectOtherCRMs } from '@/lib/crm-helpers';
 
 const supabase = createClient(
   process.env.NEXT_PUBLIC_SUPABASE_URL!,
@@ -91,6 +92,13 @@ export async function GET(req: NextRequest) {
       .maybeSingle();
 
     console.log('🟣 [Monday Callback] Existing connection:', existing ? 'Found' : 'Not found');
+
+    // Disconnect other CRMs before connecting Monday.com
+    try {
+      await disconnectOtherCRMs(organizationId, 'monday');
+    } catch (error) {
+      console.error('⚠️ [Monday Callback] Error disconnecting other CRMs (continuing anyway):', error);
+    }
 
     const userTokens = {
       [userId]: tokens

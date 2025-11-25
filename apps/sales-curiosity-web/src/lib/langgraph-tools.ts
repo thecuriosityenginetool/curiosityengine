@@ -178,7 +178,7 @@ REQUIRED PARAMETER:
 - "query" (REQUIRED): A complete SOQL query string. You MUST provide this parameter.
 
 EXAMPLE QUERIES (use these exact formats - NO WHERE clauses):
-- For leads: {"query": "SELECT Id, Name, Email, Company, StageName FROM Lead ORDER BY CreatedDate DESC LIMIT 10"}
+- For leads: {"query": "SELECT Id, Name, Email, Company, Status FROM Lead ORDER BY CreatedDate DESC LIMIT 10"}
 - For contacts: {"query": "SELECT Id, Name, Email, Title FROM Contact ORDER BY CreatedDate DESC LIMIT 10"}
 - For opportunities: {"query": "SELECT Id, Name, Amount, StageName FROM Opportunity ORDER BY CreatedDate DESC LIMIT 10"}
 
@@ -194,7 +194,7 @@ CRITICAL RULES - READ CAREFULLY:
    - Good: SELECT Id, Name FROM Lead ORDER BY CreatedDate DESC LIMIT 10 ✅
    - Bad: SELECT ... WHERE Status = 'value' ❌`,
         schema: z.object({
-          query: z.string().describe('REQUIRED: Complete SOQL query string WITHOUT WHERE clauses. Example: "SELECT Id, Name, Email, Company, StageName FROM Lead ORDER BY CreatedDate DESC LIMIT 10". This parameter is MANDATORY. DO NOT include WHERE clauses with quotes.'),
+          query: z.string().describe('REQUIRED: Complete SOQL query string WITHOUT WHERE clauses. Example: "SELECT Id, Name, Email, Company, Status FROM Lead ORDER BY CreatedDate DESC LIMIT 10". Note: StageName only exists on Opportunity, not Lead. Use Status for Lead. This parameter is MANDATORY. DO NOT include WHERE clauses with quotes.'),
         }),
         func: async (input) => {
           try {

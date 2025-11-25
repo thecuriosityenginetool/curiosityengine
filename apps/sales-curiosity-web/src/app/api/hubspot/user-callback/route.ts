@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { createClient } from '@supabase/supabase-js';
 import { exchangeCodeForTokens } from '@/lib/hubspot';
+import { disconnectOtherCRMs } from '@/lib/crm-helpers';
 
 const supabase = createClient(
   process.env.NEXT_PUBLIC_SUPABASE_URL!,
@@ -30,6 +31,13 @@ export async function GET(req: NextRequest) {
 
     // Exchange code for tokens
     const tokens = await exchangeCodeForTokens(code);
+
+    // Disconnect other CRMs before connecting HubSpot
+    try {
+      await disconnectOtherCRMs(organizationId, 'hubspot');
+    } catch (error) {
+      console.error('⚠️ [HubSpot Callback] Error disconnecting other CRMs (continuing anyway):', error);
+    }
 
     // Store tokens at user level
     const { data: existing } = await supabase

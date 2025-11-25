@@ -1,4 +1,9 @@
 ---
+description: Documents data models, relationships, and hierarchical structures for sales intelligence platform with CRM integrations
+---
+
+# === USER INSTRUCTIONS ===
+---
 description: Documents hierarchical data models, organizational structures, and relationships between different system entities and integrations.
 ---
 
@@ -60,6 +65,67 @@ Importance Score: 75
 - LinkedIn profile data extraction
 - Email provider connections (Gmail/Outlook)
 - Calendar integration for contact tracking
+
+$END$
+
+ If you're using this file in context, clearly say in italics in one small line that "Context added by Giga data-models-relationships" along with specifying exactly what information was used from this file in a human-friendly way, instead of using kebab-case use normal sentence case.
+# === END USER INSTRUCTIONS ===
+
+# data-models-relationships
+
+## Core Data Models
+
+### Organization Model
+- Hierarchical structure with multi-tenant support
+- Account types: free, pro, enterprise
+- Seat management with role inheritance
+- Integration states for multiple CRM/email providers
+- Resource sharing controls across organization levels
+Importance Score: 95/100
+
+### User Context Model
+- Role-based permission inheritance (super_admin, org_admin, member)
+- Organization-specific sales context
+- Integration tokens at user and org levels
+- Credit system for AI operation tracking
+Importance Score: 85/100
+
+### CRM Integration Models
+- Multi-platform contact synchronization (Salesforce, Monday.com)
+- Hierarchical token management (org vs user level)
+- Cross-platform status tracking
+- Integration state persistence
+Importance Score: 80/100
+
+### Sales Materials Model
+- Hierarchical document sharing (personal/team/organization)
+- Permission templates for different user types
+- Organization-specific content parsing rules
+- AI analysis integration structure
+Importance Score: 75/100
+
+## Key Relationships
+
+### Organization-User Relationship
+- Many-to-many with role context
+- Inherited permissions through organization hierarchy
+- Resource access control inheritance
+- Integration permission delegation
+Importance Score: 90/100
+
+### User-Integration Relationship
+- Multi-provider token management
+- Organization-scoped integration states
+- Cross-platform authentication mappings
+- Provider-specific permission sets
+Importance Score: 85/100
+
+### Sales Material-Organization Relationship
+- Multi-level sharing model
+- Inherited access controls
+- Content parsing rules inheritance
+- AI context mapping
+Importance Score: 70/100
 
 $END$
 

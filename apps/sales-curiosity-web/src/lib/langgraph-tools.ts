@@ -189,6 +189,22 @@ CRITICAL RULES:
         }),
         func: async (input) => {
           try {
+            // Validate that query doesn't contain WHERE clauses with quotes
+            // This causes JSON parsing errors in the LLM's function calling
+            if (input.query && /WHERE\s+.*['"]/.test(input.query)) {
+              return `❌ Error: SOQL queries with WHERE clauses containing quotes are not supported due to JSON parsing limitations.
+
+Instead, use the search_salesforce tool for filtered searches.
+
+Examples:
+- To find late-stage opportunities: Use search_salesforce with name/email
+- To find specific leads by status: Use search_salesforce instead
+- To get all leads: SELECT Id, Name, Email, Company FROM Lead ORDER BY CreatedDate DESC LIMIT 10
+
+For simple listing queries (no WHERE clause), use query_crm.
+For filtered searches, use search_salesforce.`;
+            }
+
             console.log('🔍 [query_crm] Executing SOQL:', input.query);
 
             // Add timeout to prevent hanging
@@ -216,7 +232,14 @@ CRITICAL RULES:
             return 'No records found.';
           } catch (error) {
             console.error('❌ [query_crm] Error:', error);
-            return `Error executing query: ${error instanceof Error ? error.message : 'Unknown error'}. Try a simpler query or use search_salesforce instead.`;
+            const errorMsg = error instanceof Error ? error.message : 'Unknown error';
+
+            // Provide helpful error messages
+            if (errorMsg.includes('MALFORMED_QUERY') || errorMsg.includes('unexpected token')) {
+              return `❌ Query syntax error. Please use simple SELECT statements without WHERE clauses containing quotes. For filtered searches, use the search_salesforce tool instead.`;
+            }
+
+            return `Error executing query: ${errorMsg}. Try a simpler query or use search_salesforce instead.`;
           }
         },
       }),

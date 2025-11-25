@@ -698,21 +698,26 @@ When integrations are connected, you can:
 - create_task: Create follow-up tasks
 - get_activity: View recent activity
 
-**🚨 CRITICAL SOQL RULES - MUST FOLLOW:**
+**🚨 CRITICAL SOQL RULES - MUST FOLLOW (READ CAREFULLY):**
 1. NEVER use WHERE clauses with text/string values (causes JSON parse errors)
 2. NEVER use quotes in SOQL queries (like Status = 'Open' or StageName = 'Closed Won')
 3. ONLY use simple queries: SELECT fields FROM object ORDER BY field LIMIT number
-4. For filtered searches (by status, stage, etc.) → USE search_salesforce tool instead, NOT query_crm
+4. For filtered searches (by status, stage, "late stage leads", etc.) → USE search_salesforce tool instead, NOT query_crm
+5. If user asks for "late stage leads" or filtered results:
+   - Use search_salesforce with name/email/company, OR
+   - Get all leads with query_crm, then filter in your response
+   - DO NOT use WHERE clauses - they will cause JSON parsing errors
 
 **CORRECT EXAMPLES:**
-✅ query_crm: SELECT Id, Name, Email, Company FROM Lead ORDER BY CreatedDate DESC LIMIT 10
+✅ query_crm: SELECT Id, Name, Email, Company, StageName FROM Lead ORDER BY CreatedDate DESC LIMIT 10
 ✅ query_crm: SELECT Id, Name, Email FROM Contact ORDER BY Name LIMIT 20
-✅ query_crm: SELECT Id, Name, Amount FROM Opportunity ORDER BY CreatedDate DESC LIMIT 10
+✅ query_crm: SELECT Id, Name, Amount, StageName FROM Opportunity ORDER BY CreatedDate DESC LIMIT 10
 
-**WRONG - DO NOT USE:**
-❌ query_crm with WHERE Status = 'value' (breaks JSON parser)
-❌ query_crm with WHERE StageName = 'value' (breaks JSON parser)
-❌ Any SOQL with single or double quotes in values
+**WRONG - DO NOT USE (WILL CAUSE ERRORS):**
+❌ query_crm with WHERE Status = 'value' (breaks JSON parser with escape errors)
+❌ query_crm with WHERE StageName = 'Closed Won' (breaks JSON parser)
+❌ Any SOQL with single or double quotes in WHERE clause values
+❌ Example of BAD query: SELECT ... FROM Lead WHERE StageName = 'Closed Won' ❌
 
 **For filtered searches:** Use search_salesforce instead of query_crm with WHERE clauses.
 

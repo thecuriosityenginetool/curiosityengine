@@ -238,8 +238,13 @@ CRITICAL TOOL USE REQUIREMENTS:
 - For query_crm tool: You MUST provide a "query" parameter with a complete SOQL query
 - Example for query_crm: {"name": "query_crm", "arguments": {"query": "SELECT Id, Name, Email, Company FROM Lead ORDER BY CreatedDate DESC LIMIT 10"}}
 - NEVER call a tool with empty arguments {}
-- If you're unsure what query to use, use these defaults:
-  * For leads: SELECT Id, Name, Email, Company FROM Lead ORDER BY CreatedDate DESC LIMIT 10
+- NEVER use WHERE clauses with quotes in SOQL queries (causes JSON parsing errors)
+- If user asks for "late stage leads" or filtered results:
+  * Option 1: Use search_salesforce tool with name/email/company
+  * Option 2: Get all leads with query_crm, then filter in your response
+  * DO NOT use: WHERE StageName = 'Closed Won' (this breaks JSON parsing)
+- Default queries to use:
+  * For leads: SELECT Id, Name, Email, Company, StageName FROM Lead ORDER BY CreatedDate DESC LIMIT 10
   * For contacts: SELECT Id, Name, Email, Title FROM Contact ORDER BY CreatedDate DESC LIMIT 10
   * For opportunities: SELECT Id, Name, Amount, StageName FROM Opportunity ORDER BY CreatedDate DESC LIMIT 10`;
             messages.push(new SystemMessage(enhancedSystemPrompt));
@@ -271,10 +276,39 @@ CRITICAL TOOL USE REQUIREMENTS:
                             args: tc.args,
                             arguments: tc.arguments,
                             id: tc.id,
-                            allKeys: Object.keys(tc)
+                            allKeys: Object.keys(tc),
+                            // Check for nested structure
+                            fullObject: JSON.stringify(tc, null, 2)
                         });
                     });
                 }
+
+                // Normalize tool calls - SambaNova might return arguments in different formats
+                const normalizedToolCalls = (toolCalls || []).map((tc: any) => {
+                    // Try to extract arguments from various possible locations
+                    let args = tc.args || tc.arguments || tc.parameters || {};
+                    
+                    // If args is a string, try to parse it
+                    if (typeof args === 'string') {
+                        try {
+                            args = JSON.parse(args);
+                        } catch (e) {
+                            console.warn('⚠️ Could not parse args string:', args);
+                            args = {};
+                        }
+                    }
+                    
+                    // If we still have no args, check for nested structure
+                    if (Object.keys(args).length === 0 && tc.parameters) {
+                        args = tc.parameters;
+                    }
+                    
+                    return {
+                        ...tc,
+                        args,
+                        arguments: args
+                    };
+                });
 
                 if (!toolCalls || toolCalls.length === 0) {
                     // Final answer - emit thinking and stream content token by token
@@ -291,24 +325,29 @@ CRITICAL TOOL USE REQUIREMENTS:
                 }
 
                 // Emit thinking about tool usage
-                const toolNames = toolCalls.map((t: any) => t.name).join(', ');
+                const toolNames = normalizedToolCalls.map((t: any) => t.name).join(', ');
                 yield {
                     type: 'thinking',
-                    content: `Using ${toolCalls.length} tool(s): ${toolNames}`
+                    content: `Using ${normalizedToolCalls.length} tool(s): ${toolNames}`
                 };
 
                 messages.push(response);
 
                 // Execute tools with thinking updates
-                for (const toolCall of toolCalls) {
-                    // Extract arguments - try multiple possible fields
-                    const toolArgs = toolCall.args || toolCall.arguments || (toolCall as any).tool_input || {};
+                for (const toolCall of normalizedToolCalls) {
+                    // Extract arguments - use normalized args
+                    const toolArgs = toolCall.args || toolCall.arguments || {};
                     
                     // Validate arguments are not empty for tools that require parameters
                     if (Object.keys(toolArgs).length === 0) {
                         // For query_crm, this is critical - reject and ask model to retry
                         if (toolCall.name === 'query_crm') {
-                            const errorMsg = `Error: query_crm tool requires a "query" parameter with a SOQL query. You called it with empty arguments. Please retry with a proper query like: {"query": "SELECT Id, Name, Email, Company FROM Lead ORDER BY CreatedDate DESC LIMIT 10"}`;
+                            const errorMsg = `Error: query_crm tool requires a "query" parameter with a SOQL query. You called it with empty arguments. 
+
+For "recent leads" or "late stage leads", use this query:
+{"query": "SELECT Id, Name, Email, Company, StageName FROM Lead ORDER BY CreatedDate DESC LIMIT 10"}
+
+DO NOT use WHERE clauses with quotes. If you need filtered results, use search_salesforce tool instead.`;
                             console.error(`❌ ${errorMsg}`);
                             
                             // Add error message to conversation so model can retry
@@ -319,6 +358,31 @@ CRITICAL TOOL USE REQUIREMENTS:
                             
                             yield { type: 'error', content: errorMsg };
                             continue; // Skip this tool call and let model retry
+                        }
+                    }
+                    
+                    // Validate query_crm doesn't have WHERE clauses with quotes (causes JSON errors)
+                    if (toolCall.name === 'query_crm' && toolArgs.query) {
+                        const query = toolArgs.query;
+                        // Check for WHERE clauses with quotes
+                        if (/WHERE\s+.*['"]/.test(query)) {
+                            const errorMsg = `Error: query_crm does not support WHERE clauses with quotes (causes JSON parsing errors).
+
+Your query: ${query.substring(0, 100)}...
+
+For "late stage leads", use search_salesforce tool instead, or use a simple query without WHERE:
+{"query": "SELECT Id, Name, Email, Company, StageName FROM Lead ORDER BY CreatedDate DESC LIMIT 10"}
+
+Then filter the results in your response.`;
+                            console.error(`❌ ${errorMsg}`);
+                            
+                            messages.push(new ToolMessage({
+                                content: errorMsg,
+                                tool_call_id: toolCall.id || `tool_${iteration}`,
+                            }));
+                            
+                            yield { type: 'error', content: errorMsg };
+                            continue;
                         }
                     }
 

@@ -177,18 +177,24 @@ WHEN TO USE:
 REQUIRED PARAMETER:
 - "query" (REQUIRED): A complete SOQL query string. You MUST provide this parameter.
 
-EXAMPLE QUERIES (use these exact formats):
-- For leads: {"query": "SELECT Id, Name, Email, Company FROM Lead ORDER BY CreatedDate DESC LIMIT 10"}
+EXAMPLE QUERIES (use these exact formats - NO WHERE clauses):
+- For leads: {"query": "SELECT Id, Name, Email, Company, StageName FROM Lead ORDER BY CreatedDate DESC LIMIT 10"}
 - For contacts: {"query": "SELECT Id, Name, Email, Title FROM Contact ORDER BY CreatedDate DESC LIMIT 10"}
 - For opportunities: {"query": "SELECT Id, Name, Amount, StageName FROM Opportunity ORDER BY CreatedDate DESC LIMIT 10"}
 
-CRITICAL RULES:
-- ALWAYS provide the "query" parameter with a complete SOQL query
-- Use simple SELECT statements - NO WHERE clauses with quotes
-- If you need filtered searches, use search_salesforce tool instead
-- NEVER call this tool with empty arguments {} - you MUST include {"query": "..."}`,
+CRITICAL RULES - READ CAREFULLY:
+1. ALWAYS provide the "query" parameter - NEVER call with empty arguments {}
+2. NEVER use WHERE clauses with quotes like: WHERE StageName = 'Closed Won'
+   - This causes JSON parsing errors and will fail
+   - Example of BAD query: SELECT ... FROM Lead WHERE StageName = 'Closed Won' ❌
+3. For filtered searches (like "late stage leads"):
+   - Option A: Use search_salesforce tool with name/email/company
+   - Option B: Get all leads with query_crm, then filter in your response
+4. Only use simple SELECT statements with ORDER BY and LIMIT
+   - Good: SELECT Id, Name FROM Lead ORDER BY CreatedDate DESC LIMIT 10 ✅
+   - Bad: SELECT ... WHERE Status = 'value' ❌`,
         schema: z.object({
-          query: z.string().describe('REQUIRED: Complete SOQL query string. Example: "SELECT Id, Name, Email, Company FROM Lead ORDER BY CreatedDate DESC LIMIT 10". This parameter is MANDATORY and cannot be empty.'),
+          query: z.string().describe('REQUIRED: Complete SOQL query string WITHOUT WHERE clauses. Example: "SELECT Id, Name, Email, Company, StageName FROM Lead ORDER BY CreatedDate DESC LIMIT 10". This parameter is MANDATORY. DO NOT include WHERE clauses with quotes.'),
         }),
         func: async (input) => {
           try {

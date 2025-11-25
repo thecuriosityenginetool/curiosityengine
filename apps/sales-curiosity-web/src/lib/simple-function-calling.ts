@@ -77,7 +77,16 @@ export class SimpleFunctionCalling {
         // Validate arguments are not empty
         if (!toolCall.arguments || Object.keys(toolCall.arguments).length === 0) {
             console.error(`❌ Tool ${toolCall.name} called with empty arguments`);
-            return `Error: Tool '${toolCall.name}' requires arguments but received empty object. Please provide the required parameters. For query_crm, you must provide a 'query' parameter with a complete SOQL statement like: SELECT Id, Name, Email FROM Lead LIMIT 10`;
+
+            // DEBUG: Include structure information in error message for visibility
+            const debugInfo = JSON.stringify({
+                name: toolCall.name,
+                hasArgs: !!toolCall.arguments,
+                argsKeys: toolCall.arguments ? Object.keys(toolCall.arguments) : [],
+                argsValue: toolCall.arguments
+            }, null, 2);
+
+            return `🔍 DEBUG - Tool '${toolCall.name}' called with empty arguments.\n\nReceived structure:\n${debugInfo}\n\nThis tool requires parameters. Please try again with proper arguments.`;
         }
 
         try {

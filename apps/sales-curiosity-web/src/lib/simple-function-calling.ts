@@ -160,7 +160,7 @@ export class SimpleFunctionCalling {
                 for (const toolCall of toolCalls) {
                     const result = await this.executeTool({
                         name: toolCall.name,
-                        arguments: toolCall.args || toolCall.arguments || {},
+                        arguments: toolCall.args || toolCall.arguments || (toolCall as any).tool_input || {},
                     });
                     toolResults.push(`Tool '${toolCall.name}' response: ${result}`);
 
@@ -255,15 +255,15 @@ export class SimpleFunctionCalling {
                         content: `Executing: ${toolCall.name}`
                     };
 
-                    yield { type: 'tool_start', toolName: toolCall.name, toolArgs: toolCall.args || toolCall.arguments || {} };
+                    yield { type: 'tool_start', toolName: toolCall.name, toolArgs: toolCall.args || toolCall.arguments || (toolCall as any).tool_input || {} };
 
                     if (onToolCall) {
-                        onToolCall(toolCall.name, toolCall.args || toolCall.arguments || {});
+                        onToolCall(toolCall.name, toolCall.args || toolCall.arguments || (toolCall as any).tool_input || {});
                     }
 
                     const result = await this.executeTool({
                         name: toolCall.name,
-                        arguments: toolCall.args || toolCall.arguments || {},
+                        arguments: toolCall.args || toolCall.arguments || (toolCall as any).tool_input || {},
                     });
 
                     yield { type: 'tool_result', toolName: toolCall.name, toolResult: result };

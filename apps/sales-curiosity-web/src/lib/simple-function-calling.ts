@@ -72,12 +72,23 @@ export class SimpleFunctionCalling {
                 }
             }
 
-            // Log schema for debugging
-            if (tool.name === 'query_crm') {
-                console.log('🔍 [Schema] query_crm schema:', JSON.stringify({
-                    properties: jsonSchema.properties,
-                    required: jsonSchema.required
-                }, null, 2));
+            // Ensure query_crm description emphasizes NO WHERE clauses
+            if (tool.name === 'query_crm' && tool.description) {
+                // Make the description even more explicit
+                const enhancedDescription = `${tool.description}
+
+⚠️ CRITICAL: DO NOT USE WHERE CLAUSES WITH QUOTES - This will cause JSON parsing errors.
+For filtered results, use search_salesforce tool or get all records and filter in your response.`;
+                
+                return {
+                    type: 'function',
+                    function: {
+                        name: tool.name,
+                        description: enhancedDescription,
+                        parameters: jsonSchema,
+                        strict: true, // Enforce strict schema validation
+                    },
+                };
             }
 
             return {
@@ -236,17 +247,22 @@ CRITICAL TOOL USE INSTRUCTIONS:
 CRITICAL TOOL USE REQUIREMENTS:
 - When calling ANY tool, you MUST provide ALL required parameters
 - For query_crm tool: You MUST provide a "query" parameter with a complete SOQL query
-- Example for query_crm: {"name": "query_crm", "arguments": {"query": "SELECT Id, Name, Email, Company FROM Lead ORDER BY CreatedDate DESC LIMIT 10"}}
-- NEVER call a tool with empty arguments {}
-- NEVER use WHERE clauses with quotes in SOQL queries (causes JSON parsing errors)
-- If user asks for "late stage leads" or filtered results:
-  * Option 1: Use search_salesforce tool with name/email/company
-  * Option 2: Get all leads with query_crm, then filter in your response
-  * DO NOT use: WHERE StageName = 'Closed Won' (this breaks JSON parsing)
-- Default queries to use:
-  * For leads: SELECT Id, Name, Email, Company, Status FROM Lead ORDER BY CreatedDate DESC LIMIT 10
-  * For contacts: SELECT Id, Name, Email, Title FROM Contact ORDER BY CreatedDate DESC LIMIT 10
-  * For opportunities: SELECT Id, Name, Amount, StageName FROM Opportunity ORDER BY CreatedDate DESC LIMIT 10`;
+
+⚠️⚠️⚠️ ABSOLUTE RULE FOR query_crm - READ THIS CAREFULLY ⚠️⚠️⚠️
+NEVER EVER use WHERE clauses with quotes. This WILL break JSON parsing and cause errors.
+BAD: WHERE Status = 'Closed Won' ❌❌❌
+BAD: WHERE StageName = 'value' ❌❌❌
+GOOD: SELECT fields FROM object ORDER BY field LIMIT number ✅✅✅
+
+If user asks for "late stage leads" or ANY filtered results:
+1. Get ALL leads: SELECT Id, Name, Email, Company, Status FROM Lead ORDER BY CreatedDate DESC LIMIT 50
+2. Then analyze the results in your response and identify which ones match the criteria
+3. NEVER try to filter with WHERE clauses
+
+Default queries (NO WHERE):
+  * For leads: SELECT Id, Name, Email, Company, Status FROM Lead ORDER BY CreatedDate DESC LIMIT 50
+  * For contacts: SELECT Id, Name, Email, Title FROM Contact ORDER BY CreatedDate DESC LIMIT 50
+  * For opportunities: SELECT Id, Name, Amount, StageName FROM Opportunity ORDER BY CreatedDate DESC LIMIT 50`;
             messages.push(new SystemMessage(enhancedSystemPrompt));
         }
 

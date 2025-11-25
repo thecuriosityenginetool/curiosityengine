@@ -1060,7 +1060,6 @@ export default function DashboardPage() {
         console.log('✅ [Monday Disconnect] Success:', data);
         setHasMondayConnection(false);
         alert('✅ Monday.com disconnected successfully');
-        await createActivityLog('monday_disconnected', 'Monday.com Disconnected', 'Monday.com integration disconnected');
         // Refresh connection status
         await checkConnections();
       } else {

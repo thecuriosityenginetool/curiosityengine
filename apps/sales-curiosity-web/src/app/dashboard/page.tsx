@@ -185,6 +185,54 @@ export default function DashboardPage() {
     return { thinking, final: final.trim() };
   };
 
+  // Helper function to format raw thinking steps into natural language
+  const formatThinkingSteps = (rawSteps: string): string => {
+    if (!rawSteps) return '';
+
+    // Convert technical steps into natural language
+    let formatted = rawSteps;
+
+    // Format tool calls
+    formatted = formatted.replace(/🔧 \[[\d:]+\] Calling tool: ([^\n]+)/g, (_, toolName) => {
+      const naturalNames: Record<string, string> = {
+        'search salesforce': 'Searching Salesforce CRM',
+        'web search': 'Searching the web',
+        'browse url': 'Browsing website',
+        'create lead': 'Creating new lead',
+        'create contact': 'Creating new contact',
+        'update record': 'Updating CRM record',
+        'add note': 'Adding note',
+        'create task': 'Creating task',
+        'get activity': 'Retrieving activity history',
+        'create email draft': 'Drafting email',
+        'create gmail draft': 'Drafting email in Gmail',
+        'send email': 'Sending email',
+        'create calendar event': 'Creating calendar event',
+        'search emails': 'Searching emails',
+        'search gmail emails': 'Searching Gmail'
+      };
+      const natural = naturalNames[toolName.toLowerCase()] || toolName;
+      return `🔍 ${natural}...`;
+    });
+
+    // Format completion messages
+    formatted = formatted.replace(/✅ Complete: ([^\n]+)/g, '✅ $1');
+
+    // Clean up AI Reasoning sections to be more concise
+    formatted = formatted.replace(/\*\*AI Reasoning:\*\*\n([^\n]+)/g, (_, reasoning) => {
+      // Simplify common reasoning patterns
+      if (reasoning.includes('need to search') || reasoning.includes('need to find')) {
+        return '💭 Determining information needed...';
+      }
+      if (reasoning.includes('use the') && reasoning.includes('tool')) {
+        return '💭 Selecting appropriate tool...';
+      }
+      return `💭 ${reasoning}`;
+    });
+
+    return formatted;
+  };
+
   // Function to handle tab changes and update URL
   const handleTabChange = (tab: string) => {
     setActiveTab(tab as any);
@@ -703,8 +751,9 @@ export default function DashboardPage() {
                     cleanFinal = cleanFinal.replace(/\{[\s\S]*?"tool":[\s\S]*?\}/g, '');
                   }
 
-                  // Combine AI reasoning with agent steps
-                  const fullThinking = agentSteps + (agentSteps && thinking ? '\n---\n\n**AI Reasoning:**\n' + thinking : thinking);
+                  // Combine AI reasoning with agent steps and format for natural language
+                  const rawThinking = agentSteps + (agentSteps && thinking ? '\n---\n\n**AI Reasoning:**\n' + thinking : thinking);
+                  const fullThinking = formatThinkingSteps(rawThinking);
 
                   // Update the assistant message in real-time
                   setChatMessages(prev => {
@@ -745,7 +794,7 @@ export default function DashboardPage() {
                     newMessages[newMessages.length - 1] = {
                       ...newMessages[newMessages.length - 1],
                       content: accumulatedContent,
-                      thinking: agentSteps,
+                      thinking: formatThinkingSteps(agentSteps),
                       showThinking: true // Auto-expand thinking during tool execution
                     };
                     return newMessages;
@@ -2510,123 +2559,122 @@ The draft is now in your Outlook Drafts folder and ready to send.`);
                       </div>
 
                       {/* Sample Prompt Cards */}
-                      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                        {/* Calendar Prompt */}
-                        <button
-                          onClick={() => {
-                            if (!hasOutlookConnection) {
-                              setChatInput("I want to check my calendar but I haven't connected Outlook yet. Can you explain what calendar features are available and guide me to set it up?");
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-4 max-w-3xl mx-auto">
+                        {/* Calendar Prompt - Only show if Outlook or Gmail connected */}
+                        {(hasOutlookConnection || hasGmailConnection) && (
+                          <button
+                            onClick={() => {
+                              setChatInput("What's on my calendar for the rest of the week?");
                               setTimeout(() => sendChatMessage(), 100);
-                            } else {
-                              setChatInput("What meetings do I have coming up on my calendar?");
-                              setTimeout(() => sendChatMessage(), 100);
-                            }
-                          }}
-                          className="group p-6 bg-white border-2 border-gray-200 rounded-xl hover:border-blue-500 hover:shadow-lg transition-all duration-200 text-left"
-                        >
-                          <div className="flex items-center gap-3 mb-3">
-                            <div className="flex items-center gap-2">
-                              {/* Google Calendar Icon */}
-                              <img
-                                src="/google-calendar.svg"
-                                alt="Google Calendar"
-                                className="w-7 h-7"
-                              />
-                              {/* Outlook Icon */}
-                              <img
-                                src="/icons8-outlook-calendar-480.svg"
-                                alt="Outlook Calendar"
-                                className="w-7 h-7"
-                              />
+                            }}
+                            className="group p-6 bg-white border-2 border-gray-200 rounded-xl hover:border-blue-500 hover:shadow-lg transition-all duration-200 text-left"
+                          >
+                            <div className="flex items-center gap-3 mb-3">
+                              <div className="flex items-center gap-2">
+                                {/* Google Calendar Icon */}
+                                <img
+                                  src="/google-calendar.svg"
+                                  alt="Google Calendar"
+                                  className="w-7 h-7"
+                                />
+                                {/* Outlook Icon */}
+                                <img
+                                  src="/icons8-outlook-calendar-480.svg"
+                                  alt="Outlook Calendar"
+                                  className="w-7 h-7"
+                                />
+                              </div>
                             </div>
-                          </div>
-                          <h3 className="text-base font-semibold text-gray-900 mb-2 group-hover:text-blue-600 transition-colors">
-                            Check my calendar
-                          </h3>
-                          <p className="text-sm text-gray-600">
-                            Review upcoming meetings and schedule
-                          </p>
-                        </button>
+                            <h3 className="text-base font-semibold text-gray-900 mb-2 group-hover:text-blue-600 transition-colors">
+                              Check my calendar
+                            </h3>
+                            <p className="text-sm text-gray-600">
+                              Review upcoming meetings and schedule
+                            </p>
+                          </button>
+                        )}
 
-                        {/* CRM Prompt */}
-                        <button
-                          onClick={() => {
-                            if (!hasSalesforceConnection) {
-                              setChatInput("I want to research my leads but I haven't connected Salesforce yet. Can you explain what CRM features are available and guide me to set it up?");
-                              setTimeout(() => sendChatMessage(), 100);
-                            } else {
-                              setChatInput("Research my late stage leads and give me insights on next steps");
-                              setTimeout(() => sendChatMessage(), 100);
-                            }
-                          }}
-                          className="group p-6 bg-white border-2 border-gray-200 rounded-xl hover:border-blue-500 hover:shadow-lg transition-all duration-200 text-left"
-                        >
-                          <div className="flex items-center gap-3 mb-3">
-                            {/* Salesforce Logo */}
-                            <img
-                              src="/salesforcelogo.svg"
-                              alt="Salesforce"
-                              className="h-7 w-auto"
-                            />
-                          </div>
-                          <h3 className="text-base font-semibold text-gray-900 mb-2 group-hover:text-blue-600 transition-colors">
-                            Research my late stage leads
-                          </h3>
-                          <p className="text-sm text-gray-600">
-                            Analyze pipeline and get next step recommendations
-                          </p>
-                        </button>
+                        {/* CRM Prompt - Only show if Salesforce or Monday connected */}
+                        {(hasSalesforceConnection || hasMondayConnection) && (
+                          <button
+                            onClick={() => {
+                              if (!hasSalesforceConnection && !hasMondayConnection) {
+                                setChatInput("I want to research my leads but I haven't connected a CRM yet. Can you explain what CRM features are available and guide me to set it up?");
+                                setTimeout(() => sendChatMessage(), 100);
+                              } else {
+                                setChatInput("Research my late stage leads and give me insights on next steps");
+                                setTimeout(() => sendChatMessage(), 100);
+                              }
+                            }}
+                            className="group p-6 bg-white border-2 border-gray-200 rounded-xl hover:border-blue-500 hover:shadow-lg transition-all duration-200 text-left"
+                          >
+                            <div className="flex items-center gap-3 mb-3">
+                              {/* Salesforce Logo */}
+                              {hasSalesforceConnection && (
+                                <img
+                                  src="/salesforcelogo.svg"
+                                  alt="Salesforce"
+                                  className="h-7 w-auto"
+                                />
+                              )}
+                              {/* Monday.com Logo */}
+                              {hasMondayConnection && (
+                                <img
+                                  src="/monday-logo.svg"
+                                  alt="Monday.com"
+                                  className="h-7 w-auto"
+                                />
+                              )}
+                            </div>
+                            <h3 className="text-base font-semibold text-gray-900 mb-2 group-hover:text-blue-600 transition-colors">
+                              Research my late stage leads
+                            </h3>
+                            <p className="text-sm text-gray-600">
+                              Analyze pipeline and get next step recommendations
+                            </p>
+                          </button>
+                        )}
 
-                        {/* Email Prompt - Dynamic based on connected provider */}
-                        <button
-                          onClick={() => {
-                            if (!hasGmailConnection && !hasOutlookConnection) {
-                              setChatInput("I want to draft an email but I haven't connected Gmail or Outlook yet. Can you explain what email features are available and guide me to set up an email integration?");
-                              setTimeout(() => sendChatMessage(), 100);
-                            } else {
+                        {/* Email Prompt - Only show if Gmail or Outlook connected */}
+                        {(hasGmailConnection || hasOutlookConnection) && (
+                          <button
+                            onClick={() => {
                               const provider = hasGmailConnection ? "Gmail" : "Outlook";
                               setChatInput(`Help me draft a follow-up email to my latest prospect using ${provider}`);
                               setTimeout(() => sendChatMessage(), 100);
-                            }
-                          }}
-                          className="group p-6 bg-white border-2 border-gray-200 rounded-xl hover:border-blue-500 hover:shadow-lg transition-all duration-200 text-left"
-                        >
-                          <div className="flex items-center gap-3 mb-3">
-                            <div className="flex items-center gap-2">
-                              {/* Show Gmail icon if connected */}
-                              {hasGmailConnection && (
-                                <img
-                                  src="/gmail-icon.svg"
-                                  alt="Gmail"
-                                  className="w-7 h-7"
-                                />
-                              )}
-                              {/* Show Outlook icon if connected */}
-                              {hasOutlookConnection && (
-                                <img
-                                  src="/Outlook_icon.svg"
-                                  alt="Outlook"
-                                  className="w-7 h-7"
-                                />
-                              )}
-                              {/* Show both if neither connected */}
-                              {!hasGmailConnection && !hasOutlookConnection && (
-                                <>
-                                  <img src="/gmail-icon.svg" alt="Gmail" className="w-7 h-7 opacity-40" />
-                                  <img src="/Outlook_icon.svg" alt="Outlook" className="w-7 h-7 opacity-40" />
-                                </>
-                              )}
+                            }}
+                            className="group p-6 bg-white border-2 border-gray-200 rounded-xl hover:border-blue-500 hover:shadow-lg transition-all duration-200 text-left"
+                          >
+                            <div className="flex items-center gap-3 mb-3">
+                              <div className="flex items-center gap-2">
+                                {/* Show Gmail icon if connected */}
+                                {hasGmailConnection && (
+                                  <img
+                                    src="/gmail-icon.svg"
+                                    alt="Gmail"
+                                    className="w-7 h-7"
+                                  />
+                                )}
+                                {/* Show Outlook icon if connected */}
+                                {hasOutlookConnection && (
+                                  <img
+                                    src="/Outlook_icon.svg"
+                                    alt="Outlook"
+                                    className="w-7 h-7"
+                                  />
+                                )}
+                              </div>
                             </div>
-                          </div>
-                          <h3 className="text-base font-semibold text-gray-900 mb-2 group-hover:text-blue-600 transition-colors">
-                            Draft an email
-                          </h3>
-                          <p className="text-sm text-gray-600">
-                            Create personalized outreach messages
-                          </p>
-                        </button>
+                            <h3 className="text-base font-semibold text-gray-900 mb-2 group-hover:text-blue-600 transition-colors">
+                              Draft an email
+                            </h3>
+                            <p className="text-sm text-gray-600">
+                              Create personalized outreach messages
+                            </p>
+                          </button>
+                        )}
 
-                        {/* LinkedIn Post Prompt */}
+                        {/* LinkedIn Post Prompt - Always show */}
                         <button
                           onClick={() => {
                             setChatInput("Generate a LinkedIn post using my most recent company info and materials");

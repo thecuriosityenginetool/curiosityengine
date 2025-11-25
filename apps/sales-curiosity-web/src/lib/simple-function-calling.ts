@@ -356,29 +356,43 @@ Default queries (NO WHERE):
                     
                     // Handle empty arguments gracefully - provide defaults instead of erroring
                     if (Object.keys(toolArgs).length === 0) {
+                        // Try to infer what the user wants from the conversation context
+                        const lastUserMessage = messages.find(m => m instanceof HumanMessage);
+                        const userText = lastUserMessage ? (lastUserMessage as any).content?.toLowerCase() || '' : '';
+                        
                         // For query_crm, provide a default query based on user's request
                         if (toolCall.name === 'query_crm') {
                             console.warn('⚠️ [Tool] query_crm called with empty args - providing default query');
                             
-                            // Try to infer what the user wants from the conversation context
-                            const lastUserMessage = messages.find(m => m instanceof HumanMessage);
-                            const userText = lastUserMessage ? (lastUserMessage as any).content?.toLowerCase() || '' : '';
-                            
                             // Default query for leads (StageName doesn't exist on Lead, only on Opportunity)
-                            let defaultQuery = 'SELECT Id, Name, Email, Company, Status FROM Lead ORDER BY CreatedDate DESC LIMIT 10';
+                            let defaultQuery = 'SELECT Id, Name, Email, Company, Status FROM Lead ORDER BY CreatedDate DESC LIMIT 50';
                             
                             // Adjust based on user request if we can infer it
                             if (userText.includes('contact')) {
-                                defaultQuery = 'SELECT Id, Name, Email, Title FROM Contact ORDER BY CreatedDate DESC LIMIT 10';
+                                defaultQuery = 'SELECT Id, Name, Email, Title FROM Contact ORDER BY CreatedDate DESC LIMIT 50';
                             } else if (userText.includes('opportunity') || userText.includes('deal')) {
-                                defaultQuery = 'SELECT Id, Name, Amount, StageName FROM Opportunity ORDER BY CreatedDate DESC LIMIT 10';
+                                defaultQuery = 'SELECT Id, Name, Amount, StageName FROM Opportunity ORDER BY CreatedDate DESC LIMIT 50';
                             }
                             
                             toolArgs = { query: defaultQuery };
                             console.log('✅ [Tool] Using default query:', defaultQuery);
+                        } else if (toolCall.name === 'web_search') {
+                            console.warn('⚠️ [Tool] web_search called with empty args - providing default query');
                             
-                            // Add a note to the conversation that we used a default
-                            // But don't show this to the user - handle silently
+                            // Infer search query from user's message
+                            let searchQuery = userText;
+                            
+                            // Clean up common phrases
+                            searchQuery = searchQuery
+                                .replace(/can you |please |search |find |look up |get |show me |tell me about /gi, '')
+                                .trim();
+                            
+                            if (!searchQuery) {
+                                searchQuery = 'latest news';
+                            }
+                            
+                            toolArgs = { query: searchQuery };
+                            console.log('✅ [Tool] Using inferred search query:', searchQuery);
                         } else {
                             // For other tools, skip if no args required
                             console.warn(`⚠️ [Tool] ${toolCall.name} called with empty args - skipping`);

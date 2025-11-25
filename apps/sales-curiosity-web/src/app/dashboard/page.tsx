@@ -88,8 +88,8 @@ export default function DashboardPage() {
   // Simplified to one model that supports tool use
   // Model IDs must match SambaNova Cloud exactly
   const availableModels = [
-    { id: 'auto', name: '🤖 Auto (Recommended)', provider: 'SambaNova', description: 'Uses Meta-Llama 3.3 (70B) - Best for tool use' },
-    { id: 'Meta-Llama-3.3-70B-Instruct', name: 'Meta-Llama 3.3 (70B)', provider: 'SambaNova', description: 'Fast & reliable - Best for tool use' },
+    { id: 'auto', name: '🤖 Auto (Recommended)', provider: 'SambaNova', description: 'Uses Meta-Llama 3.3 (70B)' },
+    { id: 'Meta-Llama-3.3-70B-Instruct', name: 'Meta-Llama 3.3 (70B)', provider: 'SambaNova', description: 'Fast & reliable' },
   ];
 
   // Leads state

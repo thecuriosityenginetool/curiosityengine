@@ -167,25 +167,41 @@ export function createAgentTools(
 
       new DynamicStructuredTool({
         name: 'query_crm',
-        description: 'Get leads, contacts, or opportunities from Salesforce CRM. Use when user asks to: "show leads", "check leads", "review leads", "see contacts", "list opportunities", "check my CRM", or any variation asking to VIEW Salesforce data. CRITICAL: NEVER make up fake data - always use this tool to get REAL Salesforce data. IMPORTANT: Use simple SOQL without WHERE clauses containing quotes.',
+        description: `Query Salesforce CRM to get leads, contacts, or opportunities. 
+
+WHEN TO USE:
+- User asks: "show leads", "check leads", "review leads", "list my leads"
+- User asks: "see contacts", "show contacts", "list contacts"  
+- User asks: "show opportunities", "check deals", "list opportunities"
+
+EXAMPLE QUERIES (copy these exactly):
+- For leads: SELECT Id, Name, Email, Company FROM Lead ORDER BY CreatedDate DESC LIMIT 10
+- For contacts: SELECT Id, Name, Email, Title FROM Contact ORDER BY CreatedDate DESC LIMIT 10
+- For opportunities: SELECT Id, Name, Amount, StageName FROM Opportunity ORDER BY CreatedDate DESC LIMIT 10
+
+CRITICAL RULES:
+- ALWAYS provide a complete SOQL query in the 'query' parameter
+- Use simple SELECT statements - NO WHERE clauses with quotes
+- If you need filtered searches, use search_salesforce tool instead
+- NEVER call this tool with empty arguments {}`,
         schema: z.object({
-          query: z.string().describe('Simple SOQL query. For leads: SELECT Id, Name, Email, Company FROM Lead ORDER BY CreatedDate DESC LIMIT 10. For contacts: SELECT Id, Name, Email FROM Contact ORDER BY CreatedDate DESC LIMIT 10. NO WHERE clauses with quotes!'),
+          query: z.string().describe('Complete SOQL query. Example: SELECT Id, Name, Email, Company FROM Lead ORDER BY CreatedDate DESC LIMIT 10'),
         }),
         func: async (input) => {
           try {
             console.log('🔍 [query_crm] Executing SOQL:', input.query);
-            
+
             // Add timeout to prevent hanging
-            const timeoutPromise = new Promise((_, reject) => 
+            const timeoutPromise = new Promise((_, reject) =>
               setTimeout(() => reject(new Error('Query timeout after 10 seconds')), 10000)
             );
-            
+
             const queryPromise = querySalesforce(organizationId, input.query, userId);
-            
+
             const result = await Promise.race([queryPromise, timeoutPromise]) as any;
-            
+
             console.log('✅ [query_crm] Query completed, records:', result?.totalSize || 0);
-            
+
             if (result.records && result.records.length > 0) {
               const records = result.records.slice(0, 10); // Limit to 10 for readability
               const formatted = records.map((r: any, i: number) => {
@@ -219,7 +235,7 @@ export function createAgentTools(
         func: async (input) => {
           try {
             const result = await createSalesforceLead(organizationId, input, userId);
-            
+
             // Log activity
             await logActivity(organizationId, userId, 'lead_created', 'crm', {
               provider: 'salesforce',
@@ -228,7 +244,7 @@ export function createAgentTools(
               email: input.email,
               recordId: result.id
             });
-            
+
             return `✅ Lead created successfully!\nName: ${input.firstName} ${input.lastName}\nCompany: ${input.company}\nRecord ID: ${result.id}`;
           } catch (error) {
             return `Error creating lead: ${error instanceof Error ? error.message : 'Unknown error'}`;
@@ -250,7 +266,7 @@ export function createAgentTools(
         func: async (input) => {
           try {
             const result = await createSalesforceContact(organizationId, input, userId);
-            
+
             // Log activity
             await logActivity(organizationId, userId, 'contact_created', 'crm', {
               provider: 'salesforce',
@@ -259,7 +275,7 @@ export function createAgentTools(
               email: input.email,
               recordId: result.id
             });
-            
+
             return `✅ Contact created successfully!\nName: ${input.firstName} ${input.lastName}\n${input.company ? `Company: ${input.company}\n` : ''}Record ID: ${result.id}`;
           } catch (error) {
             return `Error creating contact: ${error instanceof Error ? error.message : 'Unknown error'}`;
@@ -320,7 +336,7 @@ export function createAgentTools(
             if (!input.name && !input.email) {
               return 'Please specify a name or email to search for. Example: "Find John Smith in Monday" or "Search for john@example.com in Monday.com"';
             }
-            
+
             const result = await searchPersonInMonday(organizationId, input, userId);
             if (result.found && result.data) {
               const contact = result.data;
@@ -385,7 +401,7 @@ export function createAgentTools(
               { ...input, body: sanitizedBody },
               userId
             );
-            
+
             // Log activity
             await logActivity(organizationId, userId, 'email_draft_created', 'email', {
               provider: 'gmail',
@@ -393,7 +409,7 @@ export function createAgentTools(
               subject: input.subject,
               draftId: result.id
             });
-            
+
             return `✅ Email draft created successfully in Gmail!\nTo: ${input.to}\nSubject: ${input.subject}\nDraft ID: ${result.id}\n\nThe draft is now in your Gmail Drafts folder and ready to send.`;
           } catch (error) {
             return `Error creating Gmail draft: ${error instanceof Error ? error.message : 'Unknown error'}`;
@@ -428,14 +444,14 @@ export function createAgentTools(
               { ...input, body: sanitizedBody },
               userId
             );
-            
+
             // Log activity
             await logActivity(organizationId, userId, 'email_sent', 'email', {
               provider: 'gmail',
               to: input.to,
               subject: input.subject
             });
-            
+
             return `✅ Email sent successfully via Gmail!\nTo: ${input.to}\nSubject: ${input.subject}\n\nThe email has been sent.`;
           } catch (error) {
             return `Error sending Gmail email: ${error instanceof Error ? error.message : 'Unknown error'}`;
@@ -468,7 +484,7 @@ export function createAgentTools(
               },
               userId
             );
-            
+
             // Log activity
             await logActivity(organizationId, userId, 'meeting_scheduled', 'calendar', {
               provider: 'google',
@@ -477,7 +493,7 @@ export function createAgentTools(
               attendees: input.attendees,
               eventId: result.id
             });
-            
+
             return `✅ Calendar event created successfully in Google Calendar!\nTitle: ${input.title}\nStart: ${new Date(input.start).toLocaleString()}\nEnd: ${new Date(input.end).toLocaleString()}\n${input.attendees ? `Attendees: ${input.attendees.join(', ')}\n` : ''}Event ID: ${result.id}`;
           } catch (error) {
             return `Error creating Google Calendar event: ${error instanceof Error ? error.message : 'Unknown error'}`;
@@ -551,7 +567,7 @@ export function createAgentTools(
               { ...input, body: sanitizedBody },
               userId
             );
-            
+
             // Log activity
             await logActivity(organizationId, userId, 'email_draft_created', 'email', {
               provider: 'outlook',
@@ -559,7 +575,7 @@ export function createAgentTools(
               subject: input.subject,
               draftId: result.id
             });
-            
+
             return `✅ Email draft created successfully in Outlook!\nTo: ${input.to}\nSubject: ${input.subject}\nDraft ID: ${result.id}\n\nThe draft is now in your Outlook Drafts folder.`;
           } catch (error) {
             return `Error creating Outlook draft: ${error instanceof Error ? error.message : 'Unknown error'}`;
@@ -615,7 +631,7 @@ export function createAgentTools(
         func: async (input) => {
           try {
             const result = await createCalendarEvent(organizationId, input, userId);
-            
+
             // Log activity
             await logActivity(organizationId, userId, 'meeting_scheduled', 'calendar', {
               provider: 'outlook',
@@ -624,7 +640,7 @@ export function createAgentTools(
               attendees: input.attendees,
               eventId: result.id
             });
-            
+
             return `✅ Calendar event created successfully in Outlook!\nSubject: ${input.subject}\nStart: ${new Date(input.start).toLocaleString()}\nEnd: ${new Date(input.end).toLocaleString()}\n${input.attendees ? `Attendees: ${input.attendees.join(', ')}\n` : ''}Event ID: ${result.id}`;
           } catch (error) {
             return `Error creating Outlook calendar event: ${error instanceof Error ? error.message : 'Unknown error'}`;
@@ -685,15 +701,15 @@ Examples: "Search for latest AI news", "Find company website for Acme Corp", "Se
       func: async (input) => {
         try {
           console.log('🔍 [Web Search] Searching for:', input.query);
-          
+
           const { results, searchUrl } = await searchWeb(input.query, 5);
-          
+
           if (results.length === 0) {
             return `No search results found for "${input.query}". Try rephrasing your search query.`;
           }
-          
+
           const formatted = formatSearchResultsForAI(results, input.query);
-          
+
           console.log('✅ [Web Search] Returning', results.length, 'results');
           return formatted;
         } catch (error) {
@@ -702,7 +718,7 @@ Examples: "Search for latest AI news", "Find company website for Acme Corp", "Se
         }
       },
     }),
-    
+
     new DynamicStructuredTool({
       name: 'browse_url',
       description: `Navigate to a specific URL and read its content. Use this to:
@@ -718,20 +734,20 @@ Examples: "Browse https://example.com/about", "Read the pricing page at https://
       func: async (input) => {
         try {
           console.log('🌐 [Browse URL] Navigating to:', input.url);
-          
+
           if (!input.url.startsWith('http://') && !input.url.startsWith('https://')) {
             return 'Error: URL must start with http:// or https://';
           }
-          
+
           const { title, content, url } = await browseUrl(input.url);
           const formatted = formatBrowsedContentForAI({ title, content, url });
-          
+
           let response = formatted;
           if (input.question) {
             response += `\n\n**User's specific question:** ${input.question}\n`;
             response += `Please focus on answering this question using the content above.\n`;
           }
-          
+
           console.log('✅ [Browse URL] Successfully extracted content from:', input.url);
           return response;
         } catch (error) {

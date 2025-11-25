@@ -107,9 +107,17 @@ export class SimpleFunctionCalling {
     async invoke(query: string, systemPrompt?: string): Promise<string> {
         const messages: any[] = [];
 
-        // Add system prompt
+        // Add system prompt with explicit tool use instructions
         if (systemPrompt) {
-            messages.push(new SystemMessage(systemPrompt));
+            const enhancedSystemPrompt = `${systemPrompt}
+
+CRITICAL TOOL USE INSTRUCTIONS:
+1. When calling tools, you MUST provide the "arguments" object.
+2. Do NOT output empty arguments like {}.
+3. If a tool requires a "query" or "url", you MUST generate it based on the user's request.
+4. Example: {"name": "web_search", "arguments": {"query": "latest AI news"}}
+5. NEVER call query_crm with empty args. Always provide a valid SOQL query.`;
+            messages.push(new SystemMessage(enhancedSystemPrompt));
         }
 
         // Add user query

@@ -74,6 +74,12 @@ export class SimpleFunctionCalling {
             return `Error: Tool '${toolCall.name}' not found`;
         }
 
+        // Validate arguments are not empty
+        if (!toolCall.arguments || Object.keys(toolCall.arguments).length === 0) {
+            console.error(`❌ Tool ${toolCall.name} called with empty arguments`);
+            return `Error: Tool '${toolCall.name}' requires arguments but received empty object. Please provide the required parameters. For query_crm, you must provide a 'query' parameter with a complete SOQL statement like: SELECT Id, Name, Email FROM Lead LIMIT 10`;
+        }
+
         try {
             console.log(`🔧 Executing tool: ${toolCall.name} with args:`, toolCall.arguments);
             const result = await tool.invoke(toolCall.arguments);

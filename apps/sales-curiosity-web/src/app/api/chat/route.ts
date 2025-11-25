@@ -1128,6 +1128,8 @@ When the user mentions vague references like "latest prospect", "that person", "
                 // onToolCall
                 (toolName, args) => {
                   console.log(`🔧 [Chat API] Tool called: ${toolName}`, args);
+                  console.log(`🔍 [Chat API] Args type: ${typeof args}, isObject: ${typeof args === 'object'}, keys: ${args ? Object.keys(args) : 'null'}`);
+                  console.log(`🔍 [Chat API] Args JSON: ${JSON.stringify(args)}`);
                   controller.enqueue(
                     encoder.encode(`data: ${JSON.stringify({
                       type: 'tool_start',

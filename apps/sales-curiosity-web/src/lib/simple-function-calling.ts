@@ -8,6 +8,7 @@
 
 import { ChatOpenAI } from '@langchain/openai';
 import { HumanMessage, SystemMessage, AIMessage, ToolMessage } from '@langchain/core/messages';
+import { zodToJsonSchema } from 'zod-to-json-schema';
 import { StructuredTool } from '@langchain/core/tools';
 
 export interface FunctionCallingConfig {
@@ -58,7 +59,7 @@ export class SimpleFunctionCalling {
                 function: {
                     name: tool.name,
                     description: tool.description,
-                    parameters: schema,
+                    parameters: zodToJsonSchema(schema),
                 },
             };
         });

@@ -164,15 +164,22 @@ export default function DashboardPage() {
 
   // Helper function to parse thinking tags from DeepSeek-R1 responses
   const parseThinkingTags = (content: string): { thinking: string; final: string } => {
-    const thinkMatch = content.match(/<think>([\s\S]*?)(?:<\/think>|$)/);
-    const thinking = thinkMatch ? thinkMatch[1].trim() : '';
-
-    let final = '';
-    if (content.includes('</think>')) {
-      final = content.split('</think>')[1] || '';
-    } else if (!content.includes('<think>')) {
-      final = content;
+    // Extract all thinking content (handle multiple think tags)
+    const thinkMatches = content.matchAll(/<think>([\s\S]*?)(?:<\/think>|$)/g);
+    let thinking = '';
+    for (const match of thinkMatches) {
+      thinking += match[1].trim() + '\n\n';
     }
+    thinking = thinking.trim();
+
+    // Remove ALL thinking tags from final content
+    let final = content.replace(/<think>[\s\S]*?<\/think>/g, '');
+
+    // Also remove unclosed think tags
+    final = final.replace(/<think>[\s\S]*$/g, '');
+
+    // Remove any remaining XML-like tags that might have leaked
+    final = final.replace(/<\/?think>/g, '');
 
     return { thinking, final: final.trim() };
   };

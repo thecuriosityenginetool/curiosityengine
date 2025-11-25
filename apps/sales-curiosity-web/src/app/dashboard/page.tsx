@@ -863,9 +863,9 @@ export default function DashboardPage() {
                     console.log('💾 Saved assistant message to chat:', currentChatId);
                   }
 
-                  // Always reload chat history when chat completes (even if save failed)
+                  // Always reload chat messages when chat completes to ensure persistence
                   if (currentChatId) {
-                    loadChatHistory();
+                    await loadChat(currentChatId);
                   }
                 } else if (parsed.type === 'error') {
                   accumulatedContent += `\n\n❌ Error: ${parsed.error}`;

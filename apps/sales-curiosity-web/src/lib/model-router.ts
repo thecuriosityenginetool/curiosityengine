@@ -19,10 +19,16 @@ export const MODELS = {
 
 // Tool-based keywords that indicate need for function calling
 const TOOL_KEYWORDS = [
+  // CRM & Data access
   'check', 'search', 'find', 'look', 'get', 'fetch',
   'calendar', 'email', 'draft', 'send', 'schedule', 'create',
   'salesforce', 'crm', 'contact', 'lead', 'task', 'note',
-  'outlook', 'gmail', 'meeting', 'event', 'appointment'
+  'outlook', 'gmail', 'meeting', 'event', 'appointment',
+  // Web search indicators
+  'news', 'latest', 'recent', 'current', 'today', 'this week',
+  'research', 'information about', 'tell me about', 'what is',
+  'who is', 'where is', 'when did', 'updates', 'developments',
+  'browse', 'website', 'url', 'link', 'article'
 ];
 
 // Reasoning keywords that indicate pure analysis/writing
@@ -39,24 +45,24 @@ const REASONING_KEYWORDS = [
  */
 export function isToolBasedRequest(message: string): boolean {
   const lowerMessage = message.toLowerCase();
-  
+
   // Short greetings/simple messages don't need tools
   const simpleGreetings = ['hi', 'hello', 'hey', 'thanks', 'thank you', 'ok', 'okay', 'yes', 'no'];
   if (simpleGreetings.some(greeting => lowerMessage.trim() === greeting)) {
     console.log('🗣️ [Model Router] Simple greeting detected - no tools needed');
     return false;
   }
-  
+
   // Count tool-related keywords
   const toolScore = TOOL_KEYWORDS.reduce((score, keyword) => {
     return score + (lowerMessage.includes(keyword) ? 1 : 0);
   }, 0);
-  
+
   // Count reasoning-related keywords
   const reasoningScore = REASONING_KEYWORDS.reduce((score, keyword) => {
     return score + (lowerMessage.includes(keyword) ? 1 : 0);
   }, 0);
-  
+
   // If tool score is higher, it's tool-based
   // If reasoning score is higher, it's reasoning-based
   // If both are 0, default to REASONING (DeepSeek for general chat)
@@ -64,7 +70,7 @@ export function isToolBasedRequest(message: string): boolean {
     console.log('💭 [Model Router] No clear signal - defaulting to reasoning mode');
     return false; // Use DeepSeek for general conversation
   }
-  
+
   const isToolBased = toolScore > reasoningScore;
   console.log('📊 [Model Router] Scores - Tool:', toolScore, 'Reasoning:', reasoningScore, '→', isToolBased ? 'TOOL' : 'REASONING');
   return isToolBased;
@@ -86,10 +92,10 @@ export function selectModel(
     console.log('🎯 [Model Router] User selected:', userSelectedModel);
     return userSelectedModel;
   }
-  
+
   // Auto mode - use smart routing
   const isToolBased = isToolBasedRequest(userMessage);
-  
+
   if (isToolBased) {
     console.log('🔧 [Model Router] Tool-based request detected → Using Llama-3.3-70B');
     return MODELS.LLAMA_3_3;
@@ -115,19 +121,19 @@ export function getFallbackModel(
     console.log('⚠️ [Model Router] User manually selected model - no fallback');
     return null;
   }
-  
+
   // If DeepSeek failed, fallback to Llama (more reliable for tools)
   if (currentModel === MODELS.DEEPSEEK_R1) {
     console.log('🔄 [Model Router] DeepSeek-R1 timeout → Falling back to Meta-Llama-3.3-70B');
     return MODELS.LLAMA_3_3;
   }
-  
+
   // If Llama failed, try smaller Llama as last resort
   if (currentModel === MODELS.LLAMA_3_3) {
     console.log('🔄 [Model Router] Meta-Llama-3.3-70B timeout → Falling back to Meta-Llama-3.1-8B');
     return MODELS.LLAMA_3_1_8B;
   }
-  
+
   // No more fallbacks
   console.log('❌ [Model Router] No fallback available');
   return null;

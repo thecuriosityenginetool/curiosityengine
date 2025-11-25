@@ -8,15 +8,14 @@
  */
 
 // Available models (must match SambaNova Cloud model IDs exactly)
-export const MODELS = {
-  AUTO: 'auto',
-  DEEPSEEK_R1: 'DeepSeek-R1-Distill-Llama-70B', // Using Distill model as it's often more reliable for tools
-  DEEPSEEK_R1_RAW: 'DeepSeek-R1-0528',
-  LLAMA_3_3: 'Meta-Llama-3.3-70B-Instruct',
-  LLAMA_3_1_8B: 'Meta-Llama-3.1-8B-Instruct',
-  DEEPSEEK_V3: 'DeepSeek-V3-0324',
-  DEEPSEEK_V3_1: 'DeepSeek-V3.1',
-} as const;
+AUTO: 'Meta-Llama-3.3-70B-Instruct',
+  DEEPSEEK_R1: 'Meta-Llama-3.3-70B-Instruct',
+    DEEPSEEK_R1_RAW: 'Meta-Llama-3.3-70B-Instruct',
+      LLAMA_3_3: 'Meta-Llama-3.3-70B-Instruct',
+        LLAMA_3_1_8B: 'Meta-Llama-3.3-70B-Instruct',
+          DEEPSEEK_V3: 'Meta-Llama-3.3-70B-Instruct',
+            DEEPSEEK_V3_1: 'Meta-Llama-3.3-70B-Instruct',
+} as const ;
 
 // Tool-based keywords that indicate need for function calling
 const TOOL_KEYWORDS = [

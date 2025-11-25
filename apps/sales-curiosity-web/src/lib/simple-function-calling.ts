@@ -54,12 +54,19 @@ export class SimpleFunctionCalling {
     private getToolSchemas(): any[] {
         return this.tools.map(tool => {
             const schema = tool.schema;
+            const jsonSchema = zodToJsonSchema(schema) as any;
+
+            // Remove $schema field as it can confuse some LLM providers
+            if (jsonSchema.$schema) {
+                delete jsonSchema.$schema;
+            }
+
             return {
                 type: 'function',
                 function: {
                     name: tool.name,
                     description: tool.description,
-                    parameters: zodToJsonSchema(schema),
+                    parameters: jsonSchema,
                 },
             };
         });
@@ -131,6 +138,7 @@ CRITICAL TOOL USE INSTRUCTIONS:
                 // Call LLM with tools
                 const response = await this.llm.invoke(messages, {
                     tools: this.getToolSchemas(),
+                    tool_choice: 'auto',
                 });
 
                 console.log('📥 LLM Response:', {
@@ -217,6 +225,7 @@ CRITICAL TOOL USE INSTRUCTIONS:
             try {
                 const response = await this.llm.invoke(messages, {
                     tools: this.getToolSchemas(),
+                    tool_choice: 'auto',
                 });
 
                 const toolCalls = (response as any).tool_calls;

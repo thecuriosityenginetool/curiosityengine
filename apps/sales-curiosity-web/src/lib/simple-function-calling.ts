@@ -439,6 +439,10 @@ Default queries (NO WHERE):
                     }));
                 }
 
+                // After executing tools, force the model to generate a final response
+                // by adding a message that prompts for a summary
+                messages.push(new HumanMessage('Based on the data above, provide your analysis and insights. Do not call any more tools.'));
+
             } catch (error: any) {
                 yield { type: 'error', content: error.message };
                 throw error;

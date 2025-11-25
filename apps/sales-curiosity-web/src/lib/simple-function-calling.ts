@@ -62,8 +62,8 @@ export class SimpleFunctionCalling {
             }
 
             // Explicitly ensure required fields are set for critical tools
-            // For query_crm, query parameter is always required
-            if (tool.name === 'query_crm' && jsonSchema.properties?.query) {
+            // For query_crm and web_search, query parameter is always required
+            if ((tool.name === 'query_crm' || tool.name === 'web_search') && jsonSchema.properties?.query) {
                 if (!jsonSchema.required) {
                     jsonSchema.required = [];
                 }

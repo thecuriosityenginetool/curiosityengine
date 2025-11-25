@@ -232,7 +232,7 @@ export class SimpleFunctionCalling {
                         content: `Executing: ${toolCall.name}`
                     };
 
-                    yield { type: 'tool_start', toolName: toolCall.name, toolArgs: toolCall.args };
+                    yield { type: 'tool_start', toolName: toolCall.name, toolArgs: toolCall.args || toolCall.arguments || {} };
 
                     if (onToolCall) {
                         onToolCall(toolCall.name, toolCall.args);
@@ -240,7 +240,7 @@ export class SimpleFunctionCalling {
 
                     const result = await this.executeTool({
                         name: toolCall.name,
-                        arguments: toolCall.args,
+                        arguments: toolCall.args || toolCall.arguments || {},
                     });
 
                     yield { type: 'tool_result', toolName: toolCall.name, toolResult: result };

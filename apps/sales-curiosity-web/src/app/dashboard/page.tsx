@@ -715,16 +715,7 @@ export default function DashboardPage() {
                 const parsed = JSON.parse(data);
                 console.log('✅ Parsed event type:', parsed.type);
 
-                if (parsed.type === 'context_loaded') {
-                  // Add context sources to agent steps
-                  if (parsed.sources && parsed.sources.length > 0) {
-                    agentSteps += '📊 **Context Loaded:**\n';
-                    parsed.sources.forEach((source: string) => {
-                      agentSteps += `  ✓ ${source}\n`;
-                    });
-                    agentSteps += '\n';
-                  }
-                } else if (parsed.type === 'thinking') {
+                if (parsed.type === 'thinking') {
                   // Handle thinking content from LangGraph/DeepSeek-R1
                   if (parsed.content) {
                     agentSteps += '\n**AI Reasoning:**\n' + parsed.content + '\n';

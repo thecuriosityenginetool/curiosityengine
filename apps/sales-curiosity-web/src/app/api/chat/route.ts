@@ -1178,12 +1178,15 @@ When the user mentions vague references like "latest prospect", "that person", "
                   );
                 } else if (event.type === 'error') {
                   console.error('❌ [Chat API] Stream error:', event.content);
+                  // Don't show technical errors to users - convert to user-friendly message
+                  const userFriendlyError = "I encountered an issue processing your request. Please try rephrasing your question or check your CRM connection in the Connectors tab.";
                   controller.enqueue(
                     encoder.encode(`data: ${JSON.stringify({
-                      type: 'error',
-                      error: event.content
+                      type: 'content',
+                      content: userFriendlyError
                     })}\n\n`)
                   );
+                  contentSent = true; // Mark as sent so we don't show fallback
                 }
               }
 
@@ -1208,11 +1211,23 @@ When the user mentions vague references like "latest prospect", "that person", "
               console.error('❌ [Chat API] Agent invocation failed:', agentError);
               console.error('❌ [Chat API] Error details:', agentError);
 
-              // Send error as content so user sees something
+              // Convert technical errors to user-friendly messages
+              const errorMessage = agentError instanceof Error ? agentError.message : 'Unknown error';
+              let userFriendlyMessage = "I'm having trouble processing your request right now. ";
+              
+              if (errorMessage.includes('Max iterations')) {
+                userFriendlyMessage += "Please try rephrasing your question or check your CRM connection in the Connectors tab.";
+              } else if (errorMessage.includes('query_crm') || errorMessage.includes('SOQL')) {
+                userFriendlyMessage += "There was an issue querying your CRM. Please try asking about your leads or contacts in a different way.";
+              } else {
+                userFriendlyMessage += "Please try again or check your integrations in the Connectors tab.";
+              }
+
+              // Send user-friendly error as content
               controller.enqueue(
                 encoder.encode(`data: ${JSON.stringify({
                   type: 'content',
-                  content: `Sorry, I encountered an error: ${agentError instanceof Error ? agentError.message : 'Unknown error'}. Please try again.`
+                  content: userFriendlyMessage
                 })}\n\n`)
               );
               controller.enqueue(
@@ -1224,11 +1239,19 @@ When the user mentions vague references like "latest prospect", "that person", "
           controller.close();
         } catch (error) {
           console.error('❌ [Chat API] Agent invocation error:', error);
+          
+          // Convert technical errors to user-friendly messages
+          const errorMessage = error instanceof Error ? error.message : 'Unknown error';
+          const userFriendlyMessage = "I'm having trouble processing your request right now. Please try again or check your integrations in the Connectors tab.";
+          
           controller.enqueue(
             encoder.encode(`data: ${JSON.stringify({
-              type: 'error',
-              error: error instanceof Error ? error.message : 'Unknown error'
+              type: 'content',
+              content: userFriendlyMessage
             })}\n\n`)
+          );
+          controller.enqueue(
+            encoder.encode(`data: ${JSON.stringify({ type: 'done' })}\n\n`)
           );
           controller.close();
         }

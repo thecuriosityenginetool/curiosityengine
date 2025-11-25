@@ -42,6 +42,7 @@ interface ChatMessage {
   thinking?: string; // Reasoning/thinking content from DeepSeek-R1
   showThinking?: boolean; // Whether thinking section is expanded
   model?: string; // Which model generated this message
+  sources?: Array<{ title: string; url: string }>; // Source citations
 }
 
 interface Lead {

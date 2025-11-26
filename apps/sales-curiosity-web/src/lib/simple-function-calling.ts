@@ -249,6 +249,7 @@ CRITICAL TOOL USE REQUIREMENTS:
 - When calling ANY tool, you MUST provide ALL required parameters
 - For query_crm tool: You MUST provide a "query" parameter with a complete SOQL query
 - For web_search tool: Be specific with regions (e.g., "Southeast US" not just "Southeast")
+- For search_calendar_events: You MUST provide "timeMin" (ISO string) and "maxResults" (number). Example: {"timeMin": "2025-11-26T00:00:00Z", "maxResults": 10}
 
 ⚠️⚠️⚠️ ABSOLUTE RULE FOR query_crm - READ THIS CAREFULLY ⚠️⚠️⚠️
 NEVER EVER use WHERE clauses with quotes. This WILL break JSON parsing and cause errors.

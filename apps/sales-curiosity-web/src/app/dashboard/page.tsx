@@ -76,6 +76,7 @@ export default function DashboardPage() {
   const [chatHistory, setChatHistory] = useState<any[]>([]);
   const [selectedEvent, setSelectedEvent] = useState<CalendarEvent | null>(null);
   const [showEventMenu, setShowEventMenu] = useState(false);
+  const [showChatSidebar, setShowChatSidebar] = useState(true);
   const chatEndRef = useRef<HTMLDivElement>(null);
 
   // AI Model selection state
@@ -257,7 +258,7 @@ export default function DashboardPage() {
 
       // Set active tab from URL if present
       if (tabParam && ['dashboard', 'leads', 'context', 'integrations', 'logs'].includes(tabParam)) {
-        setActiveTab(tabParam);
+        setActiveTab(tabParam as 'dashboard' | 'leads' | 'context' | 'integrations' | 'logs');
       }
 
       if (successMessage) {
@@ -2722,8 +2723,43 @@ The draft is now in your Outlook Drafts folder and ready to send.`);
                                       .replace(/✅ Complete:.*Error/i, '⚠️ Encountered an issue, adjusting approach...')
                                       .replace(/✅ Tool result:/i, '✅ Retrieved information:');
 
-                                    return <div key={i} className="pl-2">{naturalLine}</div>;
+                                    return (
+                                      <motion.div
+                                        key={i}
+                                        initial={{ opacity: 0, x: -10 }}
+                                        animate={{ opacity: 1, x: 0 }}
+                                        transition={{ duration: 0.3, delay: i * 0.1 }}
+                                        className="flex items-start gap-3 relative pl-2"
+                                      >
+                                        {/* Timeline line */}
+                                        {i !== msg.thinking!.split('\n').filter(l => l.trim()).length - 1 && (
+                                          <div className="absolute left-[11px] top-6 bottom-[-12px] w-0.5 bg-purple-100"></div>
+                                        )}
+
+                                        <div className={`mt-1.5 w-2 h-2 rounded-full flex-shrink-0 ${naturalLine.includes('✅') ? 'bg-green-400' :
+                                          naturalLine.includes('⚠️') ? 'bg-yellow-400' :
+                                            'bg-purple-400 animate-pulse'
+                                          }`} />
+
+                                        <span className={`text-sm ${naturalLine.includes('✅') ? 'text-gray-700' : 'text-purple-900 font-medium'
+                                          }`}>
+                                          {naturalLine}
+                                        </span>
+                                      </motion.div>
+                                    );
                                   })}
+
+                                  {/* Active thinking indicator if message is still streaming/thinking */}
+                                  {msg.role === 'assistant' && !msg.content && (
+                                    <motion.div
+                                      initial={{ opacity: 0 }}
+                                      animate={{ opacity: 1 }}
+                                      className="flex items-center gap-3 pl-2 pt-1"
+                                    >
+                                      <div className="w-2 h-2 rounded-full bg-purple-400 animate-ping" />
+                                      <span className="text-xs text-purple-500 italic">Thinking...</span>
+                                    </motion.div>
+                                  )}
                                 </div>
                               </div>
                             )}

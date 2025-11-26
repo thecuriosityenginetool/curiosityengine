@@ -565,6 +565,51 @@ For filtered searches, use search_salesforce.`;
             return `Error searching Gmail: ${error instanceof Error ? error.message : 'Unknown error'}`;
           }
         },
+      }),
+
+      new DynamicStructuredTool({
+        name: 'search_calendar_events',
+        description: 'Search the user\'s Google Calendar for events. Use this when user asks about their calendar, meetings, or schedule. Searches for events in a time range.',
+        schema: z.object({
+          timeMin: z.string().optional().describe('Start time in ISO 8601 format (e.g., "2025-11-26T00:00:00Z"). Defaults to now.'),
+          timeMax: z.string().optional().describe('End time in ISO 8601 format (e.g., "2025-11-30T23:59:59Z"). Defaults to 30 days from now.'),
+          maxResults: z.number().optional().default(10).describe('Maximum number of events to return (default 10)'),
+        }),
+        func: async (input) => {
+          try {
+            const { getGoogleCalendarEvents } = await import('./gmail');
+            const events = await getGoogleCalendarEvents(
+              organizationId,
+              userId,
+              {
+                startDate: input.timeMin,
+                endDate: input.timeMax,
+                maxResults: input.maxResults
+              }
+            );
+
+            if (events.length === 0) {
+              return 'No calendar events found in the specified time range.';
+            }
+
+            let response = `Found ${events.length} calendar event(s):\n\n`;
+            events.forEach((event: any, index: number) => {
+              const start = event.start?.dateTime || event.start?.date;
+              const end = event.end?.dateTime || event.end?.date;
+              const attendees = event.attendees?.map((a: any) => a.email).join(', ') || 'No attendees';
+
+              response += `${index + 1}. ${event.summary}\n`;
+              response += `   When: ${new Date(start).toLocaleString()} - ${new Date(end).toLocaleString()}\n`;
+              if (event.location) response += `   Location: ${event.location}\n`;
+              if (event.description) response += `   Description: ${event.description}\n`;
+              response += `   Attendees: ${attendees}\n\n`;
+            });
+
+            return response;
+          } catch (error) {
+            return `Error searching Google Calendar: ${error instanceof Error ? error.message : 'Unknown error'}`;
+          }
+        },
       })
     );
   }

@@ -393,6 +393,33 @@ Default queries (NO WHERE):
                             
                             toolArgs = { query: searchQuery };
                             console.log('✅ [Tool] Using inferred search query:', searchQuery);
+                        } else if (toolCall.name === 'search_gmail_emails') {
+                            console.warn('⚠️ [Tool] search_gmail_emails called with empty args - providing default query');
+                            
+                            // For "check my emails" or "recent emails", use a broad search
+                            // Use " " (space) which Gmail interprets as all recent emails
+                            let emailQuery = ' '; // Default to all recent emails
+                            
+                            // Try to infer specific search if mentioned
+                            if (userText.includes('unread')) {
+                                emailQuery = 'is:unread';
+                            } else if (userText.includes('today')) {
+                                emailQuery = 'newer_than:1d';
+                            } else if (userText.includes('this week')) {
+                                emailQuery = 'newer_than:7d';
+                            }
+                            
+                            toolArgs = { query: emailQuery, maxResults: 10 };
+                            console.log('✅ [Tool] Using default email search query:', emailQuery);
+                        } else if (toolCall.name === 'search_calendar_events') {
+                            console.warn('⚠️ [Tool] search_calendar_events called with empty args - providing default');
+                            
+                            // Search for upcoming events
+                            toolArgs = { 
+                                timeMin: new Date().toISOString(),
+                                maxResults: 10 
+                            };
+                            console.log('✅ [Tool] Using default calendar search (upcoming events)');
                         } else {
                             // For other tools, skip if no args required
                             console.warn(`⚠️ [Tool] ${toolCall.name} called with empty args - skipping`);

@@ -153,7 +153,8 @@ CRITICAL TOOL USE INSTRUCTIONS:
 2. Do NOT output empty arguments like {}.
 3. If a tool requires a "query" or "url", you MUST generate it based on the user's request.
 4. Example: {"name": "web_search", "arguments": {"query": "latest AI news"}}
-5. NEVER call query_crm with empty args. Always provide a valid SOQL query.`;
+5. NEVER call query_crm with empty args. Always provide a valid SOQL query.
+6. For web_search, be specific with regions. Example: "latest AI news in Southeast US" instead of just "Southeast".`;
             messages.push(new SystemMessage(enhancedSystemPrompt));
         }
 
@@ -247,6 +248,7 @@ CRITICAL TOOL USE INSTRUCTIONS:
 CRITICAL TOOL USE REQUIREMENTS:
 - When calling ANY tool, you MUST provide ALL required parameters
 - For query_crm tool: You MUST provide a "query" parameter with a complete SOQL query
+- For web_search tool: Be specific with regions (e.g., "Southeast US" not just "Southeast")
 
 ⚠️⚠️⚠️ ABSOLUTE RULE FOR query_crm - READ THIS CAREFULLY ⚠️⚠️⚠️
 NEVER EVER use WHERE clauses with quotes. This WILL break JSON parsing and cause errors.
@@ -393,6 +395,12 @@ For create_google_calendar_event:
 
                             if (!searchQuery) {
                                 searchQuery = 'latest news';
+                            }
+
+                            // Handle regional ambiguity for "Southeast"
+                            if (searchQuery.toLowerCase().includes('southeast') && !searchQuery.toLowerCase().includes('asia')) {
+                                searchQuery += ' United States';
+                                console.log('✅ [Tool] Refined regional query:', searchQuery);
                             }
 
                             toolArgs = { query: searchQuery };

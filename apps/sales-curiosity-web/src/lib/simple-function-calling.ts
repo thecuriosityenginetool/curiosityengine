@@ -79,7 +79,7 @@ export class SimpleFunctionCalling {
 
 ⚠️ CRITICAL: DO NOT USE WHERE CLAUSES WITH QUOTES - This will cause JSON parsing errors.
 For filtered results, use search_salesforce tool or get all records and filter in your response.`;
-                
+
                 return {
                     type: 'function',
                     function: {
@@ -262,7 +262,11 @@ If user asks for "late stage leads" or ANY filtered results:
 Default queries (NO WHERE):
   * For leads: SELECT Id, Name, Email, Company, Status FROM Lead ORDER BY CreatedDate DESC LIMIT 50
   * For contacts: SELECT Id, Name, Email, Title FROM Contact ORDER BY CreatedDate DESC LIMIT 50
-  * For opportunities: SELECT Id, Name, Amount, StageName FROM Opportunity ORDER BY CreatedDate DESC LIMIT 50`;
+  * For opportunities: SELECT Id, Name, Amount, StageName FROM Opportunity ORDER BY CreatedDate DESC LIMIT 50
+
+For create_google_calendar_event:
+  * You MUST provide "title", "start", and "end".
+  * If user says "put on calendar", infer a title (e.g., "Meeting") and time (e.g., next hour).`;
             messages.push(new SystemMessage(enhancedSystemPrompt));
         }
 
@@ -303,7 +307,7 @@ Default queries (NO WHERE):
                 const normalizedToolCalls = (toolCalls || []).map((tc: any) => {
                     // Try to extract arguments from various possible locations
                     let args = tc.args || tc.arguments || tc.parameters || {};
-                    
+
                     // If args is a string, try to parse it
                     if (typeof args === 'string') {
                         try {
@@ -313,12 +317,12 @@ Default queries (NO WHERE):
                             args = {};
                         }
                     }
-                    
+
                     // If we still have no args, check for nested structure
                     if (Object.keys(args).length === 0 && tc.parameters) {
                         args = tc.parameters;
                     }
-                    
+
                     return {
                         ...tc,
                         args,
@@ -353,53 +357,53 @@ Default queries (NO WHERE):
                 for (const toolCall of normalizedToolCalls) {
                     // Extract arguments - use normalized args
                     let toolArgs = toolCall.args || toolCall.arguments || {};
-                    
+
                     // Handle empty arguments gracefully - provide defaults instead of erroring
                     if (Object.keys(toolArgs).length === 0) {
                         // Try to infer what the user wants from the conversation context
                         const lastUserMessage = messages.find(m => m instanceof HumanMessage);
                         const userText = lastUserMessage ? (lastUserMessage as any).content?.toLowerCase() || '' : '';
-                        
+
                         // For query_crm, provide a default query based on user's request
                         if (toolCall.name === 'query_crm') {
                             console.warn('⚠️ [Tool] query_crm called with empty args - providing default query');
-                            
+
                             // Default query for leads (StageName doesn't exist on Lead, only on Opportunity)
                             let defaultQuery = 'SELECT Id, Name, Email, Company, Status FROM Lead ORDER BY CreatedDate DESC LIMIT 50';
-                            
+
                             // Adjust based on user request if we can infer it
                             if (userText.includes('contact')) {
                                 defaultQuery = 'SELECT Id, Name, Email, Title FROM Contact ORDER BY CreatedDate DESC LIMIT 50';
                             } else if (userText.includes('opportunity') || userText.includes('deal')) {
                                 defaultQuery = 'SELECT Id, Name, Amount, StageName FROM Opportunity ORDER BY CreatedDate DESC LIMIT 50';
                             }
-                            
+
                             toolArgs = { query: defaultQuery };
                             console.log('✅ [Tool] Using default query:', defaultQuery);
                         } else if (toolCall.name === 'web_search') {
                             console.warn('⚠️ [Tool] web_search called with empty args - providing default query');
-                            
+
                             // Infer search query from user's message
                             let searchQuery = userText;
-                            
+
                             // Clean up common phrases
                             searchQuery = searchQuery
                                 .replace(/can you |please |search |find |look up |get |show me |tell me about /gi, '')
                                 .trim();
-                            
+
                             if (!searchQuery) {
                                 searchQuery = 'latest news';
                             }
-                            
+
                             toolArgs = { query: searchQuery };
                             console.log('✅ [Tool] Using inferred search query:', searchQuery);
                         } else if (toolCall.name === 'search_gmail_emails') {
                             console.warn('⚠️ [Tool] search_gmail_emails called with empty args - providing default query');
-                            
+
                             // For "check my emails" or "recent emails", use a broad search
                             // Use " " (space) which Gmail interprets as all recent emails
                             let emailQuery = ' '; // Default to all recent emails
-                            
+
                             // Try to infer specific search if mentioned
                             if (userText.includes('unread')) {
                                 emailQuery = 'is:unread';
@@ -408,32 +412,49 @@ Default queries (NO WHERE):
                             } else if (userText.includes('this week')) {
                                 emailQuery = 'newer_than:7d';
                             }
-                            
+
                             toolArgs = { query: emailQuery, maxResults: 10 };
                             console.log('✅ [Tool] Using default email search query:', emailQuery);
                         } else if (toolCall.name === 'search_calendar_events') {
                             console.warn('⚠️ [Tool] search_calendar_events called with empty args - providing default');
-                            
+
                             // Search for upcoming events
-                            toolArgs = { 
+                            toolArgs = {
                                 timeMin: new Date().toISOString(),
-                                maxResults: 10 
+                                maxResults: 10
                             };
                             console.log('✅ [Tool] Using default calendar search (upcoming events)');
+                        } else if (toolCall.name === 'create_google_calendar_event') {
+                            console.warn('⚠️ [Tool] create_google_calendar_event called with empty args - providing defaults');
+
+                            // Default to a meeting starting in the next hour
+                            const now = new Date();
+                            const start = new Date(now);
+                            start.setHours(start.getHours() + 1, 0, 0, 0);
+                            const end = new Date(start);
+                            end.setHours(end.getHours() + 1);
+
+                            toolArgs = {
+                                title: 'Meeting',
+                                start: start.toISOString(),
+                                end: end.toISOString(),
+                                description: 'Scheduled via AI'
+                            };
+                            console.log('✅ [Tool] Using default calendar event details:', toolArgs);
                         } else {
                             // For other tools, skip if no args required
                             console.warn(`⚠️ [Tool] ${toolCall.name} called with empty args - skipping`);
                             continue;
                         }
                     }
-                    
+
                     // Validate query_crm doesn't have WHERE clauses with quotes (causes JSON errors)
                     if (toolCall.name === 'query_crm' && toolArgs.query) {
                         const query = toolArgs.query;
                         // Check for WHERE clauses with quotes
                         if (/WHERE\s+.*['"]/.test(query)) {
                             console.warn('⚠️ [Tool] Query contains WHERE clause with quotes - sanitizing');
-                            
+
                             // Remove WHERE clause and use default instead
                             // Extract just the SELECT and FROM parts
                             const selectMatch = query.match(/SELECT\s+.*?\s+FROM\s+(\w+)/i);
@@ -446,7 +467,7 @@ Default queries (NO WHERE):
                                 // Fallback to default
                                 toolArgs.query = 'SELECT Id, Name, Email, Company, Status FROM Lead ORDER BY CreatedDate DESC LIMIT 10';
                             }
-                            
+
                             // Don't show error to user - just fix it silently
                         }
                     }
@@ -493,10 +514,10 @@ Default queries (NO WHERE):
         // If we hit max iterations, provide a helpful response instead of error
         const lastUserMessage = messages.find(m => m instanceof HumanMessage);
         const userText = lastUserMessage ? (lastUserMessage as any).content || '' : '';
-        
+
         // Generate a helpful response based on what the user asked
         let fallbackResponse = "I'm having trouble accessing your CRM data right now. ";
-        
+
         if (userText.toLowerCase().includes('lead')) {
             fallbackResponse += "To view your leads, please try asking again or check your Salesforce connection in the Connectors tab.";
         } else if (userText.toLowerCase().includes('contact')) {
@@ -504,7 +525,7 @@ Default queries (NO WHERE):
         } else {
             fallbackResponse += "Please try rephrasing your request or check your CRM connection in the Connectors tab.";
         }
-        
+
         throw new Error(fallbackResponse);
     }
 }

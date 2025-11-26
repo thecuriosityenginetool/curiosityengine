@@ -251,6 +251,7 @@ CRITICAL TOOL USE REQUIREMENTS:
 - For web_search tool: Be specific with regions (e.g., "Southeast US" not just "Southeast")
 - For search_calendar_events: You MUST provide "timeMin" (ISO string) and "maxResults" (number). Example: {"timeMin": "2025-11-26T00:00:00Z", "maxResults": 10}
 - For create_google_calendar_event: You MUST provide "summary", "start" (ISO string), and "end" (ISO string). Example: {"summary": "Meeting", "start": "2025-11-27T14:00:00-05:00", "end": "2025-11-27T15:00:00-05:00"}
+- For create_gmail_draft: You MUST provide "to", "subject", and "body". Example: {"to": "example@email.com", "subject": "Follow-up", "body": "Hi, I wanted to follow up..."}
 
 ⚠️⚠️⚠️ ABSOLUTE RULE FOR query_crm - READ THIS CAREFULLY ⚠️⚠️⚠️
 NEVER EVER use WHERE clauses with quotes. This WILL break JSON parsing and cause errors.
@@ -434,6 +435,31 @@ For create_google_calendar_event:
                                 maxResults: 10
                             };
                             console.log('✅ [Tool] Using default calendar search (upcoming events)');
+                        } else if (toolCall.name === 'create_gmail_draft') {
+                            console.warn('⚠️ [Tool] create_gmail_draft called with empty args - providing defaults');
+
+                            // Try to infer email details from user text
+                            let to = 'recipient@example.com'; // Will need user to specify
+                            let subject = 'Follow-up';
+                            let body = 'This is a draft email created by AI.';
+
+                            // Simple heuristics to extract email if mentioned
+                            const emailMatch = userText.match(/([a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,})/);
+                            if (emailMatch) {
+                                to = emailMatch[1];
+                            }
+
+                            // Try to infer subject from context
+                            if (userText.includes('follow')) {
+                                subject = 'Follow-up';
+                            } else if (userText.includes('thank')) {
+                                subject = 'Thank you';
+                            } else if (userText.includes('introduction') || userText.includes('intro')) {
+                                subject = 'Introduction';
+                            }
+
+                            toolArgs = { to, subject, body };
+                            console.log('✅ [Tool] Using inferred email draft details:', toolArgs);
                         } else if (toolCall.name === 'create_google_calendar_event') {
                             console.warn('⚠️ [Tool] create_google_calendar_event called with empty args - providing defaults');
 

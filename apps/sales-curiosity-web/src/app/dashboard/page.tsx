@@ -2708,46 +2708,93 @@ The draft is now in your Outlook Drafts folder and ready to send.`);
                                   </button>
                                 </div>
                                 <div className="text-xs text-purple-800 leading-relaxed space-y-2">
-                                  {msg.thinking.split('\n').filter(line => line.trim()).map((line, i) => {
-                                    // Convert technical logs to natural language
-                                    const naturalLine = line
-                                      .replace(/🔧.*Calling tool: web search/i, '🔍 Searching the web for current information...')
-                                      .replace(/🔧.*Calling tool: search_gmail_emails/i, '📧 Looking through your Gmail for relevant emails...')
-                                      .replace(/🔧.*Calling tool: search_salesforce/i, '🔍 Searching Salesforce CRM for contacts...')
-                                      .replace(/🔧.*Calling tool: create_gmail_draft/i, '✉️ Creating email draft in Gmail...')
-                                      .replace(/🔧.*Calling tool: create_email_draft/i, '✉️ Creating email draft in Outlook...')
-                                      .replace(/🔧.*Calling tool: create_google_calendar_event/i, '📅 Adding event to your Google Calendar...')
-                                      .replace(/🔧.*Calling tool: create_calendar_event/i, '📅 Adding event to your Outlook Calendar...')
-                                      .replace(/🔧.*Calling tool: browse_url/i, '🌐 Visiting webpage to extract information...')
-                                      .replace(/✅ Complete:.*Found (\d+) results/i, '✅ Found $1 relevant results')
-                                      .replace(/✅ Complete:.*Error/i, '⚠️ Encountered an issue, adjusting approach...')
-                                      .replace(/✅ Tool result:/i, '✅ Retrieved information:');
-
-                                    return (
-                                      <motion.div
-                                        key={i}
-                                        initial={{ opacity: 0, x: -10 }}
-                                        animate={{ opacity: 1, x: 0 }}
-                                        transition={{ duration: 0.3, delay: i * 0.1 }}
-                                        className="flex items-start gap-3 relative pl-2"
-                                      >
-                                        {/* Timeline line */}
-                                        {i !== msg.thinking!.split('\n').filter(l => l.trim()).length - 1 && (
+                                  <ReactMarkdown
+                                    remarkPlugins={[remarkGfm]}
+                                    className="prose prose-sm prose-purple max-w-none"
+                                    components={{
+                                      p: ({ children }) => (
+                                        <motion.div
+                                          initial={{ opacity: 0, x: -10 }}
+                                          animate={{ opacity: 1, x: 0 }}
+                                          transition={{ duration: 0.3 }}
+                                          className="flex items-start gap-3 relative pl-2 my-2"
+                                        >
+                                          <div className="mt-1.5 w-2 h-2 rounded-full flex-shrink-0 bg-purple-400 animate-pulse" />
+                                          <span className="text-sm text-purple-900">{children}</span>
+                                        </motion.div>
+                                      ),
+                                      ul: ({ children }) => (
+                                        <ul className="space-y-2 my-3">{children}</ul>
+                                      ),
+                                      li: ({ children }) => (
+                                        <motion.li
+                                          initial={{ opacity: 0, x: -10 }}
+                                          animate={{ opacity: 1, x: 0 }}
+                                          transition={{ duration: 0.3 }}
+                                          className="flex items-start gap-3 relative pl-2"
+                                        >
                                           <div className="absolute left-[11px] top-6 bottom-[-12px] w-0.5 bg-purple-100"></div>
-                                        )}
+                                          <div className="mt-1.5 w-2 h-2 rounded-full flex-shrink-0 bg-green-400" />
+                                          <span className="text-sm text-gray-700">{children}</span>
+                                        </motion.li>
+                                      ),
+                                      strong: ({ children }) => (
+                                        <strong className="font-semibold text-purple-900">{children}</strong>
+                                      ),
+                                      em: ({ children }) => (
+                                        <em className="italic text-purple-700">{children}</em>
+                                      ),
+                                      code: ({ children }) => (
+                                        <code className="bg-purple-100 text-purple-900 px-1.5 py-0.5 rounded text-xs font-mono">{children}</code>
+                                      ),
+                                    }}
+                                  >
+                                    {(() => {
+                                      // Clean up and format the thinking content
+                                      let content = msg.thinking || '';
 
-                                        <div className={`mt-1.5 w-2 h-2 rounded-full flex-shrink-0 ${naturalLine.includes('✅') ? 'bg-green-400' :
-                                          naturalLine.includes('⚠️') ? 'bg-yellow-400' :
-                                            'bg-purple-400 animate-pulse'
-                                          }`} />
+                                      // Remove repetitive "**AI Reasoning:**" headers (keep only the first one)
+                                      const lines = content.split('\n');
+                                      let cleanedLines: string[] = [];
+                                      let reasoningHeaderSeen = false;
 
-                                        <span className={`text-sm ${naturalLine.includes('✅') ? 'text-gray-700' : 'text-purple-900 font-medium'
-                                          }`}>
-                                          {naturalLine}
-                                        </span>
-                                      </motion.div>
-                                    );
-                                  })}
+                                      for (const line of lines) {
+                                        // Skip empty lines and noisy system logs
+                                        if (!line.trim()) continue;
+                                        if (line.includes('Analyzing your request (step')) continue;
+                                        if (line.includes('Using') && line.includes('tool(s):')) continue;
+
+                                        // Handle "**AI Reasoning:**" headers
+                                        if (line.trim() === '**AI Reasoning:**') {
+                                          if (!reasoningHeaderSeen) {
+                                            cleanedLines.push(line);
+                                            reasoningHeaderSeen = true;
+                                          }
+                                          continue;
+                                        }
+
+                                        // Convert technical logs to natural language
+                                        let naturalLine = line
+                                          .replace(/🔧.*Calling tool: web_search/i, '🔍 **Searching the web** for current information')
+                                          .replace(/🔧.*Calling tool: search_gmail_emails/i, '📧 **Looking through Gmail** for relevant emails')
+                                          .replace(/🔧.*Calling tool: search_calendar_events/i, '📅 **Checking calendar** for events')
+                                          .replace(/🔧.*Calling tool: search_salesforce/i, '🔍 **Searching Salesforce CRM** for contacts')
+                                          .replace(/🔧.*Calling tool: query_crm/i, '💼 **Querying CRM** for records')
+                                          .replace(/🔧.*Calling tool: create_gmail_draft/i, '✉️ **Creating email draft** in Gmail')
+                                          .replace(/🔧.*Calling tool: create_email_draft/i, '✉️ **Creating email draft** in Outlook')
+                                          .replace(/🔧.*Calling tool: create_google_calendar_event/i, '📅 **Adding event** to Google Calendar')
+                                          .replace(/🔧.*Calling tool: create_calendar_event/i, '📅 **Adding event** to Outlook Calendar')
+                                          .replace(/🔧.*Calling tool: browse_url/i, '🌐 **Visiting webpage** to extract information')
+                                          .replace(/✅ Complete:.*Found (\d+) results/i, '✅ _Found $1 relevant results_')
+                                          .replace(/✅ Complete:.*Error/i, '⚠️ _Encountered an issue, adjusting approach_')
+                                          .replace(/✅ Tool result:/i, '✅ _Retrieved information_');
+
+                                        cleanedLines.push(naturalLine);
+                                      }
+
+                                      return cleanedLines.join('\n');
+                                    })()}
+                                  </ReactMarkdown>
 
                                   {/* Active thinking indicator if message is still streaming/thinking */}
                                   {msg.role === 'assistant' && !msg.content && (

@@ -250,6 +250,7 @@ CRITICAL TOOL USE REQUIREMENTS:
 - For query_crm tool: You MUST provide a "query" parameter with a complete SOQL query
 - For web_search tool: Be specific with regions (e.g., "Southeast US" not just "Southeast")
 - For search_calendar_events: You MUST provide "timeMin" (ISO string) and "maxResults" (number). Example: {"timeMin": "2025-11-26T00:00:00Z", "maxResults": 10}
+- For create_google_calendar_event: You MUST provide "summary", "start" (ISO string), and "end" (ISO string). Example: {"summary": "Meeting", "start": "2025-11-27T14:00:00-05:00", "end": "2025-11-27T15:00:00-05:00"}
 
 ⚠️⚠️⚠️ ABSOLUTE RULE FOR query_crm - READ THIS CAREFULLY ⚠️⚠️⚠️
 NEVER EVER use WHERE clauses with quotes. This WILL break JSON parsing and cause errors.
@@ -437,7 +438,15 @@ For create_google_calendar_event:
                             console.warn('⚠️ [Tool] create_google_calendar_event called with empty args - providing defaults');
 
                             // Default to a meeting starting in the next hour
+                            // Default to a meeting starting in the next hour
                             const now = new Date();
+
+                            // Check for "tomorrow" in user text
+                            if (userText.includes('tomorrow')) {
+                                now.setDate(now.getDate() + 1);
+                                console.log('✅ [Tool] Detected "tomorrow", adjusting default date');
+                            }
+
                             const start = new Date(now);
                             start.setHours(start.getHours() + 1, 0, 0, 0);
                             const end = new Date(start);
